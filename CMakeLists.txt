@@ -18,6 +18,15 @@ set(GLAD_INCLUDE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/glad/glad.h")
 set(KHR_INCLUDE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/KHW/khwplatform.h")
 set(STD_IMAGE_INCLUDE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/std_image/std_image.h")
 
+option(ASSIMP_BUILD_ASSIMP_TOOLS OFF)
+option(ASSIMP_BUILD_SAMPLES OFF)
+option(ASSIMP_BUILD_TESTS OFF)
+option(BUILD_SHARED_LIBS OFF)
+
+add_subdirectory(lib/assimp)
+
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/lib/assimp/include/")
+
 include_directories(
 	${GLFW_INCLUDE_PATH}
 	${GLEW_INCLUDE_PATH}
@@ -25,9 +34,11 @@ include_directories(
 	${STD_IMAGE_INCLUDE_PATH}
 )
 
+
+
 add_subdirectory(thirdparty/glm)
 
 
-target_include_directories("${CMAKE_PROJECT_NAME}" PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include/")
+# target_include_directories("${CMAKE_PROJECT_NAME}" PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include/*")
 
-target_link_libraries("${CMAKE_PROJECT_NAME}" ${OPENGL_LIBRARY} ${GLFW_LIBRARY} glm)
+target_link_libraries("${CMAKE_PROJECT_NAME}" ${OPENGL_LIBRARY} ${GLFW_LIBRARY} glm assimp)
