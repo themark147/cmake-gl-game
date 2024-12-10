@@ -1,1 +1,1 @@
-1. `git clone --resursive git@github.com:themark147/cmake-gl-game.git`
+1. `git clone --recursive git@github.com:themark147/cmake-gl-game.git`
