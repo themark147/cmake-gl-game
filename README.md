@@ -1,0 +1,1 @@
+1. `git clone --resursive git@github.com:themark147/cmake-gl-game.git`
