@@ -7,3 +7,6 @@
 [submodule "lib/glfw"]
 	path = lib/glfw
 	url = https://github.com/glfw/glfw
+[submodule "lib/reactphysics3d"]
+	path = lib/reactphysics3d
+	url = https://github.com/DanielChappuis/reactphysics3d.git

@@ -10,14 +10,22 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 
+#include <reactphysics3d/reactphysics3d.h>
+
 #include <iostream>
 #include <vector>
+
+#include "Camera.h"
+#include "Object/Object.h"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
 
 const unsigned int SCR_WIDTH = 1920;
 const unsigned int SCR_HEIGHT = 1080;
+
+Camera camera(glm::vec3(0.0f, 0.0f, 15.0f));
+Object firstBox(glm::vec3(0.0f, 0.0f, 15.0f));
 
 int main()
 {
@@ -51,7 +59,7 @@ int main()
     {
         processInput(window);
 
-        glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+        glClearColor(1.0f, 1.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glfwSwapBuffers(window);
