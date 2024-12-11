@@ -1,6 +1,6 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#include <std_image/stb_image.h>
+#include <std_image/std_image.h>
 
 #include <glm/glm.hpp>
 #include <glm/ext/matrix_transform.hpp>
@@ -50,7 +50,7 @@ int main()
     {
         processInput(window);
 
-        glClearColor(0.7f, 0.15f, 0.25f, 1.0f);
+        glClearColor(1.0f, 1.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glfwSwapBuffers(window);
