@@ -6,7 +6,8 @@ project(openglgame)
 
 find_package(OpenGL REQUIRED)
 
-set(SOURCE_FILES src/Main.cpp src/Object/Object.cpp external/glad.c)
+file(GLOB SOURCES "src/**/*.cpp")
+set(SOURCE_FILES ${SOURCES} src/Main.cpp external/glad.c)
 add_executable("${CMAKE_PROJECT_NAME}" ${SOURCE_FILES})
 
 option(ASSIMP_BUILD_ASSIMP_TOOLS OFF)
