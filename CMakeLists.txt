@@ -7,6 +7,7 @@ project(openglgame)
 find_package(OpenGL REQUIRED)
 
 file(GLOB SOURCES "src/**/*.cpp")
+file(GLOB INCLUES2 "src/**/*.h")
 set(SOURCE_FILES ${SOURCES} src/Main.cpp external/glad.c)
 add_executable("${CMAKE_PROJECT_NAME}" ${SOURCE_FILES})
 
@@ -24,6 +25,7 @@ set(INCLUDES "${CMAKE_CURRENT_SOURCE_DIR}/include/")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/lib/assimp/include/")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/lib/reactphysics3d/include/")
 include_directories(${INCLUDES})
+include_directories(${INCLUES2})
 
 # target_include_directories("${CMAKE_PROJECT_NAME}" PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include/*")
 

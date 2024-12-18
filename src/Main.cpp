@@ -12,11 +12,19 @@
 
 #include <reactphysics3d/reactphysics3d.h>
 
+#include "imgui/imgui.h"
+#include "imgui/imgui_impl_glfw.h"
+#include "imgui/imgui_impl_opengl3.h"
+
 #include <iostream>
 #include <vector>
 
+#include "Shader.h"
 #include "Camera.h"
 #include "Object/Object.h"
+#include "Input/KeyController.h"
+
+using namespace KeyInput;
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
@@ -24,24 +32,11 @@ void processInput(GLFWwindow* window);
 const unsigned int SCR_WIDTH = 1920;
 const unsigned int SCR_HEIGHT = 1080;
 
-enum KeyDefinition {
-    KEY_G = 0,
-    KEY_H = 1,
-    KEY_T = 2
-};
-
-struct Key {
-    int keyCode;
-    bool state;
-    int previousState;
-
-    Key(int key) : keyCode(key), state(false), previousState(GLFW_RELEASE) {}
-};
-
 std::vector<Key> keys;
 
 Camera camera(glm::vec3(0.0f, 0.0f, 15.0f));
 Object firstBox(glm::vec3(0.0f, 0.0f, 15.0f));
+KeyController keyController;
 
 int main()
 {
@@ -71,6 +66,20 @@ int main()
         return -1;
     }
 
+    glfwSwapInterval(0); // vsync
+
+    // Setup Dear ImGui context
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+
+    ImGui::StyleColorsLight();
+
+    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    ImGui_ImplOpenGL3_Init("#version 130");
+
     // It has to be in same order as KeyDefinition
     keys.push_back(Key(GLFW_KEY_G));
     keys.push_back(Key(GLFW_KEY_H));
@@ -80,8 +89,21 @@ int main()
     {
         processInput(window);
 
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
         if (keys[KeyDefinition::KEY_T].state) {
-            glClearColor(1.0f, 0.0f, 0.0f, 1.0f); // 'T' key - Red
+            ImGui_ImplOpenGL3_NewFrame();
+            ImGui_ImplGlfw_NewFrame();
+            ImGui::NewFrame();
+
+            ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
+
+            ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
+            ImGui::End();
+
+            // Rendering
+            ImGui::Render();
+            ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         }
         else if (keys[KeyDefinition::KEY_G].state) {
             glClearColor(0.0f, 1.0f, 0.0f, 1.0f); // 'G' key - Green
@@ -93,11 +115,13 @@ int main()
             glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // Default - Black
         }
 
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
+
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
 
     glfwTerminate();
 
@@ -109,17 +133,7 @@ void processInput(GLFWwindow* window)
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 
-    for (auto& key : keys) {
-        int keyState = glfwGetKey(window, key.keyCode);
-
-        if (keyState == GLFW_PRESS && key.previousState == GLFW_RELEASE) {
-            key.state = !key.state;
-            printf("Key %d toggled to %s\n", key.keyCode, key.state ? "ON" : "OFF");
-
-        }
-
-        key.previousState = keyState;
-    }  
+    keyController.processKeys(window, keys);
 }
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
