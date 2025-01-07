@@ -1,6 +1,6 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#include <std_image/std_image.h>
+#include <stb_image/stb_image.h>
 
 #include <glm/glm.hpp>
 #include <glm/ext/matrix_transform.hpp>
@@ -18,25 +18,62 @@
 
 #include <iostream>
 #include <vector>
+#include <chrono>
+#include <filesystem>
 
 #include "Shader.h"
 #include "Camera.h"
 #include "Object/Object.h"
 #include "Input/KeyController.h"
 
+#include "Debug/VertexArrayObject.h"
+#include "Debug/VertexBufferObject.h"
+
 using namespace KeyInput;
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-void processInput(GLFWwindow* window);
+void processInput(GLFWwindow* window, PhysicsWorld* world);
+void initDebug();
+void drawDebug(DebugRenderer& debugRenderer, uint vertexPositionLoc, uint vertexColorLoc);
+void mouse_callback(GLFWwindow* window, double xposIn, double yposIn);
 
-const unsigned int SCR_WIDTH = 1920;
-const unsigned int SCR_HEIGHT = 1080;
+int widthScreen = 1920;
+int heightScreen = 1080;
+
+float lastX = widthScreen / 2.0f;
+float lastY = heightScreen / 2.0f;
+bool firstMouse = true;
+bool debugActivated = false;
 
 std::vector<Key> keys;
 
 Camera camera(glm::vec3(0.0f, 0.0f, 15.0f));
-Object firstBox(glm::vec3(0.0f, 0.0f, 15.0f));
 KeyController keyController;
+
+using chrono_clock = std::chrono::high_resolution_clock;
+
+std::chrono::time_point<chrono_clock> mStartTime;
+std::chrono::time_point<std::chrono::high_resolution_clock> mLastUpdateTime;
+
+/// Used to fix the time step and avoid strange time effects
+std::chrono::duration<double> mAccumulator;
+std::chrono::duration<double> deltaTime;
+
+/// Vertex Buffer Object for the debug info lines vertices data
+openglframework::VertexBufferObject mDebugVBOLinesVertices(GL_ARRAY_BUFFER);
+
+/// Vertex Array Object for the lines vertex data
+openglframework::VertexArrayObject mDebugLinesVAO;
+
+/// Vertex Buffer Object for the debug info trinangles vertices data
+openglframework::VertexBufferObject mDebugVBOTrianglesVertices(GL_ARRAY_BUFFER);
+
+/// Vertex Array Object for the triangles vertex data
+openglframework::VertexArrayObject mDebugTrianglesVAO;
+
+// TODO - move somewhere else
+Object firstBox(glm::vec3(0.0f, 0.0f, 15.0f));
+std::vector<Object*> boxes;
 
 int main()
 {
@@ -49,7 +86,7 @@ int main()
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 
-    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(widthScreen, heightScreen, "Greatest OpenGL project", NULL, NULL);
     if (window == NULL)
     {
         std::cout << "Failed to create GLFW window" << std::endl;
@@ -60,11 +97,19 @@ int main()
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
+    glfwSetCursorPosCallback(window, mouse_callback);
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
         std::cout << "Failed to initialize GLAD" << std::endl;
         return -1;
     }
+
+    // stbi_set_flip_vertically_on_load(true); // Because of textures
+    glEnable(GL_DEPTH_TEST);
+
+    initDebug();
 
     glfwSwapInterval(0); // vsync
 
@@ -81,22 +126,103 @@ int main()
     ImGui_ImplOpenGL3_Init("#version 130");
 
     // It has to be in same order as KeyDefinition
-    keys.push_back(Key(GLFW_KEY_G));
-    keys.push_back(Key(GLFW_KEY_H));
-    keys.push_back(Key(GLFW_KEY_T));
+    keys.push_back(Key(GLFW_KEY_G, KeyType::TOGGLE));
+    keys.push_back(Key(GLFW_KEY_H, KeyType::TOGGLE));
+    keys.push_back(Key(GLFW_KEY_T, KeyType::TOGGLE));
+    keys.push_back(Key(GLFW_KEY_TAB, KeyType::TOGGLE));
+
+    keys.push_back(Key(GLFW_KEY_W));
+    keys.push_back(Key(GLFW_KEY_A));
+    keys.push_back(Key(GLFW_KEY_S));
+    keys.push_back(Key(GLFW_KEY_D));
+
+    std::cout << std::filesystem::current_path() << std::endl;
+    /*std::ifstream file("debug.fs");
+    if (!file.is_open()) {
+        std::cerr << "AAAAAAAAAAAAA kde mam shaders?" << std::endl;
+    }*/
+
+    // Shader mainShader("resource/render.vs", "resource/render.fs");
+    // TODO try to figure out nicer path + loading resources?
+    Shader debugShader("./resources/debug.vs", "./resources/debug.fs");
+   
+    PhysicsCommon physicsCommon;
+
+    // Create a physics world
+    PhysicsWorld* world = physicsCommon.createPhysicsWorld();
+
+    DebugRenderer& debugRenderer = world->getDebugRenderer();
+
+    // Select the contact points and contact normals to be displayed
+    debugRenderer.setIsDebugItemDisplayed(DebugRenderer::DebugItem::COLLISION_SHAPE, true);
+
+    std::chrono::duration<double> timeStep = std::chrono::duration<double>(1.0f / 60.0f);
+
+    mStartTime = std::chrono::high_resolution_clock::now();
+    mLastUpdateTime = mStartTime;
+    mAccumulator = std::chrono::duration<double>::zero();
+
+    Object* floor = new Object(glm::vec3(0, -5, 0));
+    floor->create(physicsCommon, world, BodyType::STATIC, Vector3(10, 1, 10));
 
     while (!glfwWindowShouldClose(window))
     {
-        processInput(window);
+        glfwPollEvents();
+        processInput(window, world);
 
+        glClearColor(0.0f, 0.3f, 0.3f, 1.0f); // Default - Black
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        // Physics
+        std::chrono::time_point<std::chrono::high_resolution_clock> currentTime = std::chrono::high_resolution_clock::now();
+        deltaTime = currentTime - mLastUpdateTime;
+
+        // Update the current display time
+        mLastUpdateTime = currentTime;
+        mAccumulator += deltaTime;
+
+        while (mAccumulator >= timeStep) {
+            world->update(timeStep.count());
+
+            mAccumulator -= timeStep;
+        }        
+
+        // ----- Triangles ---- //
+        const uint nbTriangles = debugRenderer.getNbTriangles();
+
+        if (nbTriangles > 0)
+        {
+            // Vertices
+            mDebugVBOTrianglesVertices.bind();
+            GLsizei sizeVertices = static_cast<GLsizei>(nbTriangles * sizeof(rp3d::DebugRenderer::DebugTriangle));
+            mDebugVBOTrianglesVertices.copyDataIntoVBO(sizeVertices, debugRenderer.getTrianglesArray(), GL_STREAM_DRAW);
+            mDebugVBOTrianglesVertices.unbind();
+        }
+
+        debugShader.use();
+
+        int vertexPositionLoc = debugShader.getAttribLocation("aPos");
+        int vertexColorLoc = debugShader.getAttribLocation("vertexColor");
+
+        // Triangles
+        if (nbTriangles > 0) {
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+            drawDebug(debugRenderer, vertexPositionLoc, vertexColorLoc);
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        }
+
+        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float) widthScreen / (float) heightScreen, 0.1f, 100.0f);
+        debugShader.setMat4("projection", projection);
+
+        glm::mat4 view = camera.GetViewMatrix();
+        debugShader.setMat4("view", view);
 
         if (keys[KeyDefinition::KEY_T].state) {
             ImGui_ImplOpenGL3_NewFrame();
             ImGui_ImplGlfw_NewFrame();
             ImGui::NewFrame();
 
-            ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
+            ImGui::Begin("Hello, world!");
 
             ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
             ImGui::End();
@@ -105,18 +231,8 @@ int main()
             ImGui::Render();
             ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         }
-        else if (keys[KeyDefinition::KEY_G].state) {
-            glClearColor(0.0f, 1.0f, 0.0f, 1.0f); // 'G' key - Green
-        }
-        else if (keys[KeyDefinition::KEY_H].state) {
-            glClearColor(0.0f, 0.0f, 1.0f, 1.0f); // 'H' key - Blue
-        }
-        else {
-            glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // Default - Black
-        }
 
         glfwSwapBuffers(window);
-        glfwPollEvents();
     }
 
     ImGui_ImplOpenGL3_Shutdown();
@@ -128,10 +244,30 @@ int main()
     return 0;
 }
 
-void processInput(GLFWwindow* window)
+void processInput(GLFWwindow* window, PhysicsWorld* world)
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
+
+    if (keys[KeyDefinition::KEY_TAB].state) {
+        world->setIsDebugRenderingEnabled(!debugActivated);
+    }
+
+    if (keys[KeyDefinition::KEY_W].state) {
+        camera.ProcessKeyboard(FORWARD, deltaTime.count());
+    }
+
+    if (keys[KeyDefinition::KEY_A].state) {
+        camera.ProcessKeyboard(LEFT, deltaTime.count());
+    }
+
+    if (keys[KeyDefinition::KEY_S].state) {
+        camera.ProcessKeyboard(BACKWARD, deltaTime.count());
+    }
+
+    if (keys[KeyDefinition::KEY_D].state) {
+        camera.ProcessKeyboard(RIGHT, deltaTime.count());
+    }
 
     keyController.processKeys(window, keys);
 }
@@ -139,4 +275,94 @@ void processInput(GLFWwindow* window)
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
     glViewport(0, 0, width, height);
+}
+
+void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
+{
+    float xpos = static_cast<float>(xposIn);
+    float ypos = static_cast<float>(yposIn);
+
+    if (firstMouse)
+    {
+        lastX = xpos;
+        lastY = ypos;
+        firstMouse = false;
+    }
+
+    float xoffset = xpos - lastX;
+    float yoffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
+
+    lastX = xpos;
+    lastY = ypos;
+
+    camera.ProcessMouseMovement(xoffset, yoffset);
+}
+
+void createBox(PhysicsCommon& common, PhysicsWorld* world)
+{
+    glm::vec3 spawnPosition = (camera.Front * glm::vec3(15)) + camera.Position;
+    Object* object = new Object(spawnPosition);
+
+    boxes.push_back(object);
+    object->create(common, world, BodyType::DYNAMIC, Vector3(1.5, 1.5, 1.5));
+    // object->getRigidBody()->applyLocalForceAtLocalPosition(Vector3(1000, 1000, 1000) * Vector3(camera.Front.x, camera.Front.y, camera.Front.z), Vector3(0.15, 0.7, 1.5));
+}
+
+void initDebug()
+{
+    mDebugVBOLinesVertices.create();
+
+    // Create the VAO for both VBOs
+    mDebugLinesVAO.create();
+    mDebugLinesVAO.bind();
+
+    // Bind the VBO of vertices
+    mDebugVBOLinesVertices.bind();
+
+    // Unbind the VAO
+    mDebugLinesVAO.unbind();
+
+    mDebugVBOLinesVertices.unbind();
+
+    // ----- Triangles ----- //
+
+    // Create the VBO for the vertices data
+    mDebugVBOTrianglesVertices.create();
+
+    // Create the VAO for both VBOs
+    mDebugTrianglesVAO.create();
+    mDebugTrianglesVAO.bind();
+
+    // Bind the VBO of vertices
+    mDebugVBOTrianglesVertices.bind();
+
+    // Unbind the VAO
+    mDebugTrianglesVAO.unbind();
+
+    mDebugVBOTrianglesVertices.unbind();
+}
+
+void drawDebug(DebugRenderer& debugRenderer, uint vertexPositionLoc, uint vertexColorLoc)
+{
+    // Bind the VAO
+    mDebugTrianglesVAO.bind();
+
+    mDebugVBOTrianglesVertices.bind();
+
+    glVertexAttribPointer(vertexPositionLoc, 3, GL_FLOAT, GL_FALSE, sizeof(rp3d::Vector3) + sizeof(rp3d::uint32), (char*)nullptr);
+    glEnableVertexAttribArray(vertexPositionLoc);
+
+    glVertexAttribIPointer(vertexColorLoc, 3, GL_UNSIGNED_INT, sizeof(rp3d::Vector3) + sizeof(rp3d::uint32), (void*)sizeof(rp3d::Vector3));
+    glEnableVertexAttribArray(vertexColorLoc);
+
+    // Draw the triangles geometry
+    glDrawArrays(GL_TRIANGLES, 0, debugRenderer.getNbTriangles() * 3);
+
+    glDisableVertexAttribArray(vertexPositionLoc);
+    glDisableVertexAttribArray(vertexColorLoc);
+
+    mDebugVBOTrianglesVertices.unbind();
+
+    // Unbind the VAO
+    mDebugTrianglesVAO.unbind();
 }
