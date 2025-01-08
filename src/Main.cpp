@@ -19,7 +19,6 @@
 #include <iostream>
 #include <vector>
 #include <chrono>
-#include <filesystem>
 
 #include "Shader.h"
 #include "Camera.h"
@@ -28,6 +27,8 @@
 
 #include "Debug/VertexArrayObject.h"
 #include "Debug/VertexBufferObject.h"
+
+#include "debug_shaders.h"
 
 using namespace KeyInput;
 
@@ -43,7 +44,6 @@ int heightScreen = 1080;
 float lastX = widthScreen / 2.0f;
 float lastY = heightScreen / 2.0f;
 bool firstMouse = true;
-bool debugActivated = false;
 
 std::vector<Key> keys;
 
@@ -136,15 +136,8 @@ int main()
     keys.push_back(Key(GLFW_KEY_S));
     keys.push_back(Key(GLFW_KEY_D));
 
-    std::cout << std::filesystem::current_path() << std::endl;
-    /*std::ifstream file("debug.fs");
-    if (!file.is_open()) {
-        std::cerr << "AAAAAAAAAAAAA kde mam shaders?" << std::endl;
-    }*/
-
     // Shader mainShader("resource/render.vs", "resource/render.fs");
-    // TODO try to figure out nicer path + loading resources?
-    Shader debugShader("./resources/debug.vs", "./resources/debug.fs");
+    Shader debugShader(debug_vertex_shader, debug_fragment_shader);
    
     PhysicsCommon physicsCommon;
 
@@ -202,12 +195,12 @@ int main()
         debugShader.use();
 
         int vertexPositionLoc = debugShader.getAttribLocation("aPos");
-        int vertexColorLoc = debugShader.getAttribLocation("vertexColor");
+        // int vertexColorLoc = debugShader.getAttribLocation("vertexColor");
 
         // Triangles
         if (nbTriangles > 0) {
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-            drawDebug(debugRenderer, vertexPositionLoc, vertexColorLoc);
+            drawDebug(debugRenderer, vertexPositionLoc, 2);
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         }
 
@@ -250,7 +243,7 @@ void processInput(GLFWwindow* window, PhysicsWorld* world)
         glfwSetWindowShouldClose(window, true);
 
     if (keys[KeyDefinition::KEY_TAB].state) {
-        world->setIsDebugRenderingEnabled(!debugActivated);
+        world->setIsDebugRenderingEnabled(true);
     }
 
     if (keys[KeyDefinition::KEY_W].state) {
@@ -352,14 +345,14 @@ void drawDebug(DebugRenderer& debugRenderer, uint vertexPositionLoc, uint vertex
     glVertexAttribPointer(vertexPositionLoc, 3, GL_FLOAT, GL_FALSE, sizeof(rp3d::Vector3) + sizeof(rp3d::uint32), (char*)nullptr);
     glEnableVertexAttribArray(vertexPositionLoc);
 
-    glVertexAttribIPointer(vertexColorLoc, 3, GL_UNSIGNED_INT, sizeof(rp3d::Vector3) + sizeof(rp3d::uint32), (void*)sizeof(rp3d::Vector3));
-    glEnableVertexAttribArray(vertexColorLoc);
+   // glVertexAttribIPointer(vertexColorLoc, 3, GL_UNSIGNED_INT, sizeof(rp3d::Vector3) + sizeof(rp3d::uint32), (void*)sizeof(rp3d::Vector3));
+   // glEnableVertexAttribArray(vertexColorLoc);
 
     // Draw the triangles geometry
     glDrawArrays(GL_TRIANGLES, 0, debugRenderer.getNbTriangles() * 3);
 
     glDisableVertexAttribArray(vertexPositionLoc);
-    glDisableVertexAttribArray(vertexColorLoc);
+    //glDisableVertexAttribArray(vertexColorLoc);
 
     mDebugVBOTrianglesVertices.unbind();
 
