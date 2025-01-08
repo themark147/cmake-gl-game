@@ -4,8 +4,9 @@
 
 namespace KeyInput {
     enum KeyType { // TODO naming KeyFunctionality ???
+        HOLD,
+        TOGGLE,
         PRESS,
-        TOGGLE
     };
 
     enum KeyDefinition {
@@ -17,6 +18,7 @@ namespace KeyInput {
         KEY_A = 5,
         KEY_S = 6,
         KEY_D = 7,
+        KEY_F = 8,
     };
 
     struct Key {
@@ -25,25 +27,40 @@ namespace KeyInput {
         int previousState;
         KeyType keyType;
 
-        Key(int key, KeyType keyType = KeyType::PRESS) : keyCode(key),  state(false), previousState(GLFW_RELEASE), keyType(keyType) {}
+        Key(int key, KeyType keyType = KeyType::HOLD) : keyCode(key),  state(false), previousState(GLFW_RELEASE), keyType(keyType) {}
     };
 
     class KeyController {
     public:
+
+        
+
         void processKeys(GLFWwindow* window, std::vector<Key> &keys) {
             for (auto& key : keys) {
                 int keyState = glfwGetKey(window, key.keyCode);
 
-                if (keyState == GLFW_PRESS && key.keyType == KeyType::PRESS) {
+                // HOLD
+                if (keyState == GLFW_PRESS && key.keyType == KeyType::HOLD) {
                     key.state = true;
                 }
-                else if (key.keyType == KeyType::PRESS) {
+                else if (key.keyType == KeyType::HOLD) {
                     key.state = false;
                 }
 
+                // TOGGLE
                 if (keyState == GLFW_PRESS && key.previousState == GLFW_RELEASE && key.keyType == KeyType::TOGGLE) {
                     key.state = !key.state;
                     printf("Key %d toggled to %s\n", key.keyCode, key.state ? "ON" : "OFF");
+                }
+
+                // PRESS
+                if (keyState == GLFW_PRESS && key.previousState == false && key.keyType == KeyType::PRESS) {
+                    key.state = true;
+                    key.previousState = true;
+                }
+                else if (key.previousState == true && key.keyType == KeyType::PRESS) {
+                    key.state = false;
+                    // key.previousState = false;
                 }
 
                 key.previousState = keyState;

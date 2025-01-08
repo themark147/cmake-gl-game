@@ -6,18 +6,19 @@ project(openglgame)
 
 find_package(OpenGL REQUIRED)
 
-set(RESOURCES_BINARY "${CMAKE_CURRENT_BINARY_DIR}/resources/")
+# set(RESOURCES_BINARY "${CMAKE_CURRENT_BINARY_DIR}/resources/")
 
 
 file(GLOB SOURCES "src/**/*.cpp")
-file(GLOB INCLUES2 "src/**/*.h")
+file(GLOB INCLUDES2 "src/**/*.h")
 set(SOURCE_FILES ${SOURCES} src/Main.cpp external/glad.c)
 add_executable("${CMAKE_PROJECT_NAME}" ${SOURCE_FILES})
 
-file(GLOB RESOURCE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/resources/*")
-foreach(RESOURCE ${RESOURCE_FILES})
-    configure_file(${RESOURCE} ${RESOURCES_BINARY} COPYONLY)
-endforeach()
+
+# file(GLOB RESOURCE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/resources/*")
+# foreach(RESOURCE ${RESOURCE_FILES})
+    # configure_file(${RESOURCE} ${RESOURCES_BINARY} COPYONLY)
+# endforeach()
 
 option(ASSIMP_BUILD_ASSIMP_TOOLS OFF)
 option(ASSIMP_BUILD_SAMPLES OFF)
@@ -34,7 +35,7 @@ set(INCLUDES "${CMAKE_CURRENT_SOURCE_DIR}/include/")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/lib/assimp/include/")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/lib/reactphysics3d/include/")
 include_directories(${INCLUDES})
-include_directories(${INCLUES2})
+include_directories(${INCLUDES2})
 
 # target_include_directories("${CMAKE_PROJECT_NAME}" PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include/*")
 

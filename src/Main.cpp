@@ -1,6 +1,5 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#include <stb_image/stb_image.h>
 
 #include <glm/glm.hpp>
 #include <glm/ext/matrix_transform.hpp>
@@ -20,6 +19,8 @@
 #include <vector>
 #include <chrono>
 
+#include "stb_image/stb_image.h"
+
 #include "Shader.h"
 #include "Camera.h"
 #include "Object/Object.h"
@@ -33,7 +34,8 @@
 using namespace KeyInput;
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-void processInput(GLFWwindow* window, PhysicsWorld* world);
+void processInput(GLFWwindow* window, PhysicsWorld* world, PhysicsCommon& common);
+void createBox(PhysicsCommon& common, PhysicsWorld* world);
 void initDebug();
 void drawDebug(DebugRenderer& debugRenderer, uint vertexPositionLoc, uint vertexColorLoc);
 void mouse_callback(GLFWwindow* window, double xposIn, double yposIn);
@@ -44,6 +46,8 @@ int heightScreen = 1080;
 float lastX = widthScreen / 2.0f;
 float lastY = heightScreen / 2.0f;
 bool firstMouse = true;
+
+bool F_pressed = false;
 
 std::vector<Key> keys;
 
@@ -136,6 +140,10 @@ int main()
     keys.push_back(Key(GLFW_KEY_S));
     keys.push_back(Key(GLFW_KEY_D));
 
+    keys.push_back(Key(GLFW_KEY_F, KeyType::PRESS));
+
+    // keys.push_back(Key(GLFW_KEY_F, KeyType::TOGGLE));
+
     // Shader mainShader("resource/render.vs", "resource/render.fs");
     Shader debugShader(debug_vertex_shader, debug_fragment_shader);
    
@@ -161,7 +169,7 @@ int main()
     while (!glfwWindowShouldClose(window))
     {
         glfwPollEvents();
-        processInput(window, world);
+        processInput(window, world, physicsCommon);
 
         glClearColor(0.0f, 0.3f, 0.3f, 1.0f); // Default - Black
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -237,7 +245,7 @@ int main()
     return 0;
 }
 
-void processInput(GLFWwindow* window, PhysicsWorld* world)
+void processInput(GLFWwindow* window, PhysicsWorld* world, PhysicsCommon& common)
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
@@ -260,6 +268,10 @@ void processInput(GLFWwindow* window, PhysicsWorld* world)
 
     if (keys[KeyDefinition::KEY_D].state) {
         camera.ProcessKeyboard(RIGHT, deltaTime.count());
+    }
+
+    if (keys[KeyDefinition::KEY_F].state) {
+        createBox(common, world);
     }
 
     keyController.processKeys(window, keys);
