@@ -33,8 +33,6 @@ namespace KeyInput {
     class KeyController {
     public:
 
-        
-
         void processKeys(GLFWwindow* window, std::vector<Key> &keys) {
             for (auto& key : keys) {
                 int keyState = glfwGetKey(window, key.keyCode);
@@ -54,13 +52,12 @@ namespace KeyInput {
                 }
 
                 // PRESS
-                if (keyState == GLFW_PRESS && key.previousState == false && key.keyType == KeyType::PRESS) {
+                if (keyState == GLFW_PRESS && key.previousState == GLFW_RELEASE && key.keyType == KeyType::PRESS) {
                     key.state = true;
-                    key.previousState = true;
+                    key.previousState = GLFW_PRESS;
                 }
-                else if (key.previousState == true && key.keyType == KeyType::PRESS) {
+                else if (key.previousState == GLFW_PRESS && key.keyType == KeyType::PRESS) {
                     key.state = false;
-                    // key.previousState = false;
                 }
 
                 key.previousState = keyState;

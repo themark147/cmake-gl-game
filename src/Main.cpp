@@ -157,6 +157,7 @@ int main()
     // Select the contact points and contact normals to be displayed
     debugRenderer.setIsDebugItemDisplayed(DebugRenderer::DebugItem::COLLISION_SHAPE, true);
 
+    // step
     std::chrono::duration<double> timeStep = std::chrono::duration<double>(1.0f / 60.0f);
 
     mStartTime = std::chrono::high_resolution_clock::now();
@@ -174,7 +175,7 @@ int main()
         glClearColor(0.0f, 0.3f, 0.3f, 1.0f); // Default - Black
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // Physics
+        // Physics 1/60 step
         std::chrono::time_point<std::chrono::high_resolution_clock> currentTime = std::chrono::high_resolution_clock::now();
         deltaTime = currentTime - mLastUpdateTime;
 
