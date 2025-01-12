@@ -1,3 +1,9 @@
+#pragma once
+
+#include <string>
+
+std::string render_fragment_shader = R"(
+
 #version 330 core
 out vec4 FragColor;
 
@@ -64,7 +70,14 @@ float GeometrySchlickGGX(float NdotV, float NdotL, float roughness)
 void main()
 {
     vec3 albedo = texture(material.diffuse, TexCoords).rgb;
-    
+vec3 lala = texture(material.diffuse, TexCoords).rgb;
+
+vec3 cervena = vec3(1.0f, 0.0f, 0.0f);
+     FragColor = vec4(lala, 1.0f);
+
+
+
+    /*
     float roughness = texture(material.roughness, TexCoords).g;
     float metallic = texture(material.roughness, TexCoords).b;
     vec3 normalMap = texture(material.normal, TexCoords).rgb;
@@ -115,5 +128,38 @@ void main()
     // gamma correct
     // color = pow(color, vec3(1.0 / 2.2));
 
-    FragColor = vec4(color, 1.0);
-} 
+    FragColor = vec4(color, 1.0);*/
+}
+
+)";
+
+std::string render_vertex_shader = R"(
+
+#version 330 core
+layout (location = 0) in vec3 aPos;
+layout (location = 1) in vec3 aNormal;
+layout (location = 2) in vec2 aTexCoords;
+layout (location = 3) in vec3 aTangent;
+layout (location = 4) in vec3 aBitangent;
+
+out vec3 FragPos;
+out vec3 Normal;
+out vec2 TexCoords;
+out mat3 TBN;
+
+uniform mat4 model;
+uniform mat4 view;
+uniform mat4 projection;
+
+void main()
+{
+    FragPos = vec3(model * vec4(aPos, 1.0));
+    Normal = mat3(transpose(inverse(model))) * aNormal;  
+    TexCoords = aTexCoords;
+
+    TBN = mat3(transpose(inverse(model))) * mat3(aTangent, aBitangent, aNormal);
+    
+    gl_Position = projection * view * vec4(FragPos, 1.0);
+}
+
+)";

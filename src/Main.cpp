@@ -1,5 +1,6 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include "stb/stb_image.h"
 
 #include <glm/glm.hpp>
 #include <glm/ext/matrix_transform.hpp>
@@ -19,17 +20,21 @@
 #include <vector>
 #include <chrono>
 
-#include "stb_image/stb_image.h"
-
 #include "Shader.h"
 #include "Camera.h"
+
+#include "Model/Mesh.h"
+#include "Model/Model.h"
+
 #include "Object/Object.h"
 #include "Input/KeyController.h"
 
 #include "Debug/VertexArrayObject.h"
 #include "Debug/VertexBufferObject.h"
 
+// Shaders
 #include "debug_shaders.h"
+#include "render_shaders.h"
 
 using namespace KeyInput;
 
@@ -37,6 +42,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window, PhysicsWorld* world, PhysicsCommon& common);
 void createBox(PhysicsCommon& common, PhysicsWorld* world);
 void initDebug();
+void renderObject(Shader& mainShader, glm::mat4& projection, glm::mat4& view, Model& zombieModel);
 void drawDebug(DebugRenderer& debugRenderer, uint vertexPositionLoc, uint vertexColorLoc);
 void mouse_callback(GLFWwindow* window, double xposIn, double yposIn);
 
@@ -110,7 +116,7 @@ int main()
         return -1;
     }
 
-    // stbi_set_flip_vertically_on_load(true); // Because of textures
+    stbi_set_flip_vertically_on_load(true); // Because of textures
     glEnable(GL_DEPTH_TEST);
 
     initDebug();
@@ -142,10 +148,14 @@ int main()
 
     keys.push_back(Key(GLFW_KEY_F, KeyType::PRESS));
 
-    // keys.push_back(Key(GLFW_KEY_F, KeyType::TOGGLE));
-
-    // Shader mainShader("resource/render.vs", "resource/render.fs");
+    Shader mainShader(render_vertex_shader, render_fragment_shader);
     Shader debugShader(debug_vertex_shader, debug_fragment_shader);
+
+    mainShader.use();
+    // mainShader.setInt("material.diffuse", 0);
+    //lightingShader.setInt("material.specular", 2);
+    //mainShader.setInt("material.normal", 1);
+    //mainShader.setInt("material.roughness", 2);
    
     PhysicsCommon physicsCommon;
 
@@ -158,7 +168,7 @@ int main()
     debugRenderer.setIsDebugItemDisplayed(DebugRenderer::DebugItem::COLLISION_SHAPE, true);
 
     // step
-    std::chrono::duration<double> timeStep = std::chrono::duration<double>(1.0f / 60.0f);
+    std::chrono::duration<double> timeStep = std::chrono::duration<double>(1.0f / 100.0f);
 
     mStartTime = std::chrono::high_resolution_clock::now();
     mLastUpdateTime = mStartTime;
@@ -166,6 +176,8 @@ int main()
 
     Object* floor = new Object(glm::vec3(0, -5, 0));
     floor->create(physicsCommon, world, BodyType::STATIC, Vector3(10, 1, 10));
+
+    Model zombieModel("../../../resources/zombie_char_7_4.glb", glm::vec3(0.0f, 0.0f, 0.0f));
 
     while (!glfwWindowShouldClose(window))
     {
@@ -175,7 +187,6 @@ int main()
         glClearColor(0.0f, 0.3f, 0.3f, 1.0f); // Default - Black
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // Physics 1/60 step
         std::chrono::time_point<std::chrono::high_resolution_clock> currentTime = std::chrono::high_resolution_clock::now();
         deltaTime = currentTime - mLastUpdateTime;
 
@@ -219,6 +230,9 @@ int main()
         glm::mat4 view = camera.GetViewMatrix();
         debugShader.setMat4("view", view);
 
+        renderObject(mainShader, projection, view, zombieModel);
+
+        // At the end as "overlay"
         if (keys[KeyDefinition::KEY_T].state) {
             ImGui_ImplOpenGL3_NewFrame();
             ImGui_ImplGlfw_NewFrame();
@@ -244,6 +258,30 @@ int main()
     glfwTerminate();
 
     return 0;
+}
+
+void renderObject(Shader& mainShader, glm::mat4& projection, glm::mat4& view, Model& zombieModel) {
+    mainShader.use();
+
+    mainShader.setMat4("projection", projection);
+    mainShader.setMat4("view", view);
+
+    mainShader.setVec3("light.position", 0.0f, 40.0f, 30.0f);
+    mainShader.setVec3("camPos", camera.Position);
+
+    // light properties
+    mainShader.setVec3("light.ambient", 0.2f, 0.2f, 0.2f);
+    mainShader.setVec3("light.diffuse", 0.5f, 0.5f, 0.5f);
+    mainShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
+
+    // material properties
+    mainShader.setFloat("material.shininess", 32.0f);
+
+    glm::mat4 model = glm::mat4(1.0f);
+    model = glm::translate(model, glm::vec3(0.0f, -2.0f, 10.0f));
+
+    mainShader.setMat4("model", model);
+    zombieModel.Draw(mainShader);
 }
 
 void processInput(GLFWwindow* window, PhysicsWorld* world, PhysicsCommon& common)
