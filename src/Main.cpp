@@ -42,7 +42,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window, PhysicsWorld* world, PhysicsCommon& common);
 void createBox(PhysicsCommon& common, PhysicsWorld* world);
 void initDebug();
-void renderObject(Shader& mainShader, glm::mat4& projection, glm::mat4& view, Model& zombieModel);
+void renderObject(Shader& mainShader, glm::mat4& projection, glm::mat4& view, Model& zombieModel, Model& turretModel, Model& tankModel);
 void drawDebug(DebugRenderer& debugRenderer, uint vertexPositionLoc, uint vertexColorLoc);
 void mouse_callback(GLFWwindow* window, double xposIn, double yposIn);
 
@@ -178,6 +178,10 @@ int main()
     floor->create(physicsCommon, world, BodyType::STATIC, Vector3(10, 1, 10));
 
     Model zombieModel("../../../resources/zombie_char_7_4.glb", glm::vec3(0.0f, 0.0f, 0.0f));
+    Model turretModel("../../../resources/turret.glb", glm::vec3(0.0f, 0.0f, 0.0f));
+    Model tankModel("../../../resources/tank.glb", glm::vec3(0.0f, 0.0f, 0.0f));
+
+    glm::vec3 light(15.0f, 30.0f, 5.0f);
 
     while (!glfwWindowShouldClose(window))
     {
@@ -194,7 +198,9 @@ int main()
         mLastUpdateTime = currentTime;
         mAccumulator += deltaTime;
 
+        
         while (mAccumulator >= timeStep) {
+            mainShader.setVec3("light.position", light.x, light.y, light.z); // ImGui
             world->update(timeStep.count());
 
             mAccumulator -= timeStep;
@@ -230,15 +236,18 @@ int main()
         glm::mat4 view = camera.GetViewMatrix();
         debugShader.setMat4("view", view);
 
-        renderObject(mainShader, projection, view, zombieModel);
+        renderObject(mainShader, projection, view, zombieModel, turretModel, tankModel);
 
         // At the end as "overlay"
         if (keys[KeyDefinition::KEY_T].state) {
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
             ImGui_ImplOpenGL3_NewFrame();
             ImGui_ImplGlfw_NewFrame();
             ImGui::NewFrame();
-
+            
             ImGui::Begin("Hello, world!");
+            // ImGui::SliderFloat("float", &XLight, -50.0f, 50.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
+            ImGui::SliderFloat3("floatt", &light.x, -50.0f, 50.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
 
             ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
             ImGui::End();
@@ -246,6 +255,9 @@ int main()
             // Rendering
             ImGui::Render();
             ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+        }
+        else {
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
         }
 
         glfwSwapBuffers(window);
@@ -260,13 +272,12 @@ int main()
     return 0;
 }
 
-void renderObject(Shader& mainShader, glm::mat4& projection, glm::mat4& view, Model& zombieModel) {
+void renderObject(Shader& mainShader, glm::mat4& projection, glm::mat4& view, Model& zombieModel, Model& turretModel, Model& tankModel) {
     mainShader.use();
 
     mainShader.setMat4("projection", projection);
     mainShader.setMat4("view", view);
-
-    mainShader.setVec3("light.position", 0.0f, 40.0f, 30.0f);
+    
     mainShader.setVec3("camPos", camera.Position);
 
     // light properties
@@ -277,11 +288,23 @@ void renderObject(Shader& mainShader, glm::mat4& projection, glm::mat4& view, Mo
     // material properties
     mainShader.setFloat("material.shininess", 32.0f);
 
-    glm::mat4 model = glm::mat4(1.0f);
-    model = glm::translate(model, glm::vec3(0.0f, -2.0f, 10.0f));
+    glm::mat4 modelZombie = glm::mat4(1.0f);
+    modelZombie = glm::translate(modelZombie, glm::vec3(0.0f, -2.0f, 10.0f));
 
-    mainShader.setMat4("model", model);
+    mainShader.setMat4("model", modelZombie);
     zombieModel.Draw(mainShader);
+
+    glm::mat4 modelTurret = glm::mat4(1.0f);
+    modelTurret = glm::translate(modelTurret, glm::vec3(-1.5f, -2.0f, 10.0f));
+
+    mainShader.setMat4("model", modelTurret);
+    turretModel.Draw(mainShader);
+
+    glm::mat4 modelTank = glm::mat4(1.0f);
+    modelTank = glm::translate(modelTank, glm::vec3(-3.5f, -0.5f, 10.0f));
+
+    mainShader.setMat4("model", modelTank);
+    tankModel.Draw(mainShader);
 }
 
 void processInput(GLFWwindow* window, PhysicsWorld* world, PhysicsCommon& common)
@@ -318,6 +341,9 @@ void processInput(GLFWwindow* window, PhysicsWorld* world, PhysicsCommon& common
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
+    widthScreen = width;
+    heightScreen = height;
+
     glViewport(0, 0, width, height);
 }
 
@@ -339,7 +365,8 @@ void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
     lastX = xpos;
     lastY = ypos;
 
-    camera.ProcessMouseMovement(xoffset, yoffset);
+    if (glfwGetInputMode(window, GLFW_CURSOR) == GLFW_CURSOR_DISABLED)
+        camera.ProcessMouseMovement(xoffset, yoffset);
 }
 
 void createBox(PhysicsCommon& common, PhysicsWorld* world)

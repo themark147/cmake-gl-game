@@ -163,23 +163,23 @@ private:
             aiTextureType_AMBIENT_OCCLUSION = 17,*/
 
         // 1. diffuse maps
-        vector<Texture> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, "texture_diffuse", scene);
+        vector<Texture> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, "material.diffuse", scene);
         textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
         // 2. specular maps
-        //vector<Texture> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, "texture_specular", scene);
-        //textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
+        vector<Texture> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, "material.specular", scene);
+        textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
         // 3. normal maps
-        //std::vector<Texture> normalMaps = loadMaterialTextures(material, aiTextureType_NORMALS, "texture_normal");
-        //textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
+        std::vector<Texture> normalMaps = loadMaterialTextures(material, aiTextureType_NORMALS, "material.normal", scene);
+        textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
         // 4. height maps
         //std::vector<Texture> heightMaps = loadMaterialTextures(material, aiTextureType_HEIGHT, "texture_height");
         //textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
 
-        //std::vector<Texture> roughness = loadMaterialTextures(material, aiTextureType_DIFFUSE_ROUGHNESS, "texture_roughness");
-        //textures.insert(textures.end(), roughness.begin(), roughness.end());
+        std::vector<Texture> roughness = loadMaterialTextures(material, aiTextureType_DIFFUSE_ROUGHNESS, "material.roughness", scene);
+        textures.insert(textures.end(), roughness.begin(), roughness.end());
 
         // return a mesh object created from the extracted mesh data
-        std::cout << "pocet textur vo vectore: " << textures.size();
+        std::cout << "\npocet textur vo vectore: " << textures.size();
 
         return Mesh(vertices, indices, textures);
     }

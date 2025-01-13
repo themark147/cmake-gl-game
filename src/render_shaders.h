@@ -67,24 +67,34 @@ float GeometrySchlickGGX(float NdotV, float NdotL, float roughness)
     return ggx1 * ggx2;
 }
 
+vec3 getNormalFromMap()
+{
+    vec3 tangentNormal = texture(material.normal, TexCoords).rgb * 2.0 - 1.0;
+
+    vec3 Q1  = dFdx(FragPos);
+    vec3 Q2  = dFdy(FragPos);
+    vec2 st1 = dFdx(TexCoords);
+    vec2 st2 = dFdy(TexCoords);
+
+    vec3 N   = normalize(Normal);
+    vec3 T  = normalize(Q1*st2.t - Q2*st1.t);
+    vec3 B  = -normalize(cross(N, T));
+    mat3 TBN = mat3(T, B, N);
+
+    return normalize(TBN * tangentNormal);
+}
+
 void main()
 {
     vec3 albedo = texture(material.diffuse, TexCoords).rgb;
-vec3 lala = texture(material.diffuse, TexCoords).rgb;
-
-vec3 cervena = vec3(1.0f, 0.0f, 0.0f);
-     FragColor = vec4(lala, 1.0f);
-
-
-
-    /*
+    // vec3 albedo = pow(texture(material.diffuse, TexCoords).rgb, vec3(1.0 / 2.2));
+    
     float roughness = texture(material.roughness, TexCoords).g;
-    float metallic = texture(material.roughness, TexCoords).b;
+    float metallic = texture(material.roughness, TexCoords).g;
     vec3 normalMap = texture(material.normal, TexCoords).rgb;
 
-
-    vec3 N = 2.0 * texture(material.normal, TexCoords).rgb - 1.0;
-	N = normalize(TBN * N);
+    //vec3 N = 2.0 * texture(material.normal, TexCoords).rgb - 1.0;
+    vec3 N = getNormalFromMap();
 
     vec3 L0 = vec3(0.0f);
 
@@ -97,7 +107,7 @@ vec3 cervena = vec3(1.0f, 0.0f, 0.0f);
 
     float distance = length(light.position - FragPos);
     float attenuation = 1.0 / (distance * distance);
-    vec3 radiance = light.diffuse * attenuation * 30000.0; // diffuse = color * attenuation == "brightness"
+    vec3 radiance = light.diffuse * attenuation * 10000.0; // diffuse = color * attenuation == "brightness"
 
     float NdotV = max(dot(N, V), 0.0000001);
     float NdotL = max(dot(N, L), 0.0000001);
@@ -123,12 +133,12 @@ vec3 cervena = vec3(1.0f, 0.0f, 0.0f);
     vec3 color = ambient + L0;
 
     // HDR
-    // color = color / (color + vec3(1.0));
+    color = color / (color + vec3(1.0));
 
     // gamma correct
     // color = pow(color, vec3(1.0 / 2.2));
 
-    FragColor = vec4(color, 1.0);*/
+    FragColor = vec4(color, 1.0);
 }
 
 )";
@@ -145,7 +155,7 @@ layout (location = 4) in vec3 aBitangent;
 out vec3 FragPos;
 out vec3 Normal;
 out vec2 TexCoords;
-out mat3 TBN;
+// out mat3 TBN;
 
 uniform mat4 model;
 uniform mat4 view;
@@ -157,7 +167,7 @@ void main()
     Normal = mat3(transpose(inverse(model))) * aNormal;  
     TexCoords = aTexCoords;
 
-    TBN = mat3(transpose(inverse(model))) * mat3(aTangent, aBitangent, aNormal);
+    // TBN = mat3(transpose(inverse(model))) * mat3(aTangent, aBitangent, aNormal);
     
     gl_Position = projection * view * vec4(FragPos, 1.0);
 }
