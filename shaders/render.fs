@@ -6,6 +6,7 @@ struct Material {
     sampler2D specular;  
     sampler2D normal;  
     sampler2D roughness; 
+    sampler2D metallic; 
     sampler2D ao; 
     float shininess;
 }; 

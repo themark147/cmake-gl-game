@@ -26,6 +26,8 @@
 #include "Model/Mesh.h"
 #include "Model/Model.h"
 
+#include "Material/Material.h"
+
 #include "Object/Object.h"
 #include "Input/KeyController.h"
 
@@ -44,7 +46,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window, PhysicsWorld* world, PhysicsCommon& common);
 void createBox(PhysicsCommon& common, PhysicsWorld* world);
 void initDebug();
-void renderObject(Shader& mainShader, glm::mat4& projection, glm::mat4& view, Model& zombieModel, Model& turretModel, Model& tankModel);
+void renderObject(Shader& mainShader, glm::mat4& projection, glm::mat4& view, Model& turretModel);
 void drawDebug(DebugRenderer& debugRenderer, uint vertexPositionLoc, uint vertexColorLoc);
 void mouse_callback(GLFWwindow* window, double xposIn, double yposIn);
 
@@ -179,9 +181,9 @@ int main()
     Object* floor = new Object(glm::vec3(0, -5, 0));
     floor->create(physicsCommon, world, BodyType::STATIC, Vector3(10, 1, 10));
 
-    Model zombieModel("../../../resources/zombie_char_7_4.glb", glm::vec3(0.0f, 0.0f, 0.0f));
+    // Model zombieModel("../../../resources/zombie_char_7_4.glb", glm::vec3(0.0f, 0.0f, 0.0f));
     Model turretModel("../../../resources/turret.glb", glm::vec3(0.0f, 0.0f, 0.0f));
-    Model tankModel("../../../resources/zombie_char_7_4.glb", glm::vec3(0.0f, 0.0f, 0.0f));
+    // Model tankModel("../../../resources/zombie_char_7_4.glb", glm::vec3(0.0f, 0.0f, 0.0f));
 
     glm::vec3 light(15.0f, 30.0f, 5.0f);
 
@@ -190,7 +192,7 @@ int main()
         glfwPollEvents();
         processInput(window, world, physicsCommon);
 
-        glClearColor(0.0f, 0.3f, 0.3f, 1.0f); // Default - Black
+        glClearColor(0.0f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         std::chrono::time_point<std::chrono::high_resolution_clock> currentTime = std::chrono::high_resolution_clock::now();
@@ -238,7 +240,7 @@ int main()
         glm::mat4 view = camera.GetViewMatrix();
         debugShader.setMat4("view", view);
 
-        renderObject(mainShader, projection, view, zombieModel, turretModel, tankModel);
+        renderObject(mainShader, projection, view, turretModel);
 
         // At the end as "overlay"
         if (keys[KeyDefinition::KEY_T].state) {
@@ -274,7 +276,7 @@ int main()
     return 0;
 }
 
-void renderObject(Shader& mainShader, glm::mat4& projection, glm::mat4& view, Model& zombieModel, Model& turretModel, Model& tankModel) {
+void renderObject(Shader& mainShader, glm::mat4& projection, glm::mat4& view, Model& turretModel) {
     mainShader.use();
 
     mainShader.setMat4("projection", projection);
@@ -283,30 +285,18 @@ void renderObject(Shader& mainShader, glm::mat4& projection, glm::mat4& view, Mo
     mainShader.setVec3("camPos", camera.Position);
 
     // light properties
-    mainShader.setVec3("light.ambient", 0.2f, 0.2f, 0.2f);
+    mainShader.setVec3("light.ambient", 1.0f, 0.2f, 0.2f);
     mainShader.setVec3("light.diffuse", 0.5f, 0.5f, 0.5f);
     mainShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
 
     // material properties
     mainShader.setFloat("material.shininess", 32.0f);
 
-    glm::mat4 modelZombie = glm::mat4(1.0f);
-    modelZombie = glm::translate(modelZombie, glm::vec3(0.0f, -2.0f, 10.0f));
-
-    mainShader.setMat4("model", modelZombie);
-    zombieModel.Draw(mainShader);
-
     glm::mat4 modelTurret = glm::mat4(1.0f);
-    modelTurret = glm::translate(modelTurret, glm::vec3(-1.5f, -2.0f, 10.0f));
+    modelTurret = glm::translate(modelTurret, glm::vec3(-1.5f, -1.5f, 10.0f));
 
     mainShader.setMat4("model", modelTurret);
     turretModel.Draw(mainShader);
-
-    glm::mat4 modelTank = glm::mat4(1.0f);
-    modelTank = glm::translate(modelTank, glm::vec3(-3.5f, -0.5f, 10.0f));
-
-    mainShader.setMat4("model", modelTank);
-    tankModel.Draw(mainShader);
 }
 
 void processInput(GLFWwindow* window, PhysicsWorld* world, PhysicsCommon& common)

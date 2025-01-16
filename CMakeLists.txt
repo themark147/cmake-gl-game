@@ -12,6 +12,7 @@ file(GLOB SOURCES "src/**/*.cpp")
 file(GLOB INCLUDES2 "src/**/*.h")
 set(SOURCE_FILES ${SOURCES} src/Main.cpp src/stb.cpp external/glad.c)
 
+
 add_executable("${CMAKE_PROJECT_NAME}" ${SOURCE_FILES})
 
 function(embed_shader SHADER_SRC SHADER_VAR_NAME)
@@ -33,6 +34,9 @@ embed_shader(shaders/render.fs fragmentShaderRender)
 # foreach(RESOURCE ${RESOURCE_FILES})
     # configure_file(${RESOURCE} ${RESOURCES_BINARY} COPYONLY)
 # endforeach()
+
+
+
 
 option(ASSIMP_BUILD_ASSIMP_TOOLS OFF)
 option(ASSIMP_BUILD_SAMPLES OFF)
