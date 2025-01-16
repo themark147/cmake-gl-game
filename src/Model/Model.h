@@ -178,6 +178,9 @@ private:
         std::vector<Texture> roughness = loadMaterialTextures(material, aiTextureType_DIFFUSE_ROUGHNESS, "material.roughness", scene);
         textures.insert(textures.end(), roughness.begin(), roughness.end());
 
+        std::vector<Texture> ao = loadMaterialTextures(material, aiTextureType_AMBIENT_OCCLUSION, "material.ao", scene);
+        textures.insert(textures.end(), ao.begin(), ao.end());
+
         // return a mesh object created from the extracted mesh data
         std::cout << "\npocet textur vo vectore: " << textures.size();
 

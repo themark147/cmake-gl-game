@@ -11,7 +11,23 @@ find_package(OpenGL REQUIRED)
 file(GLOB SOURCES "src/**/*.cpp")
 file(GLOB INCLUDES2 "src/**/*.h")
 set(SOURCE_FILES ${SOURCES} src/Main.cpp src/stb.cpp external/glad.c)
+
 add_executable("${CMAKE_PROJECT_NAME}" ${SOURCE_FILES})
+
+function(embed_shader SHADER_SRC SHADER_VAR_NAME)
+    file(READ ${SHADER_SRC} SHADER_CONTENT)
+
+    file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/${SHADER_VAR_NAME}.cpp 
+          "#include <string>\nstd::string ${SHADER_VAR_NAME} = R\"(${SHADER_CONTENT})\";")
+
+    # Add the generated .cpp file to your target sources
+    target_sources("${CMAKE_PROJECT_NAME}" PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/${SHADER_VAR_NAME}.cpp)
+endfunction()
+
+embed_shader(shaders/debug.vs vertexShaderDebug)
+embed_shader(shaders/debug.fs fragmentShaderDebug)
+embed_shader(shaders/render.vs vertexShaderRender)
+embed_shader(shaders/render.fs fragmentShaderRender)
 
 # file(GLOB RESOURCE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/resources/*")
 # foreach(RESOURCE ${RESOURCE_FILES})

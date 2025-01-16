@@ -32,11 +32,13 @@
 #include "Debug/VertexArrayObject.h"
 #include "Debug/VertexBufferObject.h"
 
-// Shaders
-#include "debug_shaders.h"
-#include "render_shaders.h"
-
 using namespace KeyInput;
+
+extern std::string vertexShaderDebug;
+extern std::string fragmentShaderDebug;
+
+extern std::string vertexShaderRender;
+extern std::string fragmentShaderRender;
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window, PhysicsWorld* world, PhysicsCommon& common);
@@ -148,8 +150,8 @@ int main()
 
     keys.push_back(Key(GLFW_KEY_F, KeyType::PRESS));
 
-    Shader mainShader(render_vertex_shader, render_fragment_shader);
-    Shader debugShader(debug_vertex_shader, debug_fragment_shader);
+    Shader mainShader(vertexShaderRender, fragmentShaderRender);
+    Shader debugShader(vertexShaderDebug, fragmentShaderDebug);
 
     mainShader.use();
     // mainShader.setInt("material.diffuse", 0);
@@ -179,7 +181,7 @@ int main()
 
     Model zombieModel("../../../resources/zombie_char_7_4.glb", glm::vec3(0.0f, 0.0f, 0.0f));
     Model turretModel("../../../resources/turret.glb", glm::vec3(0.0f, 0.0f, 0.0f));
-    Model tankModel("../../../resources/tank.glb", glm::vec3(0.0f, 0.0f, 0.0f));
+    Model tankModel("../../../resources/zombie_char_7_4.glb", glm::vec3(0.0f, 0.0f, 0.0f));
 
     glm::vec3 light(15.0f, 30.0f, 5.0f);
 
