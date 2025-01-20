@@ -94,7 +94,7 @@ private:
         vector<Vertex> vertices;
         vector<unsigned int> indices;
         vector<Texture> textures;
-        GLGame::Material* meshMaterial;
+        GLGame::Material* meshMaterial = new GLGame::Material();
 
         // walk through each of the mesh's vertices
         for (unsigned int i = 0; i < mesh->mNumVertices; i++)
@@ -178,12 +178,16 @@ private:
         //std::vector<Texture> heightMaps = loadMaterialTextures(material, aiTextureType_HEIGHT, "texture_height");
         //textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
 
-        std::vector<Texture> metallic = loadMaterialTextures(material, aiTextureType_METALNESS, "material.metallic", scene);
-        Texture metallicTexture = metallic.front();
-        textures.insert(textures.end(), metallic.begin(), metallic.end());
+        std::vector<Texture> metallicMaps = loadMaterialTextures(material, aiTextureType_METALNESS, "material.metallic", scene);
+        GLGame::Texture* metallic = nullptr;
+        if (!metallicMaps.empty()) {
+            Texture metallicTexture = metallicMaps.front();
+            metallic = new GLGame::Texture(metallicTexture.id, metallicTexture.type);
+            textures.insert(textures.end(), metallicMaps.begin(), metallicMaps.end());
+        }
 
         std::vector<Texture> roughness = loadMaterialTextures(material, aiTextureType_DIFFUSE_ROUGHNESS, "material.roughness", scene);
-        textures.insert(textures.end(), roughness.begin(), roughness.end());
+        // textures.insert(textures.end(), roughness.begin(), roughness.end());
 
         //std::vector<Texture> ao = loadMaterialTextures(material, aiTextureType_AMBIENT_OCCLUSION, "material.ao", scene);
         //textures.insert(textures.end(), ao.begin(), ao.end());
@@ -191,7 +195,13 @@ private:
         // return a mesh object created from the extracted mesh data
         std::cout << "\npocet textur vo vectore: " << textures.size();
 
-        meshMaterial = new GLGame::Material(GLGame::Texture(diffuseTexture.id, diffuseTexture.type), GLGame::Texture(normalTexture.id, normalTexture.type), GLGame::Texture(metallicTexture.id, metallicTexture.type));
+        std::vector<GLGame::Texture*> texturesToMaterial;
+
+        texturesToMaterial.push_back(new GLGame::Texture(diffuseTexture.id, diffuseTexture.type));
+        texturesToMaterial.push_back(new GLGame::Texture(normalTexture.id, normalTexture.type));
+        texturesToMaterial.push_back(metallic);
+
+        meshMaterial->setTextures(texturesToMaterial);
 
         return Mesh(vertices, indices, textures, meshMaterial);
     }

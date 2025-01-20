@@ -15,13 +15,13 @@ namespace GLGame {
 
 	class Material {
 	public:
-		Material(Texture diffuse, Texture normal, Texture metallic);
-		vector<Texture> getTextures();
+		Material();
+		void setTextures(vector<Texture*> &textures);
+		vector<Texture*> getTextures();
 	private:
-		Texture diffuse;
-		Texture normal;
-		Texture metallic;
+		//Texture* diffuse;
+		//Texture* normal;
 
-		vector<Texture> textures;
+		vector<Texture*> textures;
 	};
 };
