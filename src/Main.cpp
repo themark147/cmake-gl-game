@@ -23,6 +23,9 @@
 #include "Shader.h"
 #include "Camera.h"
 
+#include "Scene/Scene.h"
+#include "Player/Player.h"
+
 #include "Model/Mesh.h"
 #include "Model/Model.h"
 
@@ -57,12 +60,12 @@ float lastX = widthScreen / 2.0f;
 float lastY = heightScreen / 2.0f;
 bool firstMouse = true;
 
-bool F_pressed = false;
-
 std::vector<Key> keys;
 
-Camera camera(glm::vec3(0.0f, 0.0f, 15.0f));
 KeyController keyController;
+
+GLGame::Player player(glm::vec3(0.0f, 0.0f, 10.0f));
+Camera camera = player.getCamera();
 
 using chrono_clock = std::chrono::high_resolution_clock;
 
@@ -86,8 +89,13 @@ openglframework::VertexBufferObject mDebugVBOTrianglesVertices(GL_ARRAY_BUFFER);
 openglframework::VertexArrayObject mDebugTrianglesVAO;
 
 // TODO - move somewhere else
-Object firstBox(glm::vec3(0.0f, 0.0f, 15.0f));
-std::vector<Object*> boxes;
+//Object firstBox(glm::vec3(0.0f, 0.0f, 15.0f));
+//std::vector<Object*> boxes;
+
+// Application - init openGL & other stuff
+
+// Scene - predefined objects or creating new one
+//  - render method - simply interate over each obj.
 
 int main()
 {
@@ -119,6 +127,9 @@ int main()
         std::cout << "Failed to initialize GLAD" << std::endl;
         return -1;
     }
+
+    Shader debugShader(vertexShaderDebug, fragmentShaderDebug);
+    GLGame::Scene* scene = new GLGame::Scene(debugShader);
 
     stbi_set_flip_vertically_on_load(true); // Because of textures
     glEnable(GL_DEPTH_TEST);
@@ -153,7 +164,6 @@ int main()
     keys.push_back(Key(GLFW_KEY_F, KeyType::PRESS));
 
     Shader mainShader(vertexShaderRender, fragmentShaderRender);
-    Shader debugShader(vertexShaderDebug, fragmentShaderDebug);
 
     mainShader.use();
     // mainShader.setInt("material.diffuse", 0);
@@ -164,13 +174,14 @@ int main()
     PhysicsCommon physicsCommon;
 
     // Create a physics world
-    PhysicsWorld* world = physicsCommon.createPhysicsWorld();
+    PhysicsWorld* world = scene->getWorld();
 
     DebugRenderer& debugRenderer = world->getDebugRenderer();
 
     // Select the contact points and contact normals to be displayed
     debugRenderer.setIsDebugItemDisplayed(DebugRenderer::DebugItem::COLLISION_SHAPE, true);
 
+    // TODO part of Physics.cpp -> tick() -> step()
     // step
     std::chrono::duration<double> timeStep = std::chrono::duration<double>(1.0f / 100.0f);
 
@@ -178,12 +189,12 @@ int main()
     mLastUpdateTime = mStartTime;
     mAccumulator = std::chrono::duration<double>::zero();
 
-    Object* floor = new Object(glm::vec3(0, -5, 0));
-    floor->create(physicsCommon, world, BodyType::STATIC, Vector3(10, 1, 10));
+    // Object* floor = new Object(glm::vec3(0, -5, 0));
+    // floor->create(physicsCommon, world, BodyType::STATIC, Vector3(10, 1, 10));
 
-    Model zombieModel("../../../resources/zombie_char_7_4.glb", glm::vec3(0.0f, 0.0f, 0.0f));
-    Model turretModel("../../../resources/turret.glb", glm::vec3(0.0f, 0.0f, 0.0f));
-    Model tankModel("../../../resources/zombie_char_7_4.glb", glm::vec3(0.0f, 0.0f, 0.0f));
+    // Model zombieModel("../../../resources/zombie_char_7_4.glb", glm::vec3(0.0f, 0.0f, 0.0f));
+    // Model turretModel("../../../resources/turret.glb", glm::vec3(0.0f, 0.0f, 0.0f));
+    // Model tankModel("../../../resources/zombie_char_7_4.glb", glm::vec3(0.0f, 0.0f, 0.0f));
 
     glm::vec3 light(15.0f, 30.0f, 5.0f);
 
@@ -234,13 +245,16 @@ int main()
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         }
 
+        // Player + his camera
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float) widthScreen / (float) heightScreen, 0.1f, 100.0f);
         debugShader.setMat4("projection", projection);
 
         glm::mat4 view = camera.GetViewMatrix();
         debugShader.setMat4("view", view);
 
-        renderObject(mainShader, projection, view, zombieModel, turretModel, tankModel);
+        scene->render();
+
+        // renderObject(mainShader, projection, view, zombieModel, turretModel, tankModel);
 
         // At the end as "overlay"
         if (keys[KeyDefinition::KEY_T].state) {
@@ -282,7 +296,7 @@ void renderObject(Shader& mainShader, glm::mat4& projection, glm::mat4& view, Mo
     mainShader.setMat4("projection", projection);
     mainShader.setMat4("view", view);
     
-    mainShader.setVec3("camPos", camera.Position);
+    //mainShader.setVec3("camPos", camera.Position);
 
     // light properties
     mainShader.setVec3("light.ambient", 1.0f, 0.2f, 0.2f);
@@ -290,7 +304,7 @@ void renderObject(Shader& mainShader, glm::mat4& projection, glm::mat4& view, Mo
     mainShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
 
     // material properties
-    mainShader.setFloat("material.shininess", 32.0f);
+    // mainShader.setFloat("material.shininess", 32.0f);
 
     glm::mat4 modelZombie = glm::mat4(1.0f);
     modelZombie = glm::translate(modelZombie, glm::vec3(0.0f, -2.0f, 10.0f));
@@ -375,11 +389,11 @@ void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
 
 void createBox(PhysicsCommon& common, PhysicsWorld* world)
 {
-    glm::vec3 spawnPosition = (camera.Front * glm::vec3(15)) + camera.Position;
-    Object* object = new Object(spawnPosition);
+    //glm::vec3 spawnPosition = (camera.Front * glm::vec3(15)) + camera.Position;
+    //Object* object = new Object(spawnPosition);
 
-    boxes.push_back(object);
-    object->create(common, world, BodyType::DYNAMIC, Vector3(1.5, 1.5, 1.5));
+    //boxes.push_back(object);
+    //object->create(common, world, BodyType::DYNAMIC, Vector3(1.5, 1.5, 1.5));
     // object->getRigidBody()->applyLocalForceAtLocalPosition(Vector3(1000, 1000, 1000) * Vector3(camera.Front.x, camera.Front.y, camera.Front.z), Vector3(0.15, 0.7, 1.5));
 }
 

@@ -1,0 +1,21 @@
+// Camera
+// Object == StaticMesh/SkeletalMesh
+// inputs?
+
+#pragma once
+
+#include "../Camera.h"
+
+namespace GLGame {
+	class Player {
+	public:
+		Player::Player(glm::vec3 position);
+		void processInput();
+
+		Camera getCamera() {
+			return camera;
+		}
+	private:
+		Camera camera;
+	};
+}
