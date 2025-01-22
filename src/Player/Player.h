@@ -5,6 +5,7 @@
 #pragma once
 
 #include "../Camera.h"
+#include "../Input/KeyController.h"
 
 namespace GLGame {
 	class Player {

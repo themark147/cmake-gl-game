@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <GLFW/glfw3.h>
 
 namespace KeyInput {
     enum KeyType { // TODO naming KeyFunctionality ???
@@ -32,7 +33,6 @@ namespace KeyInput {
 
     class KeyController {
     public:
-
         void processKeys(GLFWwindow* window, std::vector<Key> &keys) {
             for (auto& key : keys) {
                 int keyState = glfwGetKey(window, key.keyCode);
@@ -63,5 +63,13 @@ namespace KeyInput {
                 key.previousState = keyState;
             }
         }
+
+        static KeyInput::KeyController get() {
+            static KeyController instance;
+            
+            return instance;
+        }
+    private:
+        
     };
 }

@@ -62,7 +62,7 @@ bool firstMouse = true;
 
 std::vector<Key> keys;
 
-KeyController keyController;
+// KeyController keyController;
 
 GLGame::Player player(glm::vec3(0.0f, 0.0f, 10.0f));
 Camera camera = player.getCamera();
@@ -197,6 +197,8 @@ int main()
     // Model tankModel("../../../resources/zombie_char_7_4.glb", glm::vec3(0.0f, 0.0f, 0.0f));
 
     glm::vec3 light(15.0f, 30.0f, 5.0f);
+
+    KeyInput::KeyController& controller = KeyInput::KeyController::get();
 
     while (!glfwWindowShouldClose(window))
     {
@@ -354,7 +356,7 @@ void processInput(GLFWwindow* window, PhysicsWorld* world, PhysicsCommon& common
         createBox(common, world);
     }
 
-    keyController.processKeys(window, keys);
+    KeyInput::KeyController::get().processKeys(window, keys);
 }
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
