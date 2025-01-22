@@ -1,16 +1,15 @@
 #include "Player.h"
 #include "../Input/KeyController.h"
 
-extern KeyInput::KeyController& controller;
-
 namespace GLGame {
 	Player::Player(glm::vec3 position) {
 		camera = Camera(position);
-		controller = KeyInput::KeyController::get();
 	}
-
+	
 	void Player::processInput()
 	{
-		// TODO define & process inputs
+		if (keyController.isKeyPressed(KeyInput::KeyDefinition::KEY_A)) {
+			camera.ProcessKeyboard(LEFT, 1.0f / 100.0f); // TODO step same as step from physics ?
+		}
 	}
 }

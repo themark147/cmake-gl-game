@@ -60,12 +60,12 @@ float lastX = widthScreen / 2.0f;
 float lastY = heightScreen / 2.0f;
 bool firstMouse = true;
 
-std::vector<Key> keys;
+// std::vector<Key> keys;
 
 // KeyController keyController;
 
 GLGame::Player player(glm::vec3(0.0f, 0.0f, 10.0f));
-Camera camera = player.getCamera();
+Camera& camera = player.getCamera();
 
 using chrono_clock = std::chrono::high_resolution_clock;
 
@@ -136,7 +136,7 @@ int main()
 
     initDebug();
 
-    glfwSwapInterval(0); // vsync
+    glfwSwapInterval(1); // vsync
 
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
@@ -150,18 +150,7 @@ int main()
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 130");
 
-    // It has to be in same order as KeyDefinition
-    keys.push_back(Key(GLFW_KEY_G, KeyType::TOGGLE));
-    keys.push_back(Key(GLFW_KEY_H, KeyType::TOGGLE));
-    keys.push_back(Key(GLFW_KEY_T, KeyType::TOGGLE));
-    keys.push_back(Key(GLFW_KEY_TAB, KeyType::TOGGLE));
-
-    keys.push_back(Key(GLFW_KEY_W));
-    keys.push_back(Key(GLFW_KEY_A));
-    keys.push_back(Key(GLFW_KEY_S));
-    keys.push_back(Key(GLFW_KEY_D));
-
-    keys.push_back(Key(GLFW_KEY_F, KeyType::PRESS));
+    
 
     Shader mainShader(vertexShaderRender, fragmentShaderRender);
 
@@ -204,6 +193,12 @@ int main()
     {
         glfwPollEvents();
         processInput(window, world, physicsCommon);
+        controller.processKeys(window);
+
+        
+        if (controller.isKeyPressed(KeyInput::KeyDefinition::KEY_TAB)) {
+            world->setIsDebugRenderingEnabled(true);
+        }
 
         glClearColor(0.0f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -219,6 +214,7 @@ int main()
         while (mAccumulator >= timeStep) {
             mainShader.setVec3("light.position", light.x, light.y, light.z); // ImGui
             world->update(timeStep.count());
+            player.processInput();
 
             mAccumulator -= timeStep;
         }        
@@ -259,7 +255,7 @@ int main()
         // renderObject(mainShader, projection, view, zombieModel, turretModel, tankModel);
 
         // At the end as "overlay"
-        if (keys[KeyDefinition::KEY_T].state) {
+        if (controller.isKeyPressed(KeyDefinition::KEY_T)) {
             glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
             ImGui_ImplOpenGL3_NewFrame();
             ImGui_ImplGlfw_NewFrame();
@@ -331,8 +327,8 @@ void processInput(GLFWwindow* window, PhysicsWorld* world, PhysicsCommon& common
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
-
-    if (keys[KeyDefinition::KEY_TAB].state) {
+    
+    /*if (keys[KeyDefinition::KEY_TAB].state) {
         world->setIsDebugRenderingEnabled(true);
     }
 
@@ -354,9 +350,9 @@ void processInput(GLFWwindow* window, PhysicsWorld* world, PhysicsCommon& common
 
     if (keys[KeyDefinition::KEY_F].state) {
         createBox(common, world);
-    }
+    }*/
 
-    KeyInput::KeyController::get().processKeys(window, keys);
+//     KeyInput::KeyController::get().processKeys(window);
 }
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)

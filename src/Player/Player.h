@@ -13,10 +13,11 @@ namespace GLGame {
 		Player::Player(glm::vec3 position);
 		void processInput();
 
-		Camera getCamera() {
+		Camera& getCamera() {
 			return camera;
 		}
 	private:
 		Camera camera;
+		KeyInput::KeyController& keyController = KeyInput::KeyController::get();
 	};
 }

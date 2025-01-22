@@ -33,7 +33,7 @@ namespace KeyInput {
 
     class KeyController {
     public:
-        void processKeys(GLFWwindow* window, std::vector<Key> &keys) {
+        void processKeys(GLFWwindow* window) {
             for (auto& key : keys) {
                 int keyState = glfwGetKey(window, key.keyCode);
 
@@ -64,12 +64,31 @@ namespace KeyInput {
             }
         }
 
-        static KeyInput::KeyController get() {
+        static KeyInput::KeyController& get() {
             static KeyController instance;
             
             return instance;
         }
+
+        bool isKeyPressed(KeyDefinition keyDef) {
+            return keys[static_cast<int>(keyDef)].state;
+        }
     private:
-        
+        std::vector<KeyInput::Key> keys;
+
+        KeyController::KeyController() {
+            // It has to be in same order as KeyDefinition
+            keys.push_back(Key(GLFW_KEY_G, KeyType::TOGGLE));
+            keys.push_back(Key(GLFW_KEY_H, KeyType::TOGGLE));
+            keys.push_back(Key(GLFW_KEY_T, KeyType::TOGGLE));
+            keys.push_back(Key(GLFW_KEY_TAB, KeyType::TOGGLE));
+
+            keys.push_back(Key(GLFW_KEY_W));
+            keys.push_back(Key(GLFW_KEY_A));
+            keys.push_back(Key(GLFW_KEY_S));
+            keys.push_back(Key(GLFW_KEY_D));
+
+            keys.push_back(Key(GLFW_KEY_F, KeyType::PRESS));
+        }
     };
 }
