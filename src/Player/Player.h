@@ -17,7 +17,7 @@ namespace GLGame {
 			return camera;
 		}
 	private:
-		Camera camera;
+		Camera& camera = Camera();
 		KeyInput::KeyController& keyController = KeyInput::KeyController::get();
 	};
 }

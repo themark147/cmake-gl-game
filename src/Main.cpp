@@ -46,7 +46,6 @@ extern std::string vertexShaderRender;
 extern std::string fragmentShaderRender;
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-void processInput(GLFWwindow* window, PhysicsWorld* world, PhysicsCommon& common);
 void createBox(PhysicsCommon& common, PhysicsWorld* world);
 void initDebug();
 void renderObject(Shader& mainShader, glm::mat4& projection, glm::mat4& view, Model& zombieModel, Model& turretModel, Model& tankModel);
@@ -59,13 +58,6 @@ int heightScreen = 1080;
 float lastX = widthScreen / 2.0f;
 float lastY = heightScreen / 2.0f;
 bool firstMouse = true;
-
-// std::vector<Key> keys;
-
-// KeyController keyController;
-
-GLGame::Player player(glm::vec3(0.0f, 0.0f, 10.0f));
-Camera& camera = player.getCamera();
 
 using chrono_clock = std::chrono::high_resolution_clock;
 
@@ -88,9 +80,6 @@ openglframework::VertexBufferObject mDebugVBOTrianglesVertices(GL_ARRAY_BUFFER);
 /// Vertex Array Object for the triangles vertex data
 openglframework::VertexArrayObject mDebugTrianglesVAO;
 
-// TODO - move somewhere else
-//Object firstBox(glm::vec3(0.0f, 0.0f, 15.0f));
-//std::vector<Object*> boxes;
 
 // Application - init openGL & other stuff
 
@@ -150,15 +139,9 @@ int main()
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 130");
 
-    
-
     Shader mainShader(vertexShaderRender, fragmentShaderRender);
 
     mainShader.use();
-    // mainShader.setInt("material.diffuse", 0);
-    //lightingShader.setInt("material.specular", 2);
-    //mainShader.setInt("material.normal", 1);
-    //mainShader.setInt("material.roughness", 2);
    
     PhysicsCommon physicsCommon;
 
@@ -178,9 +161,6 @@ int main()
     mLastUpdateTime = mStartTime;
     mAccumulator = std::chrono::duration<double>::zero();
 
-    // Object* floor = new Object(glm::vec3(0, -5, 0));
-    // floor->create(physicsCommon, world, BodyType::STATIC, Vector3(10, 1, 10));
-
     // Model zombieModel("../../../resources/zombie_char_7_4.glb", glm::vec3(0.0f, 0.0f, 0.0f));
     // Model turretModel("../../../resources/turret.glb", glm::vec3(0.0f, 0.0f, 0.0f));
     // Model tankModel("../../../resources/zombie_char_7_4.glb", glm::vec3(0.0f, 0.0f, 0.0f));
@@ -189,12 +169,21 @@ int main()
 
     KeyInput::KeyController& controller = KeyInput::KeyController::get();
 
+    GLGame::Player player = scene->getPlayer();
+    // GLGame::Player player(glm::vec3(0.0f, 0.0f, 10.0f));
+    // Camera camera = player.getCamera();
+
     while (!glfwWindowShouldClose(window))
     {
         glfwPollEvents();
-        processInput(window, world, physicsCommon);
-        controller.processKeys(window);
 
+        if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+            glfwSetWindowShouldClose(window, true);
+
+        /*if (keys[KeyDefinition::KEY_F].state) {
+            createBox(common, world);
+        }*/
+        controller.processKeys(window);
         
         if (controller.isKeyPressed(KeyInput::KeyDefinition::KEY_TAB)) {
             world->setIsDebugRenderingEnabled(true);
@@ -219,6 +208,8 @@ int main()
             mAccumulator -= timeStep;
         }        
 
+        scene->render();
+
         // ----- Triangles ---- //
         const uint nbTriangles = debugRenderer.getNbTriangles();
 
@@ -231,8 +222,6 @@ int main()
             mDebugVBOTrianglesVertices.unbind();
         }
 
-        debugShader.use();
-
         int vertexPositionLoc = debugShader.getAttribLocation("aPos");
         // int vertexColorLoc = debugShader.getAttribLocation("vertexColor");
 
@@ -243,14 +232,7 @@ int main()
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         }
 
-        // Player + his camera
-        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float) widthScreen / (float) heightScreen, 0.1f, 100.0f);
-        debugShader.setMat4("projection", projection);
-
-        glm::mat4 view = camera.GetViewMatrix();
-        debugShader.setMat4("view", view);
-
-        scene->render();
+        
 
         // renderObject(mainShader, projection, view, zombieModel, turretModel, tankModel);
 
@@ -323,38 +305,6 @@ void renderObject(Shader& mainShader, glm::mat4& projection, glm::mat4& view, Mo
     tankModel.Draw(mainShader);
 }
 
-void processInput(GLFWwindow* window, PhysicsWorld* world, PhysicsCommon& common)
-{
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-        glfwSetWindowShouldClose(window, true);
-    
-    /*if (keys[KeyDefinition::KEY_TAB].state) {
-        world->setIsDebugRenderingEnabled(true);
-    }
-
-    if (keys[KeyDefinition::KEY_W].state) {
-        camera.ProcessKeyboard(FORWARD, deltaTime.count());
-    }
-
-    if (keys[KeyDefinition::KEY_A].state) {
-        camera.ProcessKeyboard(LEFT, deltaTime.count());
-    }
-
-    if (keys[KeyDefinition::KEY_S].state) {
-        camera.ProcessKeyboard(BACKWARD, deltaTime.count());
-    }
-
-    if (keys[KeyDefinition::KEY_D].state) {
-        camera.ProcessKeyboard(RIGHT, deltaTime.count());
-    }
-
-    if (keys[KeyDefinition::KEY_F].state) {
-        createBox(common, world);
-    }*/
-
-//     KeyInput::KeyController::get().processKeys(window);
-}
-
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
     widthScreen = width;
@@ -381,8 +331,8 @@ void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
     lastX = xpos;
     lastY = ypos;
 
-    if (glfwGetInputMode(window, GLFW_CURSOR) == GLFW_CURSOR_DISABLED)
-        camera.ProcessMouseMovement(xoffset, yoffset);
+    // if (glfwGetInputMode(window, GLFW_CURSOR) == GLFW_CURSOR_DISABLED)
+        // camera.ProcessMouseMovement(xoffset, yoffset);
 }
 
 void createBox(PhysicsCommon& common, PhysicsWorld* world)

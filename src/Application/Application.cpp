@@ -1,1 +1,5 @@
-// Init & run function
+#include "Application.h"
+
+namespace GLGame {
+
+}

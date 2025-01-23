@@ -10,7 +10,7 @@
 using namespace reactphysics3d;
 
 namespace GLGame {
-	Scene::Scene(Shader &shader) : shader(shader) {
+	Scene::Scene(Shader& shader) : shader(shader) {
 		// Init physics
 		world = physicsCommon.createPhysicsWorld();
 
@@ -26,6 +26,16 @@ namespace GLGame {
 	
 	void Scene::render()
 	{
+		camera = player.getCamera();
+		// Player + his camera
+		shader.use();
+
+		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), 1920.0f / 1080.0f, 0.1f, 100.0f);
+		shader.setMat4("projection", projection);
+		
+		glm::mat4 view = camera.GetViewMatrix();
+		shader.setMat4("view", view);
+
 		for (std::vector<GLGame::Object*>::iterator it = objects.begin(); it != objects.end(); ++it)
 		{
 			glm::mat4 model = glm::mat4(1.0f);

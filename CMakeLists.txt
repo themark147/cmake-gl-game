@@ -41,6 +41,7 @@ embed_shader(shaders/render.fs fragmentShaderRender)
 
 
 
+
 option(ASSIMP_BUILD_ASSIMP_TOOLS OFF)
 option(ASSIMP_BUILD_SAMPLES OFF)
 option(ASSIMP_BUILD_TESTS OFF)
