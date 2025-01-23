@@ -118,7 +118,7 @@ int main()
     }
 
     Shader debugShader(vertexShaderDebug, fragmentShaderDebug);
-    GLGame::Scene* scene = new GLGame::Scene(debugShader);
+    GLGame::Scene scene = GLGame::Scene(debugShader);
 
     stbi_set_flip_vertically_on_load(true); // Because of textures
     glEnable(GL_DEPTH_TEST);
@@ -146,7 +146,7 @@ int main()
     PhysicsCommon physicsCommon;
 
     // Create a physics world
-    PhysicsWorld* world = scene->getWorld();
+    PhysicsWorld* world = scene.getWorld();
 
     DebugRenderer& debugRenderer = world->getDebugRenderer();
 
@@ -169,7 +169,7 @@ int main()
 
     KeyInput::KeyController& controller = KeyInput::KeyController::get();
 
-    GLGame::Player player = scene->getPlayer();
+    GLGame::Player player = scene.getPlayer();
     // GLGame::Player player(glm::vec3(0.0f, 0.0f, 10.0f));
     // Camera camera = player.getCamera();
 
@@ -208,7 +208,7 @@ int main()
             mAccumulator -= timeStep;
         }        
 
-        scene->render();
+        scene.render();
 
         // ----- Triangles ---- //
         const uint nbTriangles = debugRenderer.getNbTriangles();
