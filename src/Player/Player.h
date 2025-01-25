@@ -12,6 +12,7 @@ namespace GLGame {
 	public:
 		Player::Player(glm::vec3 position);
 		void processInput();
+		void processMouseInput();
 
 		Camera& getCamera() {
 			return camera;

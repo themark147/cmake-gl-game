@@ -21,7 +21,6 @@
 #include <chrono>
 
 #include "Shader.h"
-#include "Camera.h"
 
 #include "Scene/Scene.h"
 #include "Player/Player.h"
@@ -29,9 +28,8 @@
 #include "Model/Mesh.h"
 #include "Model/Model.h"
 
-#include "Material/Material.h"
+#include "Application/Application.h"
 
-#include "Object/Object.h"
 #include "Input/KeyController.h"
 
 #include "Debug/VertexArrayObject.h"
@@ -50,7 +48,6 @@ void createBox(PhysicsCommon& common, PhysicsWorld* world);
 void initDebug();
 void renderObject(Shader& mainShader, glm::mat4& projection, glm::mat4& view, Model& zombieModel, Model& turretModel, Model& tankModel);
 void drawDebug(DebugRenderer& debugRenderer, uint vertexPositionLoc, uint vertexColorLoc);
-void mouse_callback(GLFWwindow* window, double xposIn, double yposIn);
 
 int widthScreen = 1920;
 int heightScreen = 1080;
@@ -96,20 +93,17 @@ int main()
 #ifdef __APPLE__
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
+    
+    GLGame::Application application = GLGame::Application::get();
+    GLFWwindow* window = application.getWindow();
 
-    GLFWwindow* window = glfwCreateWindow(widthScreen, heightScreen, "Greatest OpenGL project", NULL, NULL);
-    if (window == NULL)
+    if (window == nullptr)
     {
         std::cout << "Failed to create GLFW window" << std::endl;
         glfwTerminate();
         return -1;
     }
-
     glfwMakeContextCurrent(window);
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-
-    glfwSetCursorPosCallback(window, mouse_callback);
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
@@ -117,15 +111,21 @@ int main()
         return -1;
     }
 
+    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+
     Shader debugShader(vertexShaderDebug, fragmentShaderDebug);
+
     GLGame::Scene scene = GLGame::Scene(debugShader);
+    GLGame::Player player = scene.getPlayer();
+
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     stbi_set_flip_vertically_on_load(true); // Because of textures
     glEnable(GL_DEPTH_TEST);
 
     initDebug();
 
-    glfwSwapInterval(1); // vsync
+    glfwSwapInterval(0); // vsync
 
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
@@ -166,13 +166,9 @@ int main()
     // Model tankModel("../../../resources/zombie_char_7_4.glb", glm::vec3(0.0f, 0.0f, 0.0f));
 
     glm::vec3 light(15.0f, 30.0f, 5.0f);
-
     KeyInput::KeyController& controller = KeyInput::KeyController::get();
 
-    GLGame::Player player = scene.getPlayer();
-    // GLGame::Player player(glm::vec3(0.0f, 0.0f, 10.0f));
-    // Camera camera = player.getCamera();
-
+    // Application::run()
     while (!glfwWindowShouldClose(window))
     {
         glfwPollEvents();
@@ -231,8 +227,6 @@ int main()
             drawDebug(debugRenderer, vertexPositionLoc, 2);
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         }
-
-        
 
         // renderObject(mainShader, projection, view, zombieModel, turretModel, tankModel);
 
@@ -311,28 +305,6 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
     heightScreen = height;
 
     glViewport(0, 0, width, height);
-}
-
-void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
-{
-    float xpos = static_cast<float>(xposIn);
-    float ypos = static_cast<float>(yposIn);
-
-    if (firstMouse)
-    {
-        lastX = xpos;
-        lastY = ypos;
-        firstMouse = false;
-    }
-
-    float xoffset = xpos - lastX;
-    float yoffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
-
-    lastX = xpos;
-    lastY = ypos;
-
-    // if (glfwGetInputMode(window, GLFW_CURSOR) == GLFW_CURSOR_DISABLED)
-        // camera.ProcessMouseMovement(xoffset, yoffset);
 }
 
 void createBox(PhysicsCommon& common, PhysicsWorld* world)
