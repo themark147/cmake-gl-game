@@ -34,9 +34,6 @@
 
 using namespace KeyInput;
 
-extern std::string vertexShaderDebug;
-extern std::string fragmentShaderDebug;
-
 extern std::string vertexShaderRender;
 extern std::string fragmentShaderRender;
 
@@ -90,19 +87,7 @@ int main()
     
     GLFWwindow* window = application.getWindow();
 
-    Shader debugShader(vertexShaderDebug, fragmentShaderDebug);
-
-    GLGame::Scene scene = GLGame::Scene(debugShader);
-    GLGame::Player player = scene.getPlayer();
-
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-
-    stbi_set_flip_vertically_on_load(true); // Because of textures
-    glEnable(GL_DEPTH_TEST);
-
     initDebug();
-
-    glfwSwapInterval(0); // vsync
 
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
@@ -123,7 +108,7 @@ int main()
     PhysicsCommon physicsCommon;
 
     // Create a physics world
-    PhysicsWorld* world = scene.getWorld();
+    PhysicsWorld* world = physicsCommon.createPhysicsWorld();
 
     DebugRenderer& debugRenderer = world->getDebugRenderer();
 
@@ -148,19 +133,9 @@ int main()
     // Application::run()
     while (!glfwWindowShouldClose(window))
     {
-        glfwPollEvents();
+        application.Run();
 
-        if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-            glfwSetWindowShouldClose(window, true);
-
-        /*if (keys[KeyDefinition::KEY_F].state) {
-            createBox(common, world);
-        }*/
         controller.processKeys(window);
-        
-        if (controller.isKeyPressed(KeyInput::KeyDefinition::KEY_TAB)) {
-            world->setIsDebugRenderingEnabled(true);
-        }
 
         glClearColor(0.0f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -174,14 +149,12 @@ int main()
 
         
         while (mAccumulator >= timeStep) {
-            mainShader.setVec3("light.position", light.x, light.y, light.z); // ImGui
+            // mainShader.setVec3("light.position", light.x, light.y, light.z); // ImGui
             world->update(timeStep.count());
-            player.processInput();
+            // player.processInput();
 
             mAccumulator -= timeStep;
-        }        
-
-        scene.render();
+        }
 
         // ----- Triangles ---- //
         const uint nbTriangles = debugRenderer.getNbTriangles();
@@ -195,13 +168,13 @@ int main()
             mDebugVBOTrianglesVertices.unbind();
         }
 
-        int vertexPositionLoc = debugShader.getAttribLocation("aPos");
+        // int vertexPositionLoc = debugShader.getAttribLocation("aPos");
         // int vertexColorLoc = debugShader.getAttribLocation("vertexColor");
 
         // Triangles
         if (nbTriangles > 0) {
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-            drawDebug(debugRenderer, vertexPositionLoc, 2);
+            // drawDebug(debugRenderer, vertexPositionLoc, 2);
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         }
 
@@ -214,7 +187,7 @@ int main()
             ImGui_ImplGlfw_NewFrame();
             ImGui::NewFrame();
             
-            ImGui::Begin("Hello, world!");
+            ImGui::Begin("Light position");
             // ImGui::SliderFloat("float", &XLight, -50.0f, 50.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
             ImGui::SliderFloat3("floatt", &light.x, -50.0f, 50.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
 

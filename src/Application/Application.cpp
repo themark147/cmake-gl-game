@@ -2,6 +2,11 @@
 
 #include <iostream>
 
+#include "../Scene/Scene.h"
+
+extern std::string vertexShaderDebug;
+extern std::string fragmentShaderDebug;
+
 int widthScreen = 1920;
 int heightScreen = 1080;
 
@@ -37,10 +42,30 @@ namespace GLGame {
 		}
 
 		glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
+		glEnable(GL_DEPTH_TEST);
+		glfwSwapInterval(0); // vsync
+
+		stbi_set_flip_vertically_on_load(true); // Because of textures
+
+		Shader debugShader(vertexShaderDebug, fragmentShaderDebug);
+		GLGame::Scene scene = GLGame::Scene(debugShader);
+
+		return 0;
 	}
 
 	void Application::Run()
 	{
+		glfwPollEvents();
+
+		if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+			glfwSetWindowShouldClose(window, true);
+
+		//if (controller.isKeyPressed(KeyInput::KeyDefinition::KEY_TAB)) {
+			//world->setIsDebugRenderingEnabled(true);
+		//}
 	}
 
 	int Application::getWidth()

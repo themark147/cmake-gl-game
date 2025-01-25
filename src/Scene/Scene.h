@@ -1,5 +1,7 @@
 #pragma once
 
+#include "../Application/Application.h"
+
 #include <vector>
 #include <reactphysics3d/reactphysics3d.h>
 
@@ -8,8 +10,6 @@
 
 #include "../Shader.h"
 #include "../Camera.h"
-
-#include "../Application/Application.h"
 
 using namespace reactphysics3d;
 
