@@ -18,9 +18,7 @@ namespace GLGame {
 	
 	void Player::processInput()
 	{
-		// TODO step same as step from physics ?
 		if (keyController.isKeyPressed(KeyInput::KeyDefinition::KEY_W)) {
-			std::cout << "Forward\n";
 			camera.ProcessKeyboard(FORWARD, step);
 		}
 

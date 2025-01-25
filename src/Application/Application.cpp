@@ -2,13 +2,13 @@
 
 #include <iostream>
 
-#include "../Scene/Scene.h"
-
 extern std::string vertexShaderDebug;
 extern std::string fragmentShaderDebug;
 
 int widthScreen = 1920;
 int heightScreen = 1080;
+
+GLGame::Scene* scene = nullptr;
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
@@ -51,7 +51,7 @@ namespace GLGame {
 		stbi_set_flip_vertically_on_load(true); // Because of textures
 
 		Shader debugShader(vertexShaderDebug, fragmentShaderDebug);
-		GLGame::Scene scene = GLGame::Scene(debugShader);
+		scene = new GLGame::Scene(debugShader);
 
 		return 0;
 	}
@@ -62,10 +62,42 @@ namespace GLGame {
 
 		if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 			glfwSetWindowShouldClose(window, true);
+		
+		if (controller.isKeyPressed(KeyInput::KeyDefinition::KEY_TAB)) {
+			scene->getWorld()->setIsDebugRenderingEnabled(true);
+		}
 
-		//if (controller.isKeyPressed(KeyInput::KeyDefinition::KEY_TAB)) {
-			//world->setIsDebugRenderingEnabled(true);
-		//}
+		controller.processKeys(window);
+
+		glClearColor(0.0f, 0.3f, 0.3f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		// std::chrono::time_point<std::chrono::high_resolution_clock> currentTime = std::chrono::high_resolution_clock::now();
+		//deltaTime = currentTime - mLastUpdateTime;
+
+		// Update the current display time
+		//mLastUpdateTime = currentTime;
+		//mAccumulator += deltaTime;
+
+		//while (mAccumulator >= timeStep) {
+			// mainShader.setVec3("light.position", light.x, light.y, light.z); // ImGui
+			scene->getWorld()->update((float) 1 / 100);
+
+			//mAccumulator -= timeStep;
+		// }
+
+		scene->render();
+
+		glfwSwapBuffers(window);
+	}
+
+	void Application::Shutdown() {
+		// Application::shutdown
+		//ImGui_ImplOpenGL3_Shutdown();
+		//ImGui_ImplGlfw_Shutdown();
+		//ImGui::DestroyContext();
+		
+		glfwTerminate();
 	}
 
 	int Application::getWidth()

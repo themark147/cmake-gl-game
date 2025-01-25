@@ -15,6 +15,11 @@ namespace GLGame {
 		// Init physics
 		world = physicsCommon.createPhysicsWorld();
 
+		initDebug();
+
+		// Select the contact points and contact normals to be displayed
+		world->getDebugRenderer().setIsDebugItemDisplayed(DebugRenderer::DebugItem::COLLISION_SHAPE, true);
+
 		// Init objects
 		objects.push_back(new GLGame::Object(glm::vec3(0.0f, -2.0f, 0.0f)));
 
@@ -28,10 +33,35 @@ namespace GLGame {
 	void Scene::render()
 	{
 		camera = player.getCamera();
-		// Player + his camera
+		// TODO: inside physic step
+		player.processInput();
+
 		shader.use();
 
-		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float) application.getWidth() / (float) application.getHeight(), 0.1f, 100.0f);
+		// ----- Triangles ---- //
+		const uint nbTriangles = world->getDebugRenderer().getNbTriangles();
+
+		if (nbTriangles > 0)
+		{
+			// Vertices
+			mDebugVBOTrianglesVertices.bind();
+			GLsizei sizeVertices = static_cast<GLsizei>(nbTriangles * sizeof(rp3d::DebugRenderer::DebugTriangle));
+			mDebugVBOTrianglesVertices.copyDataIntoVBO(sizeVertices, world->getDebugRenderer().getTrianglesArray(), GL_STREAM_DRAW);
+			mDebugVBOTrianglesVertices.unbind();
+		}
+
+		int vertexPositionLoc = shader.getAttribLocation("aPos");
+		// int vertexColorLoc = debugShader.getAttribLocation("vertexColor");
+
+		// Triangles
+		if (nbTriangles > 0) {
+			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+			drawDebug(world->getDebugRenderer(), vertexPositionLoc, 2);
+			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		}
+
+		// TODO: get real aspect ratio
+		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)1920 / (float) 1080, 0.1f, 100.0f);
 		shader.setMat4("projection", projection);
 		
 		glm::mat4 view = camera.GetViewMatrix();

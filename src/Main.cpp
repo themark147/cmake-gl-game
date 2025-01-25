@@ -9,39 +9,19 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 
-#include <reactphysics3d/reactphysics3d.h>
-
-#include "imgui/imgui.h"
-#include "imgui/imgui_impl_glfw.h"
-#include "imgui/imgui_impl_opengl3.h"
-
 #include <iostream>
 #include <vector>
 #include <chrono>
 
 #include "Shader.h"
 
-#include "Scene/Scene.h"
-#include "Player/Player.h"
-
-#include "Model/Mesh.h"
 #include "Model/Model.h"
-
-#include "Input/KeyController.h"
-
-#include "Debug/VertexArrayObject.h"
-#include "Debug/VertexBufferObject.h"
-
-using namespace KeyInput;
 
 extern std::string vertexShaderRender;
 extern std::string fragmentShaderRender;
 
-void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void createBox(PhysicsCommon& common, PhysicsWorld* world);
-void initDebug();
 void renderObject(Shader& mainShader, glm::mat4& projection, glm::mat4& view, Model& zombieModel, Model& turretModel, Model& tankModel);
-void drawDebug(DebugRenderer& debugRenderer, uint vertexPositionLoc, uint vertexColorLoc);
 
 using chrono_clock = std::chrono::high_resolution_clock;
 
@@ -51,18 +31,6 @@ std::chrono::time_point<std::chrono::high_resolution_clock> mLastUpdateTime;
 /// Used to fix the time step and avoid strange time effects
 std::chrono::duration<double> mAccumulator;
 std::chrono::duration<double> deltaTime;
-
-/// Vertex Buffer Object for the debug info lines vertices data
-openglframework::VertexBufferObject mDebugVBOLinesVertices(GL_ARRAY_BUFFER);
-
-/// Vertex Array Object for the lines vertex data
-openglframework::VertexArrayObject mDebugLinesVAO;
-
-/// Vertex Buffer Object for the debug info trinangles vertices data
-openglframework::VertexBufferObject mDebugVBOTrianglesVertices(GL_ARRAY_BUFFER);
-
-/// Vertex Array Object for the triangles vertex data
-openglframework::VertexArrayObject mDebugTrianglesVAO;
 
 // Application - init openGL & other stuff
 
@@ -85,35 +53,25 @@ int main()
         return returnCode;
     }
     
-    GLFWwindow* window = application.getWindow();
+    // GLFWwindow* window = application.getWindow();
 
-    initDebug();
+    // initDebug();
 
     // Setup Dear ImGui context
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO(); (void)io;
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+    //IMGUI_CHECKVERSION();
+    //ImGui::CreateContext();
+    // ImGuiIO& io = ImGui::GetIO(); (void)io;
+    // io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+    // io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
 
-    ImGui::StyleColorsLight();
+    // ImGui::StyleColorsLight();
 
-    ImGui_ImplGlfw_InitForOpenGL(window, true);
-    ImGui_ImplOpenGL3_Init("#version 130");
+    // ImGui_ImplGlfw_InitForOpenGL(window, true);
+    // ImGui_ImplOpenGL3_Init("#version 130");
 
-    Shader mainShader(vertexShaderRender, fragmentShaderRender);
+    // Shader mainShader(vertexShaderRender, fragmentShaderRender);
 
-    mainShader.use();
-   
-    PhysicsCommon physicsCommon;
-
-    // Create a physics world
-    PhysicsWorld* world = physicsCommon.createPhysicsWorld();
-
-    DebugRenderer& debugRenderer = world->getDebugRenderer();
-
-    // Select the contact points and contact normals to be displayed
-    debugRenderer.setIsDebugItemDisplayed(DebugRenderer::DebugItem::COLLISION_SHAPE, true);
+    // mainShader.use();
 
     // TODO part of Physics.cpp -> tick() -> step()
     // step
@@ -127,90 +85,36 @@ int main()
     // Model turretModel("../../../resources/turret.glb", glm::vec3(0.0f, 0.0f, 0.0f));
     // Model tankModel("../../../resources/zombie_char_7_4.glb", glm::vec3(0.0f, 0.0f, 0.0f));
 
-    glm::vec3 light(15.0f, 30.0f, 5.0f);
-    KeyInput::KeyController& controller = KeyInput::KeyController::get();
+    // glm::vec3 light(15.0f, 30.0f, 5.0f);
 
-    // Application::run()
-    while (!glfwWindowShouldClose(window))
+    while (!glfwWindowShouldClose(application.getWindow()))
     {
         application.Run();
 
-        controller.processKeys(window);
-
-        glClearColor(0.0f, 0.3f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        std::chrono::time_point<std::chrono::high_resolution_clock> currentTime = std::chrono::high_resolution_clock::now();
-        deltaTime = currentTime - mLastUpdateTime;
-
-        // Update the current display time
-        mLastUpdateTime = currentTime;
-        mAccumulator += deltaTime;
-
-        
-        while (mAccumulator >= timeStep) {
-            // mainShader.setVec3("light.position", light.x, light.y, light.z); // ImGui
-            world->update(timeStep.count());
-            // player.processInput();
-
-            mAccumulator -= timeStep;
-        }
-
-        // ----- Triangles ---- //
-        const uint nbTriangles = debugRenderer.getNbTriangles();
-
-        if (nbTriangles > 0)
-        {
-            // Vertices
-            mDebugVBOTrianglesVertices.bind();
-            GLsizei sizeVertices = static_cast<GLsizei>(nbTriangles * sizeof(rp3d::DebugRenderer::DebugTriangle));
-            mDebugVBOTrianglesVertices.copyDataIntoVBO(sizeVertices, debugRenderer.getTrianglesArray(), GL_STREAM_DRAW);
-            mDebugVBOTrianglesVertices.unbind();
-        }
-
-        // int vertexPositionLoc = debugShader.getAttribLocation("aPos");
-        // int vertexColorLoc = debugShader.getAttribLocation("vertexColor");
-
-        // Triangles
-        if (nbTriangles > 0) {
-            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-            // drawDebug(debugRenderer, vertexPositionLoc, 2);
-            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-        }
-
-        // renderObject(mainShader, projection, view, zombieModel, turretModel, tankModel);
-
         // At the end as "overlay"
-        if (controller.isKeyPressed(KeyDefinition::KEY_T)) {
-            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-            ImGui_ImplOpenGL3_NewFrame();
-            ImGui_ImplGlfw_NewFrame();
-            ImGui::NewFrame();
+        //if (controller.isKeyPressed(KeyDefinition::KEY_T)) {
+           // glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+            //ImGui_ImplOpenGL3_NewFrame();
+            //ImGui_ImplGlfw_NewFrame();
+            //ImGui::NewFrame();
             
-            ImGui::Begin("Light position");
+            //ImGui::Begin("Light position");
             // ImGui::SliderFloat("float", &XLight, -50.0f, 50.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-            ImGui::SliderFloat3("floatt", &light.x, -50.0f, 50.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
+            //ImGui::SliderFloat3("floatt", &light.x, -50.0f, 50.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
 
-            ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
-            ImGui::End();
+            //ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
+            //ImGui::End();
 
             // Rendering
-            ImGui::Render();
-            ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-        }
-        else {
-            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-        }
-
-        glfwSwapBuffers(window);
+            //ImGui::Render();
+            //ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+       // }
+        //else {
+        //    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+       // }
     }
 
-    // Application::shutdown
-    ImGui_ImplOpenGL3_Shutdown();
-    ImGui_ImplGlfw_Shutdown();
-    ImGui::DestroyContext();
-
-    glfwTerminate();
+    application.Shutdown();
 
     return 0;
 }
@@ -260,61 +164,5 @@ void createBox(PhysicsCommon& common, PhysicsWorld* world)
     // object->getRigidBody()->applyLocalForceAtLocalPosition(Vector3(1000, 1000, 1000) * Vector3(camera.Front.x, camera.Front.y, camera.Front.z), Vector3(0.15, 0.7, 1.5));
 }
 
-void initDebug()
-{
-    mDebugVBOLinesVertices.create();
 
-    // Create the VAO for both VBOs
-    mDebugLinesVAO.create();
-    mDebugLinesVAO.bind();
 
-    // Bind the VBO of vertices
-    mDebugVBOLinesVertices.bind();
-
-    // Unbind the VAO
-    mDebugLinesVAO.unbind();
-
-    mDebugVBOLinesVertices.unbind();
-
-    // ----- Triangles ----- //
-
-    // Create the VBO for the vertices data
-    mDebugVBOTrianglesVertices.create();
-
-    // Create the VAO for both VBOs
-    mDebugTrianglesVAO.create();
-    mDebugTrianglesVAO.bind();
-
-    // Bind the VBO of vertices
-    mDebugVBOTrianglesVertices.bind();
-
-    // Unbind the VAO
-    mDebugTrianglesVAO.unbind();
-
-    mDebugVBOTrianglesVertices.unbind();
-}
-
-void drawDebug(DebugRenderer& debugRenderer, uint vertexPositionLoc, uint vertexColorLoc)
-{
-    // Bind the VAO
-    mDebugTrianglesVAO.bind();
-
-    mDebugVBOTrianglesVertices.bind();
-
-    glVertexAttribPointer(vertexPositionLoc, 3, GL_FLOAT, GL_FALSE, sizeof(rp3d::Vector3) + sizeof(rp3d::uint32), (char*)nullptr);
-    glEnableVertexAttribArray(vertexPositionLoc);
-
-   // glVertexAttribIPointer(vertexColorLoc, 3, GL_UNSIGNED_INT, sizeof(rp3d::Vector3) + sizeof(rp3d::uint32), (void*)sizeof(rp3d::Vector3));
-   // glEnableVertexAttribArray(vertexColorLoc);
-
-    // Draw the triangles geometry
-    glDrawArrays(GL_TRIANGLES, 0, debugRenderer.getNbTriangles() * 3);
-
-    glDisableVertexAttribArray(vertexPositionLoc);
-    //glDisableVertexAttribArray(vertexColorLoc);
-
-    mDebugVBOTrianglesVertices.unbind();
-
-    // Unbind the VAO
-    mDebugTrianglesVAO.unbind();
-}
