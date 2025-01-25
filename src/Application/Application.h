@@ -1,13 +1,16 @@
 #pragma once
 
+#include <glad/glad.h>
 #include <GLFW/glfw3.h>
+
+#include "../Shader.h"
 
 namespace GLGame {
 	class Application {
 	public:
 		Application::Application();
-		
-		void Init();
+
+		int Init();
 		void Run();
 
 		static GLGame::Application& get() {
@@ -19,7 +22,10 @@ namespace GLGame {
 		GLFWwindow* getWindow() {
 			return window;
 		}
+
+		int getWidth();
+		int getHeight();
 	private:
 		GLFWwindow* window = nullptr;
 	};
-}
+};

@@ -9,6 +9,8 @@
 #include "../Shader.h"
 #include "../Camera.h"
 
+#include "../Application/Application.h"
+
 using namespace reactphysics3d;
 
 namespace GLGame {
@@ -33,6 +35,8 @@ namespace GLGame {
 		PhysicsWorld* world;
 
 		std::vector<Object *> objects;
+
+		GLGame::Application application = GLGame::Application::get();
 
 		GLGame::Player player = GLGame::Player(glm::vec3(0.0f, 0.0f, 15.0f));
 		Camera& camera = Camera();

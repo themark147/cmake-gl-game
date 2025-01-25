@@ -4,6 +4,7 @@
 
 #include "../Object/Object.h"
 #include "../Shader.h"
+#include "../Application/Application.h"
 
 #include <vector>
 
@@ -30,7 +31,7 @@ namespace GLGame {
 		// Player + his camera
 		shader.use();
 
-		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), 1920.0f / 1080.0f, 0.1f, 100.0f);
+		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float) application.getWidth() / (float) application.getHeight(), 0.1f, 100.0f);
 		shader.setMat4("projection", projection);
 		
 		glm::mat4 view = camera.GetViewMatrix();

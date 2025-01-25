@@ -1,5 +1,4 @@
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
+#include "Application/Application.h"
 #include "stb/stb_image.h"
 
 #include <glm/glm.hpp>
@@ -28,8 +27,6 @@
 #include "Model/Mesh.h"
 #include "Model/Model.h"
 
-#include "Application/Application.h"
-
 #include "Input/KeyController.h"
 
 #include "Debug/VertexArrayObject.h"
@@ -48,13 +45,6 @@ void createBox(PhysicsCommon& common, PhysicsWorld* world);
 void initDebug();
 void renderObject(Shader& mainShader, glm::mat4& projection, glm::mat4& view, Model& zombieModel, Model& turretModel, Model& tankModel);
 void drawDebug(DebugRenderer& debugRenderer, uint vertexPositionLoc, uint vertexColorLoc);
-
-int widthScreen = 1920;
-int heightScreen = 1080;
-
-float lastX = widthScreen / 2.0f;
-float lastY = heightScreen / 2.0f;
-bool firstMouse = true;
 
 using chrono_clock = std::chrono::high_resolution_clock;
 
@@ -77,7 +67,6 @@ openglframework::VertexBufferObject mDebugVBOTrianglesVertices(GL_ARRAY_BUFFER);
 /// Vertex Array Object for the triangles vertex data
 openglframework::VertexArrayObject mDebugTrianglesVAO;
 
-
 // Application - init openGL & other stuff
 
 // Scene - predefined objects or creating new one
@@ -95,23 +84,11 @@ int main()
 #endif
     
     GLGame::Application application = GLGame::Application::get();
+    if (int returnCode = application.Init() != 0) {
+        return returnCode;
+    }
+    
     GLFWwindow* window = application.getWindow();
-
-    if (window == nullptr)
-    {
-        std::cout << "Failed to create GLFW window" << std::endl;
-        glfwTerminate();
-        return -1;
-    }
-    glfwMakeContextCurrent(window);
-
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-    {
-        std::cout << "Failed to initialize GLAD" << std::endl;
-        return -1;
-    }
-
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
     Shader debugShader(vertexShaderDebug, fragmentShaderDebug);
 
@@ -255,6 +232,7 @@ int main()
         glfwSwapBuffers(window);
     }
 
+    // Application::shutdown
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
@@ -297,14 +275,6 @@ void renderObject(Shader& mainShader, glm::mat4& projection, glm::mat4& view, Mo
 
     mainShader.setMat4("model", modelTank);
     tankModel.Draw(mainShader);
-}
-
-void framebuffer_size_callback(GLFWwindow* window, int width, int height)
-{
-    widthScreen = width;
-    heightScreen = height;
-
-    glViewport(0, 0, width, height);
 }
 
 void createBox(PhysicsCommon& common, PhysicsWorld* world)
