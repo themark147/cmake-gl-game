@@ -60,8 +60,7 @@ namespace GLGame {
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		}
 
-		// TODO: get real aspect ratio
-		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)1920 / (float) 1080, 0.1f, 100.0f);
+		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)GLGame::Application::get().getWidth() / (float)GLGame::Application::get().getHeight(), 0.1f, 100.0f);
 		shader.setMat4("projection", projection);
 		
 		glm::mat4 view = camera.GetViewMatrix();

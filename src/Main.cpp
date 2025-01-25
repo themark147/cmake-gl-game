@@ -52,10 +52,6 @@ int main()
     if (int returnCode = application.Init() != 0) {
         return returnCode;
     }
-    
-    // GLFWwindow* window = application.getWindow();
-
-    // initDebug();
 
     // Setup Dear ImGui context
     //IMGUI_CHECKVERSION();

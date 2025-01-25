@@ -2,8 +2,6 @@
 #include "../Input/KeyController.h"
 #include "../Application/Application.h"
 
-#include <iostream>
-
 namespace GLGame {
 	float step = 1.0f / 100.0f;
 	double x, y;
