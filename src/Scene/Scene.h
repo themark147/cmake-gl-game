@@ -12,6 +12,8 @@
 #include "../Debug/VertexArrayObject.h"
 #include "../Debug/VertexBufferObject.h"
 
+#include "../ObjectSpawner.h"
+
 using namespace reactphysics3d;
 
 namespace GLGame {
@@ -94,7 +96,7 @@ namespace GLGame {
 		PhysicsCommon physicsCommon;
 		PhysicsWorld* world;
 
-		std::vector<Object *> objects;
+		std::vector<Object> objects;
 
 		GLGame::Player player = GLGame::Player(glm::vec3(0.0f, 0.0f, 15.0f));
 		Camera& camera = Camera();

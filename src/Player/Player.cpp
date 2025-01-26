@@ -33,6 +33,12 @@ namespace GLGame {
 		}
 
 		processMouseInput();
+
+		if (keyController.isKeyPressed(KeyInput::KeyDefinition::KEY_F)) {
+			glm::vec3 spawnPosition = (camera.Front * glm::vec3(15)) + camera.Position;
+
+			spawner->createBox(spawnPosition);
+		}
 	}
 
 	void Player::processMouseInput()

@@ -72,20 +72,6 @@ namespace GLGame {
 		glClearColor(0.0f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		// std::chrono::time_point<std::chrono::high_resolution_clock> currentTime = std::chrono::high_resolution_clock::now();
-		//deltaTime = currentTime - mLastUpdateTime;
-
-		// Update the current display time
-		//mLastUpdateTime = currentTime;
-		//mAccumulator += deltaTime;
-
-		//while (mAccumulator >= timeStep) {
-			// mainShader.setVec3("light.position", light.x, light.y, light.z); // ImGui
-			scene->getWorld()->update((float) 1 / 100);
-
-			//mAccumulator -= timeStep;
-		// }
-
 		scene->render();
 
 		glfwSwapBuffers(window);

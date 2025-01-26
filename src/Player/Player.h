@@ -6,6 +6,7 @@
 
 #include "../Camera.h"
 #include "../Input/KeyController.h"
+#include "../ObjectSpawner.h"
 
 namespace GLGame {
 	class Player {
@@ -17,8 +18,13 @@ namespace GLGame {
 		Camera& getCamera() {
 			return camera;
 		}
+
+		void setSpawner(ObjectSpawner* spawner) {
+			this->spawner = spawner;
+		}
 	private:
 		Camera& camera = Camera();
 		KeyInput::KeyController& keyController = KeyInput::KeyController::get();
+		GLGame::ObjectSpawner* spawner;
 	};
 }

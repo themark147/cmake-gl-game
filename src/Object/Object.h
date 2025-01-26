@@ -13,7 +13,7 @@ namespace GLGame {
 	class Object
 	{
 	public:
-		Object(glm::vec3 position);
+		Object::Object(glm::vec3 position);
 
 		void create(PhysicsCommon& common, PhysicsWorld* world, BodyType type, Vector3 size);
 		glm::vec3 getPosition();

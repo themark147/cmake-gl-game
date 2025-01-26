@@ -9,9 +9,8 @@
 using namespace reactphysics3d;
 
 namespace GLGame {
-	Object::Object(glm::vec3 position)
+	Object::Object(glm::vec3 position) : position(position)
 	{
-		this->position = position;
 		transform = Transform(Vector3(position.x, position.y, position.z), Quaternion::identity());
 	}
 

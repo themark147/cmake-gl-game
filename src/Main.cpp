@@ -1,5 +1,4 @@
 #include "Application/Application.h"
-#include "stb/stb_image.h"
 
 #include <glm/glm.hpp>
 #include <glm/ext/matrix_transform.hpp>
@@ -20,22 +19,7 @@
 extern std::string vertexShaderRender;
 extern std::string fragmentShaderRender;
 
-void createBox(PhysicsCommon& common, PhysicsWorld* world);
 void renderObject(Shader& mainShader, glm::mat4& projection, glm::mat4& view, Model& zombieModel, Model& turretModel, Model& tankModel);
-
-using chrono_clock = std::chrono::high_resolution_clock;
-
-std::chrono::time_point<chrono_clock> mStartTime;
-std::chrono::time_point<std::chrono::high_resolution_clock> mLastUpdateTime;
-
-/// Used to fix the time step and avoid strange time effects
-std::chrono::duration<double> mAccumulator;
-std::chrono::duration<double> deltaTime;
-
-// Application - init openGL & other stuff
-
-// Scene - predefined objects or creating new one
-//  - render method - simply interate over each obj.
 
 int main()
 {
@@ -68,14 +52,6 @@ int main()
     // Shader mainShader(vertexShaderRender, fragmentShaderRender);
 
     // mainShader.use();
-
-    // TODO part of Physics.cpp -> tick() -> step()
-    // step
-    std::chrono::duration<double> timeStep = std::chrono::duration<double>(1.0f / 100.0f);
-
-    mStartTime = std::chrono::high_resolution_clock::now();
-    mLastUpdateTime = mStartTime;
-    mAccumulator = std::chrono::duration<double>::zero();
 
     // Model zombieModel("../../../resources/zombie_char_7_4.glb", glm::vec3(0.0f, 0.0f, 0.0f));
     // Model turretModel("../../../resources/turret.glb", glm::vec3(0.0f, 0.0f, 0.0f));
@@ -149,16 +125,3 @@ void renderObject(Shader& mainShader, glm::mat4& projection, glm::mat4& view, Mo
     mainShader.setMat4("model", modelTank);
     tankModel.Draw(mainShader);
 }
-
-void createBox(PhysicsCommon& common, PhysicsWorld* world)
-{
-    //glm::vec3 spawnPosition = (camera.Front * glm::vec3(15)) + camera.Position;
-    //Object* object = new Object(spawnPosition);
-
-    //boxes.push_back(object);
-    //object->create(common, world, BodyType::DYNAMIC, Vector3(1.5, 1.5, 1.5));
-    // object->getRigidBody()->applyLocalForceAtLocalPosition(Vector3(1000, 1000, 1000) * Vector3(camera.Front.x, camera.Front.y, camera.Front.z), Vector3(0.15, 0.7, 1.5));
-}
-
-
-

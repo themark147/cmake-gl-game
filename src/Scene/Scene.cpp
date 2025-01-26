@@ -2,18 +2,37 @@
 
 #include <reactphysics3d/reactphysics3d.h>
 
+#include "../Application/Application.h"
 #include "../Object/Object.h"
 #include "../Shader.h"
-#include "../Application/Application.h"
 
 #include <vector>
+#include <iostream>
 
 using namespace reactphysics3d;
 
+using chrono_clock = std::chrono::high_resolution_clock;
+
+std::chrono::time_point<chrono_clock> mStartTime;
+std::chrono::time_point<std::chrono::high_resolution_clock> mLastUpdateTime;
+
+/// Used to fix the time step and avoid strange time effects
+std::chrono::duration<double> mAccumulator;
+std::chrono::duration<double> deltaTime;
+
+std::chrono::duration<double> timeStep = std::chrono::duration<double>(1.0f / 100.0f);
+
 namespace GLGame {
 	Scene::Scene(Shader& shader) : shader(shader) {
+		// TODO part of Physics.cpp -> tick() -> step()
+
+		mStartTime = std::chrono::high_resolution_clock::now();
+		mLastUpdateTime = mStartTime;
+		mAccumulator = std::chrono::duration<double>::zero();
+
 		// Init physics
 		world = physicsCommon.createPhysicsWorld();
+		player.setSpawner(new GLGame::ObjectSpawner(physicsCommon, world, objects));
 
 		initDebug();
 
@@ -21,19 +40,18 @@ namespace GLGame {
 		world->getDebugRenderer().setIsDebugItemDisplayed(DebugRenderer::DebugItem::COLLISION_SHAPE, true);
 
 		// Init objects
-		objects.push_back(new GLGame::Object(glm::vec3(0.0f, -2.0f, 0.0f)));
+		objects.push_back(GLGame::Object(glm::vec3(0.0f, -2.0f, 0.0f)));
 
 		// TODO: should be part of Object construct
-		for (std::vector<GLGame::Object*>::iterator it = objects.begin(); it != objects.end(); ++it)
-		{
-			(*it)->create(physicsCommon, world, BodyType::STATIC, Vector3(10, 1, 10)); // last param only convex SIZE
+
+		for (GLGame::Object& obj : objects) {
+			obj.create(physicsCommon, world, BodyType::STATIC, Vector3(10, 1, 10)); // last param only convex SIZE
 		}
 	}
 	
 	void Scene::render()
 	{
 		camera = player.getCamera();
-		// TODO: inside physic step
 		player.processInput();
 
 		shader.use();
@@ -60,20 +78,34 @@ namespace GLGame {
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		}
 
+		std::chrono::time_point<std::chrono::high_resolution_clock> currentTime = std::chrono::high_resolution_clock::now();
+		deltaTime = currentTime - mLastUpdateTime;
+
+		// Update the current display time
+		mLastUpdateTime = currentTime;
+		mAccumulator += deltaTime;
+
+		while (mAccumulator >= timeStep) {
+			// mainShader.setVec3("light.position", light.x, light.y, light.z); // ImGui
+			world->update(timeStep.count());
+
+			mAccumulator -= timeStep;
+		}
+
 		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)GLGame::Application::get().getWidth() / (float)GLGame::Application::get().getHeight(), 0.1f, 100.0f);
 		shader.setMat4("projection", projection);
 		
 		glm::mat4 view = camera.GetViewMatrix();
 		shader.setMat4("view", view);
 
-		for (std::vector<GLGame::Object*>::iterator it = objects.begin(); it != objects.end(); ++it)
-		{
+		for (GLGame::Object obj : objects) {
+			// std::cout << "Pocet: " << objects.size();
 			glm::mat4 model = glm::mat4(1.0f);
-			model = glm::translate(model, (*it)->getPosition());
-			
+			model = glm::translate(model, obj.getPosition());
+
 			// lightingShader.setMat4("model", model * (*it)->getRotationMatrix());
 			shader.setMat4("model", model);
-			(*it)->render();
+			obj.render();
 		}
 	}
 }
