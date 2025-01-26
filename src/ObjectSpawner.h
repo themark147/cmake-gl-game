@@ -21,7 +21,8 @@ namespace GLGame {
             
             object.create(common, world, BodyType::DYNAMIC, Vector3(1, 1, 1));
             objects.push_back(object);
-            object.getRigidBody()->applyLocalForceAtLocalPosition(Vector3(100, 100, 100) * Vector3(spawnPosition.x, spawnPosition.y, spawnPosition.z), Vector3(0.15, 0.7, 1.5));
+            // TODO forward vector
+            object.getRigidBody()->applyLocalForceAtLocalPosition(Vector3(100, 100, 100) * Vector3(0, 1.5f, 0), Vector3(0.15, 0.7, 1.5));
         }
     private:
         PhysicsCommon& common;

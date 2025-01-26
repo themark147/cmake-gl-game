@@ -88,6 +88,7 @@ namespace GLGame {
 		while (mAccumulator >= timeStep) {
 			// mainShader.setVec3("light.position", light.x, light.y, light.z); // ImGui
 			world->update(timeStep.count());
+			player.processMovementInput();
 
 			mAccumulator -= timeStep;
 		}

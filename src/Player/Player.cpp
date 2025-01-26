@@ -16,22 +16,6 @@ namespace GLGame {
 	
 	void Player::processInput()
 	{
-		if (keyController.isKeyPressed(KeyInput::KeyDefinition::KEY_W)) {
-			camera.ProcessKeyboard(FORWARD, step);
-		}
-
-		if (keyController.isKeyPressed(KeyInput::KeyDefinition::KEY_A)) {
-			camera.ProcessKeyboard(LEFT, step); 
-		}
-
-		if (keyController.isKeyPressed(KeyInput::KeyDefinition::KEY_S)) {
-			camera.ProcessKeyboard(BACKWARD, step);
-		}
-
-		if (keyController.isKeyPressed(KeyInput::KeyDefinition::KEY_D)) {
-			camera.ProcessKeyboard(RIGHT, step);
-		}
-
 		processMouseInput();
 
 		if (keyController.isKeyPressed(KeyInput::KeyDefinition::KEY_F)) {
@@ -64,5 +48,24 @@ namespace GLGame {
 		
 		if (glfwGetInputMode(window, GLFW_CURSOR) == GLFW_CURSOR_DISABLED)
 			camera.ProcessMouseMovement(xoffset, yoffset);
+	}
+
+	void Player::processMovementInput()
+	{
+		if (keyController.isKeyPressed(KeyInput::KeyDefinition::KEY_W)) {
+			camera.ProcessKeyboard(FORWARD, step);
+		}
+
+		if (keyController.isKeyPressed(KeyInput::KeyDefinition::KEY_A)) {
+			camera.ProcessKeyboard(LEFT, step);
+		}
+
+		if (keyController.isKeyPressed(KeyInput::KeyDefinition::KEY_S)) {
+			camera.ProcessKeyboard(BACKWARD, step);
+		}
+
+		if (keyController.isKeyPressed(KeyInput::KeyDefinition::KEY_D)) {
+			camera.ProcessKeyboard(RIGHT, step);
+		}
 	}
 }

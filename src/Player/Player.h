@@ -14,6 +14,7 @@ namespace GLGame {
 		Player::Player(glm::vec3 position);
 		void processInput();
 		void processMouseInput();
+		void processMovementInput();
 
 		Camera& getCamera() {
 			return camera;
@@ -25,6 +26,6 @@ namespace GLGame {
 	private:
 		Camera& camera = Camera();
 		KeyInput::KeyController& keyController = KeyInput::KeyController::get();
-		GLGame::ObjectSpawner* spawner;
+		GLGame::ObjectSpawner* spawner = nullptr;
 	};
 }
