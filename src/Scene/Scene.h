@@ -8,6 +8,7 @@
 
 #include "../Shader.h"
 #include "../Camera.h"
+#include "../Model/Model.h"
 
 #include "../Debug/VertexArrayObject.h"
 #include "../Debug/VertexBufferObject.h"
@@ -15,6 +16,8 @@
 #include "../ObjectSpawner.h"
 
 using namespace reactphysics3d;
+
+extern std::string vertexShaderMain, fragmentShaderMain, vertexShaderRender, fragmentShaderRender;
 
 namespace GLGame {
 	class Scene {
@@ -96,12 +99,15 @@ namespace GLGame {
 		PhysicsCommon physicsCommon;
 		PhysicsWorld* world;
 
+		// TODO: object should contain model
 		std::vector<Object> objects;
+		std::vector<Model> models;
 
 		GLGame::Player player = GLGame::Player(glm::vec3(0.0f, 0.0f, 15.0f));
 		Camera& camera = Camera();
 
 		Shader shader;
+		Shader mainShader = Shader(vertexShaderMain, fragmentShaderMain);
 
 		/// Vertex Buffer Object for the debug info lines vertices data
 		openglframework::VertexBufferObject mDebugVBOLinesVertices = openglframework::VertexBufferObject(GL_ARRAY_BUFFER);

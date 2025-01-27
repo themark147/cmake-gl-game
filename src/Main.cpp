@@ -1,26 +1,5 @@
 #include "Application/Application.h"
 
-#include <glm/glm.hpp>
-#include <glm/ext/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-
-#include <assimp/Importer.hpp>
-#include <assimp/scene.h>
-#include <assimp/postprocess.h>
-
-#include <iostream>
-#include <vector>
-#include <chrono>
-
-#include "Shader.h"
-
-#include "Model/Model.h"
-
-extern std::string vertexShaderRender;
-extern std::string fragmentShaderRender;
-
-void renderObject(Shader& mainShader, glm::mat4& projection, glm::mat4& view, Model& zombieModel, Model& turretModel, Model& tankModel);
-
 int main()
 {
     glfwInit();
@@ -48,14 +27,6 @@ int main()
 
     // ImGui_ImplGlfw_InitForOpenGL(window, true);
     // ImGui_ImplOpenGL3_Init("#version 130");
-
-    // Shader mainShader(vertexShaderRender, fragmentShaderRender);
-
-    // mainShader.use();
-
-    // Model zombieModel("../../../resources/zombie_char_7_4.glb", glm::vec3(0.0f, 0.0f, 0.0f));
-    // Model turretModel("../../../resources/turret.glb", glm::vec3(0.0f, 0.0f, 0.0f));
-    // Model tankModel("../../../resources/zombie_char_7_4.glb", glm::vec3(0.0f, 0.0f, 0.0f));
 
     // glm::vec3 light(15.0f, 30.0f, 5.0f);
 
@@ -89,39 +60,4 @@ int main()
     application.Shutdown();
 
     return 0;
-}
-
-void renderObject(Shader& mainShader, glm::mat4& projection, glm::mat4& view, Model& zombieModel, Model& turretModel, Model& tankModel) {
-    mainShader.use();
-
-    mainShader.setMat4("projection", projection);
-    mainShader.setMat4("view", view);
-    
-    //mainShader.setVec3("camPos", camera.Position);
-
-    // light properties
-    mainShader.setVec3("light.ambient", 1.0f, 0.2f, 0.2f);
-    mainShader.setVec3("light.diffuse", 0.5f, 0.5f, 0.5f);
-    mainShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
-
-    // material properties
-    // mainShader.setFloat("material.shininess", 32.0f);
-
-    glm::mat4 modelZombie = glm::mat4(1.0f);
-    modelZombie = glm::translate(modelZombie, glm::vec3(0.0f, -2.0f, 10.0f));
-
-    mainShader.setMat4("model", modelZombie);
-    zombieModel.Draw(mainShader);
-
-    glm::mat4 modelTurret = glm::mat4(1.0f);
-    modelTurret = glm::translate(modelTurret, glm::vec3(-1.5f, -2.0f, 10.0f));
-
-    mainShader.setMat4("model", modelTurret);
-    turretModel.Draw(mainShader);
-
-    glm::mat4 modelTank = glm::mat4(1.0f);
-    modelTank = glm::translate(modelTank, glm::vec3(-3.5f, -0.5f, 10.0f));
-
-    mainShader.setMat4("model", modelTank);
-    tankModel.Draw(mainShader);
 }

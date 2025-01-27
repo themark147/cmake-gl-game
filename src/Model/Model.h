@@ -11,7 +11,7 @@
 #include <assimp/postprocess.h>
 
 #include "Mesh.h"
-#include "Shader.h"
+#include "../Shader.h"
 #include "../Material/Material.h"
 
 #include <string>
@@ -23,7 +23,7 @@
 
 using namespace std;
 
-unsigned int TextureFromFile(const char* path, const string& directory, bool gamma, const aiTexture* texture2);
+// unsigned int TextureFromFile(const char* path, const string& directory, bool gamma, const aiTexture* texture2);
 
 static const GLfloat gravity = -9.8f;
 
@@ -94,7 +94,7 @@ private:
         vector<Vertex> vertices;
         vector<unsigned int> indices;
         vector<Texture> textures;
-        GLGame::Material* meshMaterial = new GLGame::Material();
+        GLGame::Material meshMaterial = GLGame::Material();
 
         // walk through each of the mesh's vertices
         for (unsigned int i = 0; i < mesh->mNumVertices; i++)
@@ -168,8 +168,8 @@ private:
         Texture diffuseTexture = diffuseMaps.front();
         textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
         // 2. specular maps
-        vector<Texture> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, "material.specular", scene);
-        textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
+        //vector<Texture> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, "material.specular", scene);
+        //textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
         // 3. normal maps
         std::vector<Texture> normalMaps = loadMaterialTextures(material, aiTextureType_NORMALS, "material.normal", scene);
         Texture normalTexture = normalMaps.front();
@@ -186,7 +186,7 @@ private:
             textures.insert(textures.end(), metallicMaps.begin(), metallicMaps.end());
         }
 
-        std::vector<Texture> roughness = loadMaterialTextures(material, aiTextureType_DIFFUSE_ROUGHNESS, "material.roughness", scene);
+        // std::vector<Texture> roughness = loadMaterialTextures(material, aiTextureType_DIFFUSE_ROUGHNESS, "material.roughness", scene);
         // textures.insert(textures.end(), roughness.begin(), roughness.end());
 
         //std::vector<Texture> ao = loadMaterialTextures(material, aiTextureType_AMBIENT_OCCLUSION, "material.ao", scene);
@@ -201,7 +201,7 @@ private:
         texturesToMaterial.push_back(new GLGame::Texture(normalTexture.id, normalTexture.type));
         texturesToMaterial.push_back(metallic);
 
-        meshMaterial->setTextures(texturesToMaterial);
+        meshMaterial.setTextures(texturesToMaterial);
 
         return Mesh(vertices, indices, textures, meshMaterial);
     }
@@ -240,62 +240,63 @@ private:
         }
         return textures;
     }
+
+    unsigned int TextureFromFile(const char* path, const string& directory, bool gamma, const aiTexture* embeddedTexture)
+    {
+        string filename = string(path);
+        filename = directory + '/' + filename;
+
+        unsigned int textureID;
+        glGenTextures(1, &textureID);
+
+        int width, height, channels;
+
+        size_t dataSize = embeddedTexture->mWidth;
+        const unsigned char* compressedData = reinterpret_cast<const unsigned char*>(embeddedTexture->pcData);
+        unsigned char* imageData = nullptr;
+
+        if (embeddedTexture->mHeight == 0)
+        {
+            imageData = stbi_load_from_memory(compressedData, dataSize, &width, &height, &channels, 4);
+        }
+        else
+        {
+            imageData = stbi_load_from_memory(compressedData, embeddedTexture->mWidth * embeddedTexture->mHeight, &width, &height, &channels, 0);
+        }
+
+        // load from not compressed JPEG/PNG
+        // unsigned char* data = stbi_load("../../../resources/prisoner_diffuse.PNG", &width, &height, &nrComponents, 0);
+
+        if (imageData)
+        {
+            GLenum format;
+            if (channels == 1)
+                format = GL_RED;
+            else if (channels == 3)
+                format = GL_RGB;
+            else if (channels == 4)
+                format = GL_RGBA;
+
+            glBindTexture(GL_TEXTURE_2D, textureID);
+
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, imageData);
+
+            glGenerateMipmap(GL_TEXTURE_2D);
+
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+            stbi_image_free(imageData);
+        }
+        else
+        {
+            std::cout << "Texture failed to load at path: " << path << std::endl;
+            stbi_image_free(imageData);
+        }
+
+        return textureID;
+    }
 };
 
-unsigned int TextureFromFile(const char* path, const string& directory, bool gamma, const aiTexture* embeddedTexture)
-{
-    string filename = string(path);
-    filename = directory + '/' + filename;
-
-    unsigned int textureID;
-    glGenTextures(1, &textureID);
-
-    int width, height, channels;
-
-    size_t dataSize = embeddedTexture->mWidth;
-    const unsigned char* compressedData = reinterpret_cast<const unsigned char*>(embeddedTexture->pcData);
-    unsigned char* imageData = nullptr;
-
-    if (embeddedTexture->mHeight == 0)
-    {
-        imageData = stbi_load_from_memory(compressedData, dataSize, &width, &height, &channels, 4);
-    }
-    else
-    {
-        imageData = stbi_load_from_memory(compressedData, embeddedTexture->mWidth * embeddedTexture->mHeight, &width, &height, &channels, 0);
-    }
-    
-    // load from not compressed JPEG/PNG
-    // unsigned char* data = stbi_load("../../../resources/prisoner_diffuse.PNG", &width, &height, &nrComponents, 0);
-
-    if (imageData)
-    {
-        GLenum format;
-        if (channels == 1)
-            format = GL_RED;
-        else if (channels == 3)
-            format = GL_RGB;
-        else if (channels == 4)
-            format = GL_RGBA;
-    
-        glBindTexture(GL_TEXTURE_2D, textureID);
-
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, imageData);
-
-        glGenerateMipmap(GL_TEXTURE_2D);
-
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-        stbi_image_free(imageData);
-    }
-    else
-    {
-        std::cout << "Texture failed to load at path: " << path << std::endl;
-        stbi_image_free(imageData);
-    }
-
-    return textureID;
-}

@@ -25,7 +25,6 @@ std::chrono::duration<double> timeStep = std::chrono::duration<double>(1.0f / 10
 namespace GLGame {
 	Scene::Scene(Shader& shader) : shader(shader) {
 		// TODO part of Physics.cpp -> tick() -> step()
-
 		mStartTime = std::chrono::high_resolution_clock::now();
 		mLastUpdateTime = mStartTime;
 		mAccumulator = std::chrono::duration<double>::zero();
@@ -47,6 +46,9 @@ namespace GLGame {
 		for (GLGame::Object& obj : objects) {
 			obj.create(physicsCommon, world, BodyType::STATIC, Vector3(10, 1, 10)); // last param only convex SIZE
 		}
+		
+		models.push_back(Model("../../../resources/zombie_char_7_4.glb", glm::vec3(0.0f, 0.0f, 0.0f)));
+		// models.push_back(Model("../../../resources/sword.glb", glm::vec3(0.0f, 0.0f, 0.0f)));
 	}
 	
 	void Scene::render()
@@ -100,13 +102,33 @@ namespace GLGame {
 		shader.setMat4("view", view);
 
 		for (GLGame::Object obj : objects) {
-			// std::cout << "Pocet: " << objects.size();
+			// std::cout << "Pocet objects: " << objects.size() << "\n";
 			glm::mat4 model = glm::mat4(1.0f);
 			model = glm::translate(model, obj.getPosition());
 
 			// lightingShader.setMat4("model", model * (*it)->getRotationMatrix());
 			shader.setMat4("model", model);
-			obj.render();
+			// obj.render();
+		}
+
+		mainShader.use();
+
+		mainShader.setMat4("projection", projection);
+		mainShader.setMat4("view", view);
+
+		mainShader.setVec3("viewPos", camera.Position);
+
+		mainShader.setVec3("lightPos", 10.0f, 7.0f, 20.0f);
+		mainShader.setVec3("lightColor", 0.5f, 0.5f, 0.5f);
+
+		for (Model meshModel : models) {
+			// std::cout << "Pocet: " << models.size();
+			glm::mat4 model = glm::mat4(1.0f);
+			model = glm::translate(model, glm::vec3(0.0f, -2.0f, 13.0f));
+
+			// lightingShader.setMat4("model", model * (*it)->getRotationMatrix());
+			mainShader.setMat4("model", model);
+			meshModel.Draw(mainShader);
 		}
 	}
 }

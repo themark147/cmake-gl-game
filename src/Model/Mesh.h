@@ -44,12 +44,12 @@ public:
     vector<Vertex>          vertices;
     vector<unsigned int>    indices;
     vector<Texture>         textures;
-    GLGame::Material*       material;
+    GLGame::Material        material;
 
     unsigned int VAO;
 
     // constructor
-    Mesh(vector<Vertex> vertices, vector<unsigned int> indices, vector<Texture> textures, GLGame::Material* material)
+    Mesh(vector<Vertex> vertices, vector<unsigned int> indices, vector<Texture> textures, GLGame::Material material)
     {
         this->vertices = vertices;
         this->indices = indices;
@@ -68,7 +68,7 @@ public:
         unsigned int specularNr = 1;
         unsigned int normalNr = 1;
         unsigned int heightNr = 1;
-        vector<GLGame::Texture*> textures = material->getTextures();
+        vector<GLGame::Texture*> textures = material.getTextures();
 
         for (unsigned int i = 0; i < textures.size(); i++)
         {

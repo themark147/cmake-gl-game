@@ -13,6 +13,7 @@ namespace GLGame {
 		Texture(int id, string name): id(id), name(name) {}
 	};
 
+	// TODO: probably should contain scalar values of roughness / metallic
 	class Material {
 	public:
 		Material();
