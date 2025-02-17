@@ -48,7 +48,7 @@ namespace GLGame {
 		}
 		
 		models.push_back(Model("../../../resources/zombie_char_7_4.glb", glm::vec3(0.0f, 0.0f, 0.0f)));
-		// models.push_back(Model("../../../resources/sword.glb", glm::vec3(0.0f, 0.0f, 0.0f)));
+		models.push_back(Model("../../../resources/turret.glb", glm::vec3(0.0f, 0.0f, 0.0f)));
 	}
 	
 	void Scene::render()
@@ -120,6 +120,7 @@ namespace GLGame {
 
 		mainShader.setVec3("lightPos", 10.0f, 7.0f, 20.0f);
 		mainShader.setVec3("lightColor", 0.5f, 0.5f, 0.5f);
+		mainShader.setVec3("lightDir", -0.5f, -0.5f, -0.5f);
 
 		for (Model meshModel : models) {
 			// std::cout << "Pocet: " << models.size();
