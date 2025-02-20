@@ -10,6 +10,7 @@
 
 #include <string>
 #include <vector>
+#include <map>
 
 using namespace std;
 
@@ -26,16 +27,24 @@ struct Vertex {
     glm::vec3 Tangent;
     // bitangent
     glm::vec3 Bitangent;
-    //bone indexes which will influence this vertex
+    // bone indexes which will influence this vertex
     int m_BoneIDs[MAX_BONE_INFLUENCE];
-    //weights from each bone
+    // weights from each bone
     float m_Weights[MAX_BONE_INFLUENCE];
+
+    glm::vec4 boneIds = glm::vec4(0);
+    glm::vec4 boneWeights = glm::vec4(0.0f);
 };
 
 struct Texture {
     unsigned int id;
     string type;
     string path;
+};
+
+struct BoneInfo {
+    glm::mat4 offset; // Offset matrix to transform vertex from model space to bone space
+    glm::mat4 transformation; // Final transformation matrix for the bone
 };
 
 class Mesh {
@@ -45,6 +54,8 @@ public:
     vector<unsigned int>    indices;
     vector<Texture>         textures;
     GLGame::Material        material;
+
+    map<string, BoneInfo> boneMap; // Maps bone names to their info
 
     unsigned int VAO;
 
@@ -145,6 +156,7 @@ private:
         // vertex bitangent
         glEnableVertexAttribArray(4);
         glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Bitangent));
+
         // ids
         glEnableVertexAttribArray(5);
         glVertexAttribIPointer(5, 4, GL_INT, sizeof(Vertex), (void*)offsetof(Vertex, m_BoneIDs));

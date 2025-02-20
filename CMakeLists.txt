@@ -67,3 +67,8 @@ target_link_libraries("${CMAKE_PROJECT_NAME}" ${OPENGL_LIBRARY} glfw glm assimp 
 
 
 
+
+
+
+
+

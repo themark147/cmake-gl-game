@@ -47,8 +47,8 @@ namespace GLGame {
 			obj.create(physicsCommon, world, BodyType::STATIC, Vector3(10, 1, 10)); // last param only convex SIZE
 		}
 		
-		models.push_back(Model("../../../resources/zombie_char_7_4.glb", glm::vec3(0.0f, 0.0f, 0.0f)));
-		models.push_back(Model("../../../resources/turret.glb", glm::vec3(0.0f, 0.0f, 0.0f)));
+		// models.push_back(Model("../../../resources/zombie_char_7_4.glb", glm::vec3(0.0f, 0.0f, 0.0f)));
+		models.push_back(Model("../../../resources/zombie_w_anim.glb", glm::vec3(0.0f, 0.0f, 0.0f)));
 	}
 	
 	void Scene::render()
@@ -129,6 +129,9 @@ namespace GLGame {
 
 			// lightingShader.setMat4("model", model * (*it)->getRotationMatrix());
 			mainShader.setMat4("model", model);
+
+			// meshModel.getPose(animation, skeleton, elapsedTime, currentPose, identity, globalInverseTransform);
+
 			meshModel.Draw(mainShader);
 		}
 	}

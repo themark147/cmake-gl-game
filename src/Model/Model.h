@@ -1,9 +1,12 @@
 #pragma once
+#define GLM_ENABLE_EXPERIMENTAL
 
 #include <glad/glad.h> 
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/quaternion.hpp>
+
 #include "stb/stb_image.h"
 
 #include <assimp/Importer.hpp>
@@ -27,6 +30,33 @@ using namespace std;
 
 static const GLfloat gravity = -9.8f;
 
+// structure to hold bone tree (skeleton)
+struct Bone {
+    int id = 0; // position of the bone in final upload array
+    std::string name = "";
+    glm::mat4 offset = glm::mat4(1.0f);
+    std::vector<Bone> children = {};
+};
+
+// sturction representing an animation track
+struct BoneTransformTrack {
+    std::vector<float> positionTimestamps = {};
+    std::vector<float> rotationTimestamps = {};
+    std::vector<float> scaleTimestamps = {};
+
+    std::vector<glm::vec3> positions = {};
+    std::vector<glm::quat> rotations = {};
+    std::vector<glm::vec3> scales = {};
+};
+
+// structure containing animation information
+struct Animation {
+    float duration = 0.0f;
+    float ticksPerSecond = 1.0f;
+    std::unordered_map<std::string, BoneTransformTrack> boneTransforms = {};
+};
+
+// TODO: able to load more than 1 mesh
 class Model
 {
 public:
@@ -49,7 +79,115 @@ public:
             meshes[i].Draw(shader);
     }
 
+    void getPose(Animation& animation, Bone& skeletion, float dt, std::vector<glm::mat4>& output, glm::mat4& parentTransform, glm::mat4& globalInverseTransform) {
+        BoneTransformTrack& btt = animation.boneTransforms[skeletion.name];
+        dt = fmod(dt, animation.duration);
+        std::pair<uint, float> fp;
+        //calculate interpolated position
+        fp = getTimeFraction(btt.positionTimestamps, dt);
+
+        glm::vec3 position1 = btt.positions[fp.first - 1];
+        glm::vec3 position2 = btt.positions[fp.first];
+
+        glm::vec3 position = glm::mix(position1, position2, fp.second);
+
+        //calculate interpolated rotation
+        fp = getTimeFraction(btt.rotationTimestamps, dt);
+        glm::quat rotation1 = btt.rotations[fp.first - 1];
+        glm::quat rotation2 = btt.rotations[fp.first];
+
+        glm::quat rotation = glm::slerp(rotation1, rotation2, fp.second);
+
+        //calculate interpolated scale
+        fp = getTimeFraction(btt.scaleTimestamps, dt);
+        glm::vec3 scale1 = btt.scales[fp.first - 1];
+        glm::vec3 scale2 = btt.scales[fp.first];
+
+        glm::vec3 scale = glm::mix(scale1, scale2, fp.second);
+
+        glm::mat4 positionMat = glm::mat4(1.0),
+            scaleMat = glm::mat4(1.0);
+
+
+        // calculate localTransform
+        positionMat = glm::translate(positionMat, position);
+        glm::mat4 rotationMat = glm::toMat4(rotation);
+        scaleMat = glm::scale(scaleMat, scale);
+        glm::mat4 localTransform = positionMat * rotationMat * scaleMat;
+        glm::mat4 globalTransform = parentTransform * localTransform;
+
+        output[skeletion.id] = globalInverseTransform * globalTransform * skeletion.offset;
+        //update values for children bones
+        for (Bone& child : skeletion.children) {
+            getPose(animation, child, dt, output, globalTransform, globalInverseTransform);
+        }
+        //std::cout << dt << " => " << position.x << ":" << position.y << ":" << position.z << ":" << std::endl;
+    }
+
 private:
+    std::pair<uint, float> getTimeFraction(std::vector<float>& times, float& dt) {
+        uint segment = 0;
+        while (dt > times[segment])
+            segment++;
+        float start = times[segment - 1];
+        float end = times[segment];
+        float frac = (dt - start) / (end - start);
+        return { segment, frac };
+    }
+
+    inline glm::mat4 assimpToGlmMatrix(aiMatrix4x4 mat) {
+        glm::mat4 m;
+        for (int y = 0; y < 4; y++)
+        {
+            for (int x = 0; x < 4; x++)
+            {
+                m[x][y] = mat[y][x];
+            }
+        }
+        return m;
+    }
+    inline glm::vec3 assimpToGlmVec3(aiVector3D vec) {
+        return glm::vec3(vec.x, vec.y, vec.z);
+    }
+
+    inline glm::quat assimpToGlmQuat(aiQuaternion quat) {
+        glm::quat q;
+        q.x = quat.x;
+        q.y = quat.y;
+        q.z = quat.z;
+        q.w = quat.w;
+
+        return q;
+    }
+
+    bool readSkeleton(Bone& boneOutput, aiNode* node, std::unordered_map<std::string, std::pair<int, glm::mat4>>& boneInfoTable) {
+
+        if (boneInfoTable.find(node->mName.C_Str()) != boneInfoTable.end()) { // if node is actually a bone
+            boneOutput.name = node->mName.C_Str();
+            boneOutput.id = boneInfoTable[boneOutput.name].first;
+            boneOutput.offset = boneInfoTable[boneOutput.name].second;
+
+            for (int i = 0; i < node->mNumChildren; i++) {
+                Bone child;
+                readSkeleton(child, node->mChildren[i], boneInfoTable);
+                boneOutput.children.push_back(child);
+            }
+            return true;
+        }
+        else { // find bones in children
+            for (int i = 0; i < node->mNumChildren; i++) {
+                if (readSkeleton(boneOutput, node->mChildren[i], boneInfoTable)) {
+                    return true;
+                }
+
+            }
+        }
+        return false;
+    }
+
+    void loadAnimations(const aiScene* scene) {
+        //
+    }
 
     // loads a model with supported ASSIMP extensions from file and stores the resulting meshes in the meshes vector.
     void loadModel(string const& path)
@@ -65,6 +203,8 @@ private:
         }
         // retrieve the directory path of the filepath
         directory = path.substr(0, path.find_last_of('/'));
+
+        loadAnimations(scene);
 
         // process ASSIMP's root node recursively
         processNode(scene->mRootNode, scene);
@@ -96,6 +236,11 @@ private:
         vector<Texture> textures;
         GLGame::Material meshMaterial = GLGame::Material();
 
+        Bone skeleton;
+
+        std::cout << "number of bones: " << mesh->mNumBones << std::endl;
+        std::cout << "number of verticies: " << mesh->mNumVertices;
+        
         // walk through each of the mesh's vertices
         for (unsigned int i = 0; i < mesh->mNumVertices; i++)
         {
@@ -139,6 +284,50 @@ private:
 
             vertices.push_back(vertex);
         }
+
+        //load boneData to vertices
+        std::unordered_map<std::string, std::pair<int, glm::mat4>> boneInfo = {};
+        std::vector<uint> boneCounts;
+        boneCounts.resize(vertices.size(), 0);
+
+        //loop through each bone
+        for (uint i = 0; i < mesh->mNumBones; i++) {
+            aiBone* bone = mesh->mBones[i];
+            glm::mat4 m = assimpToGlmMatrix(bone->mOffsetMatrix);
+            boneInfo[bone->mName.C_Str()] = { i, m };
+
+            //loop through each vertex that have that bone
+            for (int j = 0; j < bone->mNumWeights; j++) {
+                uint id = bone->mWeights[j].mVertexId;
+                float weight = bone->mWeights[j].mWeight;
+                boneCounts[id]++;
+                switch (boneCounts[id]) {
+                case 1:
+                    vertices[id].boneIds.x = i;
+                    vertices[id].boneWeights.x = weight;
+                    break;
+                case 2:
+                    vertices[id].boneIds.y = i;
+                    vertices[id].boneWeights.y = weight;
+                    break;
+                case 3:
+                    vertices[id].boneIds.z = i;
+                    vertices[id].boneWeights.z = weight;
+                    break;
+                case 4:
+                    vertices[id].boneIds.w = i;
+                    vertices[id].boneWeights.w = weight;
+                    break;
+                default:
+                    //std::cout << "err: unable to allocate bone to vertex" << std::endl;
+                    break;
+
+                }
+            }
+        }
+
+        readSkeleton(skeleton, scene->mRootNode, boneInfo);
+
         // now wak through each of the mesh's faces (a face is a mesh its triangle) and retrieve the corresponding vertex indices.
         for (unsigned int i = 0; i < mesh->mNumFaces; i++)
         {
