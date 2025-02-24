@@ -17,6 +17,8 @@
 #include "../Shader.h"
 #include "../Material/Material.h"
 
+#include "Bone.h"
+
 #include <string>
 #include <fstream>
 #include <sstream>
@@ -30,32 +32,6 @@ using namespace std;
 
 static const GLfloat gravity = -9.8f;
 
-// structure to hold bone tree (skeleton)
-struct Bone {
-    int id = 0; // position of the bone in final upload array
-    std::string name = "";
-    glm::mat4 offset = glm::mat4(1.0f);
-    std::vector<Bone> children = {};
-};
-
-// sturction representing an animation track
-struct BoneTransformTrack {
-    std::vector<float> positionTimestamps = {};
-    std::vector<float> rotationTimestamps = {};
-    std::vector<float> scaleTimestamps = {};
-
-    std::vector<glm::vec3> positions = {};
-    std::vector<glm::quat> rotations = {};
-    std::vector<glm::vec3> scales = {};
-};
-
-// structure containing animation information
-struct Animation {
-    float duration = 0.0f;
-    float ticksPerSecond = 1.0f;
-    std::unordered_map<std::string, BoneTransformTrack> boneTransforms = {};
-};
-
 // TODO: able to load more than 1 mesh
 class Model
 {
@@ -65,6 +41,12 @@ public:
     vector<Mesh>    meshes;
     string directory;
     bool gammaCorrection;
+    GLGame::BoneNode skeleton;
+    GLGame::AnimationNode animation;
+    GLGame::Bone bone;
+    glm::mat4 globalInverseTransform;
+    std::vector<glm::mat4> currentPose = {};
+    glm::mat4 identity = glm::mat4(1.0);
 
     // constructor, expects a filepath to a 3D model.
     Model(string const& path, glm::vec3 position, bool gamma = false) : gammaCorrection(gamma)
@@ -75,66 +57,32 @@ public:
     // draws the model, and thus all its meshes
     void Draw(Shader& shader)
     {
+        
+
+        bone.getPose(animation, skeleton, glfwGetTime() * 1000, currentPose, identity, globalInverseTransform);
+
+        // shader.setMat4("bone_transforms", currentPose[0]);
+
+        glm::mat4 lol = currentPose[0];
+
+        for (int i = 0; i < 47; i++) {
+            std::string uniformName = "bone_transforms[" + std::to_string(i) + "]";
+            glUniformMatrix4fv(glGetUniformLocation(shader.ID, uniformName.c_str()), 1, GL_FALSE, glm::value_ptr(currentPose[i]));
+        }
+
+       // int boneMatricesLocation = glGetUniformLocation(shader.ID, "bone_transforms[45]");
+        //int boneMatricesLocation2 = glGetUniformLocation(shader.ID, "bone_transforms[0]");
+        //int boneMatricesLocation3 = glGetUniformLocation(shader.ID, "bone_transforms[1]");
+
+       // glUniformMatrix4fv(boneMatricesLocation, 1, GL_FALSE, glm::value_ptr(currentPose[0]));
+       //glUniformMatrix4fv(boneMatricesLocation2, 1, GL_FALSE, glm::value_ptr(currentPose[0]));
+       // glUniformMatrix4fv(boneMatricesLocation3, 1, GL_FALSE, glm::value_ptr(currentPose[0]));
+
         for (unsigned int i = 0; i < meshes.size(); i++)
             meshes[i].Draw(shader);
     }
 
-    void getPose(Animation& animation, Bone& skeletion, float dt, std::vector<glm::mat4>& output, glm::mat4& parentTransform, glm::mat4& globalInverseTransform) {
-        BoneTransformTrack& btt = animation.boneTransforms[skeletion.name];
-        dt = fmod(dt, animation.duration);
-        std::pair<uint, float> fp;
-        //calculate interpolated position
-        fp = getTimeFraction(btt.positionTimestamps, dt);
-
-        glm::vec3 position1 = btt.positions[fp.first - 1];
-        glm::vec3 position2 = btt.positions[fp.first];
-
-        glm::vec3 position = glm::mix(position1, position2, fp.second);
-
-        //calculate interpolated rotation
-        fp = getTimeFraction(btt.rotationTimestamps, dt);
-        glm::quat rotation1 = btt.rotations[fp.first - 1];
-        glm::quat rotation2 = btt.rotations[fp.first];
-
-        glm::quat rotation = glm::slerp(rotation1, rotation2, fp.second);
-
-        //calculate interpolated scale
-        fp = getTimeFraction(btt.scaleTimestamps, dt);
-        glm::vec3 scale1 = btt.scales[fp.first - 1];
-        glm::vec3 scale2 = btt.scales[fp.first];
-
-        glm::vec3 scale = glm::mix(scale1, scale2, fp.second);
-
-        glm::mat4 positionMat = glm::mat4(1.0),
-            scaleMat = glm::mat4(1.0);
-
-
-        // calculate localTransform
-        positionMat = glm::translate(positionMat, position);
-        glm::mat4 rotationMat = glm::toMat4(rotation);
-        scaleMat = glm::scale(scaleMat, scale);
-        glm::mat4 localTransform = positionMat * rotationMat * scaleMat;
-        glm::mat4 globalTransform = parentTransform * localTransform;
-
-        output[skeletion.id] = globalInverseTransform * globalTransform * skeletion.offset;
-        //update values for children bones
-        for (Bone& child : skeletion.children) {
-            getPose(animation, child, dt, output, globalTransform, globalInverseTransform);
-        }
-        //std::cout << dt << " => " << position.x << ":" << position.y << ":" << position.z << ":" << std::endl;
-    }
-
 private:
-    std::pair<uint, float> getTimeFraction(std::vector<float>& times, float& dt) {
-        uint segment = 0;
-        while (dt > times[segment])
-            segment++;
-        float start = times[segment - 1];
-        float end = times[segment];
-        float frac = (dt - start) / (end - start);
-        return { segment, frac };
-    }
-
     inline glm::mat4 assimpToGlmMatrix(aiMatrix4x4 mat) {
         glm::mat4 m;
         for (int y = 0; y < 4; y++)
@@ -160,33 +108,40 @@ private:
         return q;
     }
 
-    bool readSkeleton(Bone& boneOutput, aiNode* node, std::unordered_map<std::string, std::pair<int, glm::mat4>>& boneInfoTable) {
+    void loadAnimation(const aiScene* scene, GLGame::AnimationNode& animation) {
+        //loading first Animation
+        aiAnimation* anim = scene->mAnimations[0];
 
-        if (boneInfoTable.find(node->mName.C_Str()) != boneInfoTable.end()) { // if node is actually a bone
-            boneOutput.name = node->mName.C_Str();
-            boneOutput.id = boneInfoTable[boneOutput.name].first;
-            boneOutput.offset = boneInfoTable[boneOutput.name].second;
+        if (anim->mTicksPerSecond != 0.0f)
+            animation.ticksPerSecond = anim->mTicksPerSecond;
+        else
+            animation.ticksPerSecond = 1;
 
-            for (int i = 0; i < node->mNumChildren; i++) {
-                Bone child;
-                readSkeleton(child, node->mChildren[i], boneInfoTable);
-                boneOutput.children.push_back(child);
+
+        animation.duration = anim->mDuration * anim->mTicksPerSecond;
+        animation.boneTransforms = {};
+
+        //load positions rotations and scales for each bone
+        // each channel represents each bone
+        for (int i = 0; i < anim->mNumChannels; i++) {
+            aiNodeAnim* channel = anim->mChannels[i];
+            GLGame::BoneTransformTrack track;
+            for (int j = 0; j < channel->mNumPositionKeys; j++) {
+                track.positionTimestamps.push_back(channel->mPositionKeys[j].mTime);
+                track.positions.push_back(assimpToGlmVec3(channel->mPositionKeys[j].mValue));
             }
-            return true;
-        }
-        else { // find bones in children
-            for (int i = 0; i < node->mNumChildren; i++) {
-                if (readSkeleton(boneOutput, node->mChildren[i], boneInfoTable)) {
-                    return true;
-                }
+            for (int j = 0; j < channel->mNumRotationKeys; j++) {
+                track.rotationTimestamps.push_back(channel->mRotationKeys[j].mTime);
+                track.rotations.push_back(assimpToGlmQuat(channel->mRotationKeys[j].mValue));
 
             }
-        }
-        return false;
-    }
+            for (int j = 0; j < channel->mNumScalingKeys; j++) {
+                track.scaleTimestamps.push_back(channel->mScalingKeys[j].mTime);
+                track.scales.push_back(assimpToGlmVec3(channel->mScalingKeys[j].mValue));
 
-    void loadAnimations(const aiScene* scene) {
-        //
+            }
+            animation.boneTransforms[channel->mNodeName.C_Str()] = track;
+        }
     }
 
     // loads a model with supported ASSIMP extensions from file and stores the resulting meshes in the meshes vector.
@@ -204,7 +159,13 @@ private:
         // retrieve the directory path of the filepath
         directory = path.substr(0, path.find_last_of('/'));
 
-        loadAnimations(scene);
+        loadAnimation(scene, animation);
+
+        globalInverseTransform = assimpToGlmMatrix(scene->mRootNode->mTransformation);
+        globalInverseTransform = glm::inverse(globalInverseTransform);
+
+        //currentPose is held in this vector and uploaded to gpu as a matrix array uniform
+        currentPose.resize(47, identity); // TODO cannot be hardcoded 
 
         // process ASSIMP's root node recursively
         processNode(scene->mRootNode, scene);
@@ -213,6 +174,8 @@ private:
     // processes a node in a recursive fashion. Processes each individual mesh located at the node and repeats this process on its children nodes (if any).
     void processNode(aiNode* node, const aiScene* scene)
     {
+        std::cout << "Pocet meshes: " << node->mNumMeshes << std::endl;
+
         // process each mesh located at the current node
         for (unsigned int i = 0; i < node->mNumMeshes; i++)
         {
@@ -235,8 +198,6 @@ private:
         vector<unsigned int> indices;
         vector<Texture> textures;
         GLGame::Material meshMaterial = GLGame::Material();
-
-        Bone skeleton;
 
         std::cout << "number of bones: " << mesh->mNumBones << std::endl;
         std::cout << "number of verticies: " << mesh->mNumVertices;
@@ -319,7 +280,7 @@ private:
                     vertices[id].boneWeights.w = weight;
                     break;
                 default:
-                    //std::cout << "err: unable to allocate bone to vertex" << std::endl;
+                    std::cout << "err: unable to allocate bone to vertex" << std::endl;
                     break;
 
                 }
@@ -327,6 +288,20 @@ private:
         }
 
         readSkeleton(skeleton, scene->mRootNode, boneInfo);
+
+        //normalize weights to make all weights sum 1
+        for (int i = 0; i < vertices.size(); i++) {
+            glm::vec4& boneWeights = vertices[i].boneWeights;
+            float totalWeight = boneWeights.x + boneWeights.y + boneWeights.z + boneWeights.w;
+            if (totalWeight > 0.0f) {
+                vertices[i].boneWeights = glm::vec4(
+                    boneWeights.x / totalWeight,
+                    boneWeights.y / totalWeight,
+                    boneWeights.z / totalWeight,
+                    boneWeights.w / totalWeight
+                );
+            }
+        }
 
         // now wak through each of the mesh's faces (a face is a mesh its triangle) and retrieve the corresponding vertex indices.
         for (unsigned int i = 0; i < mesh->mNumFaces; i++)
@@ -486,6 +461,31 @@ private:
         }
 
         return textureID;
+    }
+
+    bool readSkeleton(GLGame::BoneNode& boneOutput, aiNode* node, std::unordered_map<std::string, std::pair<int, glm::mat4>>& boneInfoTable) {
+
+        if (boneInfoTable.find(node->mName.C_Str()) != boneInfoTable.end()) { // if node is actually a bone
+            boneOutput.name = node->mName.C_Str();
+            boneOutput.id = boneInfoTable[boneOutput.name].first;
+            boneOutput.offset = boneInfoTable[boneOutput.name].second;
+
+            for (int i = 0; i < node->mNumChildren; i++) {
+                GLGame::BoneNode child;
+                readSkeleton(child, node->mChildren[i], boneInfoTable);
+                boneOutput.children.push_back(child);
+            }
+            return true;
+        }
+        else { // find bones in children
+            for (int i = 0; i < node->mNumChildren; i++) {
+                if (readSkeleton(boneOutput, node->mChildren[i], boneInfoTable)) {
+                    return true;
+                }
+
+            }
+        }
+        return false;
     }
 };
 

@@ -4,9 +4,29 @@ set(CMAKE_CXX_STANDARD 17)
 
 project(openglgame)
 
+
+
 find_package(OpenGL REQUIRED)
 
 # set(RESOURCES_BINARY "${CMAKE_CURRENT_BINARY_DIR}/resources/")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 file(GLOB SOURCES "src/**/*.cpp")
 file(GLOB INCLUDES2 "src/**/*.h")
@@ -23,6 +43,22 @@ function(embed_shader SHADER_SRC SHADER_VAR_NAME)
     # Add the generated .cpp file to your target sources
     target_sources("${CMAKE_PROJECT_NAME}" PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/${SHADER_VAR_NAME}.cpp)
 endfunction()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 embed_shader(shaders/debug.vs vertexShaderDebug)
 embed_shader(shaders/debug.fs fragmentShaderDebug)
@@ -55,10 +91,6 @@ include_directories(${INCLUDES2})
 # target_include_directories("${CMAKE_PROJECT_NAME}" PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include/*")
 
 target_link_libraries("${CMAKE_PROJECT_NAME}" ${OPENGL_LIBRARY} glfw glm assimp ReactPhysics3D::reactphysics3d)
-
-
-
-
 
 
 

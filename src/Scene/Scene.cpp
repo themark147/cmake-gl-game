@@ -49,6 +49,7 @@ namespace GLGame {
 		
 		// models.push_back(Model("../../../resources/zombie_char_7_4.glb", glm::vec3(0.0f, 0.0f, 0.0f)));
 		models.push_back(Model("../../../resources/zombie_w_anim.glb", glm::vec3(0.0f, 0.0f, 0.0f)));
+		// models.push_back(Model("../../../resources/turret.glb", glm::vec3(1.0f, 0.0f, 0.0f)));
 	}
 	
 	void Scene::render()
@@ -87,6 +88,9 @@ namespace GLGame {
 		mLastUpdateTime = currentTime;
 		mAccumulator += deltaTime;
 
+		// std::cout << "aktualny cas: " << glfwGetTime() << std::endl;
+		// std::cout << "aktualny cas: " << currentTime.time_since_epoch().count() / 1000000000 << std::endl;
+
 		while (mAccumulator >= timeStep) {
 			// mainShader.setVec3("light.position", light.x, light.y, light.z); // ImGui
 			world->update(timeStep.count());
@@ -95,7 +99,7 @@ namespace GLGame {
 			mAccumulator -= timeStep;
 		}
 
-		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)GLGame::Application::get().getWidth() / (float)GLGame::Application::get().getHeight(), 0.1f, 100.0f);
+		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)GLGame::Application::get().getWidth() / (float)GLGame::Application::get().getHeight(), 0.1f, 1000.0f);
 		shader.setMat4("projection", projection);
 		
 		glm::mat4 view = camera.GetViewMatrix();
@@ -126,11 +130,12 @@ namespace GLGame {
 			// std::cout << "Pocet: " << models.size();
 			glm::mat4 model = glm::mat4(1.0f);
 			model = glm::translate(model, glm::vec3(0.0f, -2.0f, 13.0f));
+			model = glm::scale(model, glm::vec3(.0002f, .0002f, .0002f));
+			// model = glm::rotate(model, float(glfwGetTime() * 0.002), glm::vec3(0, 1, 0));
+
 
 			// lightingShader.setMat4("model", model * (*it)->getRotationMatrix());
 			mainShader.setMat4("model", model);
-
-			// meshModel.getPose(animation, skeleton, elapsedTime, currentPose, identity, globalInverseTransform);
 
 			meshModel.Draw(mainShader);
 		}
