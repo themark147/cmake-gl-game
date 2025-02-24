@@ -57,26 +57,8 @@ public:
     // draws the model, and thus all its meshes
     void Draw(Shader& shader)
     {
-        
-
         bone.getPose(animation, skeleton, glfwGetTime() * 1000, currentPose, identity, globalInverseTransform);
-
-        // shader.setMat4("bone_transforms", currentPose[0]);
-
-        glm::mat4 lol = currentPose[0];
-
-        for (int i = 0; i < 47; i++) {
-            std::string uniformName = "bone_transforms[" + std::to_string(i) + "]";
-            glUniformMatrix4fv(glGetUniformLocation(shader.ID, uniformName.c_str()), 1, GL_FALSE, glm::value_ptr(currentPose[i]));
-        }
-
-       // int boneMatricesLocation = glGetUniformLocation(shader.ID, "bone_transforms[45]");
-        //int boneMatricesLocation2 = glGetUniformLocation(shader.ID, "bone_transforms[0]");
-        //int boneMatricesLocation3 = glGetUniformLocation(shader.ID, "bone_transforms[1]");
-
-       // glUniformMatrix4fv(boneMatricesLocation, 1, GL_FALSE, glm::value_ptr(currentPose[0]));
-       //glUniformMatrix4fv(boneMatricesLocation2, 1, GL_FALSE, glm::value_ptr(currentPose[0]));
-       // glUniformMatrix4fv(boneMatricesLocation3, 1, GL_FALSE, glm::value_ptr(currentPose[0]));
+        glUniformMatrix4fv(glGetUniformLocation(shader.ID, "bone_transforms"), currentPose.size(), GL_FALSE, glm::value_ptr(currentPose[0]));
 
         for (unsigned int i = 0; i < meshes.size(); i++)
             meshes[i].Draw(shader);

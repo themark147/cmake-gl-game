@@ -32,32 +32,17 @@ void main()
         vec4 localPosition = bone_transforms[int(boneIds[i])] * vec4(aPos, 1.0);
         totalPosition += localPosition * boneWeights[i];
     }
-
-    gl_Position = projection * view * model * totalPosition;
-
-   // bw = vec4(0);
-	//if(int(boneIds.x) == 1)
-	//bw.z = boneIds.x;
-	// boneWeights = normalize(boneWeights);
-   // mat4 boneTransform  =  mat4(0.0);
-	//boneTransform  +=    bone_transforms[int(boneIds.x)] * boneWeights.x;
-	//boneTransform  +=    bone_transforms[int(boneIds.y)] * boneWeights.y;
-//	boneTransform  +=    bone_transforms[int(boneIds.z)] * boneWeights.z;
-	//boneTransform  +=    bone_transforms[int(boneIds.w)] * boneWeights.w;
-
-    //vec4 pos = boneTransform * vec4(aPos, 1.0);
     
-  //  TexCoords = aTexCoords;
+    TexCoords = aTexCoords;
     FragPos = vec3(model);
 
-  //  mat3 normalMatrix = mat3(transpose(inverse(model * boneTransform)));
+    mat3 normalMatrix = mat3(transpose(inverse(model)));
 
-    //Normal = normalMatrix * aNormal;
-    //Tangent = normalMatrix * aTangent;
-   // Bitangent = normalMatrix * aBitangent;
+    Normal = normalMatrix * aNormal;
+    Tangent = normalMatrix * aTangent;
+    Bitangent = normalMatrix * aBitangent;
     
-   // gl_Position = projection * view * model * vec4(aPos, 1.0); // * boneTransform
-    
+    gl_Position = projection * view * model * totalPosition;
 
     /*vec4 pos =boneTransform * vec4(position, 1.0);
 		gl_Position = view_projection_matrix * model_matrix * boneTransform * vec4(aPos, 1.0);
