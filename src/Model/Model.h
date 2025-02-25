@@ -25,6 +25,7 @@
 #include <iostream>
 #include <map>
 #include <vector>
+#include <cmath>
 
 using namespace std;
 
@@ -57,11 +58,19 @@ public:
     // draws the model, and thus all its meshes
     void Draw(Shader& shader)
     {
-        bone.getPose(animation, skeleton, glfwGetTime() * 1000, currentPose, identity, globalInverseTransform);
-        glUniformMatrix4fv(glGetUniformLocation(shader.ID, "bone_transforms"), currentPose.size(), GL_FALSE, glm::value_ptr(currentPose[0]));
+        AnimateSkeleton(shader);
 
         for (unsigned int i = 0; i < meshes.size(); i++)
             meshes[i].Draw(shader);
+    }
+
+    void AnimateSkeleton(Shader& shader) {
+        int time = (int(glfwGetTime() * 1000.0f) - 1000) % int(std::floor(animation.duration / 1000.0f));
+
+        bone.getPose(animation, skeleton, float(time), currentPose, identity, globalInverseTransform);
+
+        // TODO move somewhere to Shader class
+        glUniformMatrix4fv(glGetUniformLocation(shader.ID, "bone_transforms"), currentPose.size(), GL_FALSE, glm::value_ptr(currentPose[0]));
     }
 
 private:

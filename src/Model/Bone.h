@@ -1,13 +1,11 @@
 #pragma once
 
-#include <vector>
-
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/quaternion.hpp>
 
+#include <vector>
 #include <unordered_map>
-
 
 namespace GLGame {
     // structure to hold bone tree (skeleton)
@@ -84,12 +82,9 @@ namespace GLGame {
 		}
 
 		std::pair<uint, float> Bone::getTimeFraction(std::vector<float>& times, float& dt) {
-			// return { 1, 0.0 };
-			uint segment = 0;
-			while (dt > times[segment])
-				segment++;
-			if (segment == 0)
-				return {1, 0.0};
+			auto it = std::lower_bound(times.begin() + 1, times.end(), dt);
+			uint segment = std::distance(times.begin(), it);
+
 			float start = times[segment - 1];
 			float end = times[segment];
 			float frac = (dt - start) / (end - start);
