@@ -39,10 +39,10 @@ void main()
 
     vec4 pos = boneTransform * vec4(aPos, 1.0);
     
+    FragPos = vec3(model * vec4(aPos, 1.0));
     TexCoords = aTexCoords;
-    FragPos = vec3(model);
 
-    mat3 normalMatrix = mat3(transpose(inverse(model * boneTransform)));
+    mat3 normalMatrix = transpose(inverse(mat3(model * boneTransform)));
 
     Normal = normalMatrix * aNormal;
     Tangent = normalMatrix * aTangent;

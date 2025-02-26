@@ -1,5 +1,18 @@
 cmake_minimum_required(VERSION 3.16)
 
+
+
+
+
+
+
+
+
+
+
+
+
+
 set(CMAKE_CXX_STANDARD 17)
 
 project(openglgame)
@@ -19,6 +32,9 @@ function(embed_shader SHADER_SRC SHADER_VAR_NAME)
 
     file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/${SHADER_VAR_NAME}.cpp 
           "#include <string>\nstd::string ${SHADER_VAR_NAME} = R\"(${SHADER_CONTENT})\";")
+
+
+
 
     # Add the generated .cpp file to your target sources
     target_sources("${CMAKE_PROJECT_NAME}" PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/${SHADER_VAR_NAME}.cpp)

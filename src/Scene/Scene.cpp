@@ -48,8 +48,8 @@ namespace GLGame {
 		}
 		
 		// models.push_back(Model("../../../resources/zombie_char_7_4.glb", glm::vec3(0.0f, 0.0f, 0.0f)));
-		// models.push_back(Model("../../../resources/zombie_w_anim.glb", glm::vec3(0.0f, 0.0f, 0.0f)));
-		models.push_back(Model("../../../resources/zombie_w_anim_Y_axis.glb", glm::vec3(0.0f, 0.0f, 0.0f)));
+		models.push_back(Model("../../../resources/zombie_w_anim.glb", glm::vec3(0.0f, 0.0f, 0.0f)));
+		models.push_back(Model("../../../resources/zombie_another_anim.glb", glm::vec3(0.0f, 0.0f, 0.0f)));
 		// models.push_back(Model("../../../resources/turret.glb", glm::vec3(1.0f, 0.0f, 0.0f)));
 	}
 	
@@ -130,7 +130,7 @@ namespace GLGame {
 			model = glm::translate(model, glm::vec3(0.0f, -3.0f, 12.0f));
 			model = glm::scale(model, glm::vec3(.0002f, .0002f, .0002f));
 
-			float angle = glm::radians(90.0f); // Convert degrees to radians
+			float angle = glm::radians(180.0f); // Convert degrees to radians
 			glm::vec3 axis = glm::vec3(1.0f, 0.0f, 0.0f); // X-axis
 			model = glm::rotate(model, angle, axis);
 

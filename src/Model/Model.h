@@ -112,7 +112,7 @@ private:
         animation.duration = anim->mDuration * anim->mTicksPerSecond;
         animation.boneTransforms = {};
 
-        //load positions rotations and scales for each bone
+        // load positions rotations and scales for each bone
         // each channel represents each bone
         for (int i = 0; i < anim->mNumChannels; i++) {
             aiNodeAnim* channel = anim->mChannels[i];
@@ -140,7 +140,7 @@ private:
     {
         // read file via ASSIMP
         Assimp::Importer importer;
-        const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_CalcTangentSpace); // aiProcess_FlipUVs 
+        const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_CalcTangentSpace); // aiProcess_FlipUVs, aiProcess_MakeLeftHanded
         // check for errors
         if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) // if is Not Zero
         {
@@ -153,6 +153,16 @@ private:
         loadAnimation(scene, animation);
 
         globalInverseTransform = assimpToGlmMatrix(scene->mRootNode->mTransformation);
+
+        aiMatrix4x4 rootTransform = scene->mRootNode->mTransformation;
+        cout << "Root Transform:\n";
+        for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < 4; j++) {
+                cout << rootTransform[i][j] << " ";
+            }
+            cout << "\n";
+        }
+
         globalInverseTransform = glm::inverse(globalInverseTransform);
 
         //currentPose is held in this vector and uploaded to gpu as a matrix array uniform
