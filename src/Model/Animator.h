@@ -9,11 +9,11 @@
 
 namespace GLGame {
     // structure to hold bone tree (skeleton)
-    struct BoneNode {
+    struct Bone {
         int id = 0; // position of the bone in final upload array
         std::string name = "";
         glm::mat4 offset = glm::mat4(1.0f);
-        std::vector<BoneNode> children = {};
+        std::vector<Bone> children = {};
     };
 
     // sturction representing an animation track
@@ -33,10 +33,10 @@ namespace GLGame {
         unordered_map<std::string, BoneTransformTrack> boneTransforms = {};
     };
 
-	class Bone {
+	class Animator {
 	public:
-		void Bone::getPose(AnimationNode& animation, BoneNode& skeletion, float dt, std::vector<glm::mat4>& output, glm::mat4& parentTransform, glm::mat4& globalInverseTransform) {
-			BoneTransformTrack& btt = animation.boneTransforms[skeletion.name];
+		void Animator::getPose(AnimationNode& animation, Bone& skeleton, float dt, std::vector<glm::mat4>& output, glm::mat4& parentTransform, glm::mat4& globalInverseTransform) {
+			BoneTransformTrack& btt = animation.boneTransforms[skeleton.name];
 			dt = fmod(dt, animation.duration);
 			std::pair<uint, float> fp;
 			//calculate interpolated position
@@ -72,16 +72,16 @@ namespace GLGame {
 			glm::mat4 localTransform = positionMat * rotationMat * scaleMat;
 			glm::mat4 globalTransform = parentTransform * localTransform;
 
-			output[skeletion.id] = globalInverseTransform * globalTransform * skeletion.offset;
+			output[skeleton.id] = globalInverseTransform * globalTransform * skeleton.offset;
 			//update values for children bones
-			for (BoneNode& child : skeletion.children) {
+			for (Bone& child : skeleton.children) {
 				getPose(animation, child, dt, output, globalTransform, globalInverseTransform);
 			}
 
 			// std::cout << dt << " => " << position.x << ":" << position.y << ":" << position.z << ":" << std::endl;
 		}
 
-		std::pair<uint, float> Bone::getTimeFraction(std::vector<float>& times, float& dt) {
+		std::pair<uint, float> Animator::getTimeFraction(std::vector<float>& times, float& dt) {
 			auto it = std::lower_bound(times.begin() + 1, times.end(), dt);
 			uint segment = std::distance(times.begin(), it);
 

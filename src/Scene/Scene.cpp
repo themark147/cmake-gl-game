@@ -97,7 +97,7 @@ namespace GLGame {
 			mAccumulator -= timeStep;
 		}
 
-		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)GLGame::Application::get().getWidth() / (float)GLGame::Application::get().getHeight(), 0.1f, 1000.0f);
+		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)GLGame::Application::get().getWidth() / (float)GLGame::Application::get().getHeight(), 0.1f, 100.0f);
 		shader.setMat4("projection", projection);
 		
 		glm::mat4 view = camera.GetViewMatrix();

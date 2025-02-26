@@ -17,7 +17,7 @@
 #include "../Shader.h"
 #include "../Material/Material.h"
 
-#include "Bone.h"
+#include "Animator.h"
 
 #include <string>
 #include <fstream>
@@ -42,9 +42,11 @@ public:
     vector<Mesh>    meshes;
     string directory;
     bool gammaCorrection;
-    GLGame::BoneNode skeleton;
+
+    GLGame::Bone skeleton;
     GLGame::AnimationNode animation;
-    GLGame::Bone bone;
+    GLGame::Animator animator;
+
     glm::mat4 globalInverseTransform;
     std::vector<glm::mat4> currentPose = {};
     glm::mat4 identity = glm::mat4(1.0);
@@ -64,13 +66,12 @@ public:
             meshes[i].Draw(shader);
     }
 
+    // TODO it could be part of animator
     void AnimateSkeleton(Shader& shader) {
         int time = (int(glfwGetTime() * 1000.0f) - 1000) % int(std::floor(animation.duration / 1000.0f));
 
-        bone.getPose(animation, skeleton, float(time), currentPose, identity, globalInverseTransform);
-
-        // TODO move somewhere to Shader class
-        glUniformMatrix4fv(glGetUniformLocation(shader.ID, "bone_transforms"), currentPose.size(), GL_FALSE, glm::value_ptr(currentPose[0]));
+        animator.getPose(animation, skeleton, float(time), currentPose, identity, globalInverseTransform);
+        shader.setMat4Array("bone_transforms", currentPose, currentPose.size());
     }
 
 private:
@@ -107,7 +108,6 @@ private:
             animation.ticksPerSecond = anim->mTicksPerSecond;
         else
             animation.ticksPerSecond = 1;
-
 
         animation.duration = anim->mDuration * anim->mTicksPerSecond;
         animation.boneTransforms = {};
@@ -153,16 +153,6 @@ private:
         loadAnimation(scene, animation);
 
         globalInverseTransform = assimpToGlmMatrix(scene->mRootNode->mTransformation);
-
-        aiMatrix4x4 rootTransform = scene->mRootNode->mTransformation;
-        cout << "Root Transform:\n";
-        for (int i = 0; i < 4; i++) {
-            for (int j = 0; j < 4; j++) {
-                cout << rootTransform[i][j] << " ";
-            }
-            cout << "\n";
-        }
-
         globalInverseTransform = glm::inverse(globalInverseTransform);
 
         //currentPose is held in this vector and uploaded to gpu as a matrix array uniform
@@ -464,7 +454,7 @@ private:
         return textureID;
     }
 
-    bool readSkeleton(GLGame::BoneNode& boneOutput, aiNode* node, std::unordered_map<std::string, std::pair<int, glm::mat4>>& boneInfoTable) {
+    bool readSkeleton(GLGame::Bone& boneOutput, aiNode* node, std::unordered_map<std::string, std::pair<int, glm::mat4>>& boneInfoTable) {
 
         if (boneInfoTable.find(node->mName.C_Str()) != boneInfoTable.end()) { // if node is actually a bone
             boneOutput.name = node->mName.C_Str();
@@ -472,7 +462,7 @@ private:
             boneOutput.offset = boneInfoTable[boneOutput.name].second;
 
             for (int i = 0; i < node->mNumChildren; i++) {
-                GLGame::BoneNode child;
+                GLGame::Bone child;
                 readSkeleton(child, node->mChildren[i], boneInfoTable);
                 boneOutput.children.push_back(child);
             }

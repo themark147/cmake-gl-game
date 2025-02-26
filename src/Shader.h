@@ -143,6 +143,10 @@ public:
         }
     }
 
+    void setMat4Array(const std::string& name, const std::vector<glm::mat4>& matrices, int count) const {
+        glUniformMatrix4fv(glGetUniformLocation(ID, name.c_str()), count, GL_FALSE, glm::value_ptr(matrices[0]));
+    }
+
     inline GLint getAttribLocation(const std::string& variableName, bool errorIfMissing = true) const {
         // assert(ID != 0);
         GLint location = glGetAttribLocation(ID, variableName.c_str());
