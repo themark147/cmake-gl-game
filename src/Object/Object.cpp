@@ -3,12 +3,12 @@
 using namespace reactphysics3d;
 
 namespace GLGame {
-	Object::Object(PhysicsCommon& common, PhysicsWorld* world, glm::vec3 position, BodyType type, Model mesh) : position(position), mesh(mesh)
+	Object::Object(PhysicsCommon& common, PhysicsWorld* world, glm::vec3 position, BodyType type, glm::vec3 size, Model mesh)
+		: position(position), mesh(mesh)
 	{
 		transform = Transform(Vector3(position.x, position.y, position.z), Quaternion::identity());
 
-		// TODO size
-		create(common, world, type, Vector3(1, 1, 1));
+		create(common, world, type, Vector3(size.x, size.y, size.z));
 	}
 
 	void Object::create(PhysicsCommon& common, PhysicsWorld* world, BodyType type, Vector3 size)
@@ -78,7 +78,7 @@ namespace GLGame {
 	{
 		glm::mat4 model = glm::mat4(1.0f);
 		model = glm::translate(model, getPosition());
-		model = glm::scale(model, glm::vec3(.0002f, .0002f, .0002f));
+		model = glm::scale(model, mesh.scale);
 
 		float angle = glm::radians(180.0f); // Convert degrees to radians
 		glm::vec3 axis = glm::vec3(1.0f, 0.0f, 0.0f); // X-axis

@@ -31,7 +31,7 @@ void main()
         totalPosition += localPosition * boneWeights[i];
     }*/
 
-    mat4 boneTransform  =  mat4(0.0);
+    mat4 boneTransform  =  mat4(1.0);
 	boneTransform  +=    bone_transforms[int(boneIds.x)] * boneWeights.x;
 	boneTransform  +=    bone_transforms[int(boneIds.y)] * boneWeights.y;
 	boneTransform  +=    bone_transforms[int(boneIds.z)] * boneWeights.z;

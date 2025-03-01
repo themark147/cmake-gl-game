@@ -42,6 +42,7 @@ namespace GLGame {
         vector<Mesh>    meshes;
         string directory;
         bool gammaCorrection;
+        glm::vec3 scale;
 
         GLGame::Bone skeleton;
         GLGame::AnimationNode animation;
@@ -55,7 +56,7 @@ namespace GLGame {
         Model() : gammaCorrection(false) {}
 
         // constructor, expects a filepath to a 3D model.
-        Model(string const& path, bool gamma = false) : gammaCorrection(gamma)
+        Model(string const& path, glm::vec3 scale = glm::vec3(1.0f), bool gamma = false) : scale(scale), gammaCorrection(gamma)
         {
             loadModel(path);
         }
@@ -71,10 +72,12 @@ namespace GLGame {
 
         // TODO it could be part of animator
         void AnimateSkeleton(Shader& shader) {
-            int time = (int(glfwGetTime() * 1000.0f) - 1000) % int(std::floor(animation.duration / 1000.0f));
+            if (!animation.boneTransforms.empty()) {
+                int time = (int(glfwGetTime() * 1000.0f) - 1000) % int(std::floor(animation.duration / 1000.0f));
 
-            animator.getPose(animation, skeleton, float(time), currentPose, identity, globalInverseTransform);
-            shader.setMat4Array("bone_transforms", currentPose, currentPose.size());
+                animator.getPose(animation, skeleton, float(time), currentPose, identity, globalInverseTransform);
+                shader.setMat4Array("bone_transforms", currentPose, currentPose.size());
+            }
         }
 
     private:
@@ -106,36 +109,38 @@ namespace GLGame {
         // Animation loader?
         void loadAnimation(const aiScene* scene, GLGame::AnimationNode& animation) {
             //loading first Animation
-            aiAnimation* anim = scene->mAnimations[0];
+            if (scene->HasAnimations()) {
+                aiAnimation* anim = scene->mAnimations[0];
 
-            if (anim->mTicksPerSecond != 0.0f)
-                animation.ticksPerSecond = anim->mTicksPerSecond;
-            else
-                animation.ticksPerSecond = 1;
+                if (anim->mTicksPerSecond != 0.0f)
+                    animation.ticksPerSecond = anim->mTicksPerSecond;
+                else
+                    animation.ticksPerSecond = 1;
 
-            animation.duration = anim->mDuration * anim->mTicksPerSecond;
-            animation.boneTransforms = {};
+                animation.duration = anim->mDuration * anim->mTicksPerSecond;
+                animation.boneTransforms = {};
 
-            // load positions rotations and scales for each bone
-            // each channel represents each bone
-            for (int i = 0; i < anim->mNumChannels; i++) {
-                aiNodeAnim* channel = anim->mChannels[i];
-                GLGame::BoneTransformTrack track;
-                for (int j = 0; j < channel->mNumPositionKeys; j++) {
-                    track.positionTimestamps.push_back(channel->mPositionKeys[j].mTime);
-                    track.positions.push_back(assimpToGlmVec3(channel->mPositionKeys[j].mValue));
+                // load positions rotations and scales for each bone
+                // each channel represents each bone
+                for (int i = 0; i < anim->mNumChannels; i++) {
+                    aiNodeAnim* channel = anim->mChannels[i];
+                    GLGame::BoneTransformTrack track;
+                    for (int j = 0; j < channel->mNumPositionKeys; j++) {
+                        track.positionTimestamps.push_back(channel->mPositionKeys[j].mTime);
+                        track.positions.push_back(assimpToGlmVec3(channel->mPositionKeys[j].mValue));
+                    }
+                    for (int j = 0; j < channel->mNumRotationKeys; j++) {
+                        track.rotationTimestamps.push_back(channel->mRotationKeys[j].mTime);
+                        track.rotations.push_back(assimpToGlmQuat(channel->mRotationKeys[j].mValue));
+
+                    }
+                    for (int j = 0; j < channel->mNumScalingKeys; j++) {
+                        track.scaleTimestamps.push_back(channel->mScalingKeys[j].mTime);
+                        track.scales.push_back(assimpToGlmVec3(channel->mScalingKeys[j].mValue));
+
+                    }
+                    animation.boneTransforms[channel->mNodeName.C_Str()] = track;
                 }
-                for (int j = 0; j < channel->mNumRotationKeys; j++) {
-                    track.rotationTimestamps.push_back(channel->mRotationKeys[j].mTime);
-                    track.rotations.push_back(assimpToGlmQuat(channel->mRotationKeys[j].mValue));
-
-                }
-                for (int j = 0; j < channel->mNumScalingKeys; j++) {
-                    track.scaleTimestamps.push_back(channel->mScalingKeys[j].mTime);
-                    track.scales.push_back(assimpToGlmVec3(channel->mScalingKeys[j].mValue));
-
-                }
-                animation.boneTransforms[channel->mNodeName.C_Str()] = track;
             }
         }
 
@@ -154,7 +159,9 @@ namespace GLGame {
             // retrieve the directory path of the filepath
             directory = path.substr(0, path.find_last_of('/'));
 
+            std::cout << "anim looad";
             loadAnimation(scene, animation);
+            std::cout << "anim looad 2";
 
             globalInverseTransform = assimpToGlmMatrix(scene->mRootNode->mTransformation);
             globalInverseTransform = glm::inverse(globalInverseTransform);

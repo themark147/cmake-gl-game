@@ -40,28 +40,23 @@ namespace GLGame {
 		world->getDebugRenderer().setIsDebugItemDisplayed(DebugRenderer::DebugItem::COLLISION_SHAPE, true);
 
 		// Init objects
-		/*objects.push_back(GLGame::Object(
-			physicsCommon,
-			world,
-			glm::vec3(0.0f, -2.0f, 0.0f),
-			BodyType::STATIC,
-			Model("../../../resources/FirstPersonMap.glb")
-		));*/
 
 		objects.push_back(GLGame::Object(
 			physicsCommon,
 			world,
-			glm::vec3(0.0f, 0.0f, 10.0f),
-			BodyType::DYNAMIC,
-			Model("../../../resources/zombie_char_7_4.glb")
+			glm::vec3(0.0f, -2.0f, 10.0f),
+			BodyType::STATIC,
+			glm::vec3(10.0f, 0.2f, 10.0f),
+			Model("../../../resources/FirstPersonMap.glb", glm::vec3(2.0f))
 		));
 
 		objects.push_back(GLGame::Object(
 			physicsCommon,
 			world,
-			glm::vec3(3.0f, 0.0f, 10.0f),
+			glm::vec3(0.0f, 1.0f, 10.0f),
 			BodyType::DYNAMIC,
-			Model("../../../resources/zombie_w_anim.glb")
+			glm::vec3(1.0f),
+			Model("../../../resources/zombie_w_anim.glb", glm::vec3(.0002f))
 		));
 
 		mainShader.use();

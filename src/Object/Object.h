@@ -14,7 +14,7 @@ namespace GLGame {
 	class Object
 	{
 	public:
-		Object(PhysicsCommon& common, PhysicsWorld* world, glm::vec3 position, BodyType type = BodyType::STATIC, Model mesh = Model());
+		Object(PhysicsCommon& common, PhysicsWorld* world, glm::vec3 position, BodyType type = BodyType::STATIC, glm::vec3 size = glm::vec3(1.0f), Model mesh = Model());
 
 		void create(PhysicsCommon& common, PhysicsWorld* world, BodyType type, Vector3 size);
 		glm::vec3 getPosition();
