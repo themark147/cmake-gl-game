@@ -71,7 +71,7 @@ namespace GLGame {
 			mDebugVBOTrianglesVertices.unbind();
 		}
 
-		void drawDebug(DebugRenderer& debugRenderer, uint vertexPositionLoc, uint vertexColorLoc)
+		void drawDebug(DebugRenderer& debugRenderer, unsigned int vertexPositionLoc, unsigned int vertexColorLoc)
 		{
 			// Bind the VAO
 			mDebugTrianglesVAO.bind();

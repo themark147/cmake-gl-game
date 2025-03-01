@@ -11,7 +11,7 @@
 namespace GLGame {
 	class Player {
 	public:
-		Player::Player(glm::vec3 position);
+		Player(glm::vec3 position);
 		void processInput();
 		void processMouseInput();
 		void processMovementInput();

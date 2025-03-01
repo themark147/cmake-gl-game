@@ -1,5 +1,7 @@
 #include "Material.h"
 
+using namespace GLGame;
+
 namespace GLGame {
 	Material::Material() {}
 

@@ -1,15 +1,9 @@
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-
-#include <reactphysics3d/reactphysics3d.h>
-
 #include "Object.h"
 
 using namespace reactphysics3d;
 
 namespace GLGame {
-	Object::Object(glm::vec3 position) : position(position)
+	Object::Object(glm::vec3 position) : position(position), mesh(Model())
 	{
 		transform = Transform(Vector3(position.x, position.y, position.z), Quaternion::identity());
 	}

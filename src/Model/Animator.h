@@ -6,6 +6,7 @@
 
 #include <vector>
 #include <unordered_map>
+#include <utility> // for std::pair
 
 namespace GLGame {
     // structure to hold bone tree (skeleton)
@@ -30,15 +31,15 @@ namespace GLGame {
     struct AnimationNode {
         float duration = 0.0f;
         float ticksPerSecond = 1.0f;
-        unordered_map<std::string, BoneTransformTrack> boneTransforms = {};
+        std::unordered_map<std::string, BoneTransformTrack> boneTransforms = {};
     };
 
 	class Animator {
 	public:
-		void Animator::getPose(AnimationNode& animation, Bone& skeleton, float dt, std::vector<glm::mat4>& output, glm::mat4& parentTransform, glm::mat4& globalInverseTransform) {
+		void getPose(AnimationNode& animation, Bone& skeleton, float dt, std::vector<glm::mat4>& output, glm::mat4& parentTransform, glm::mat4& globalInverseTransform) {
 			BoneTransformTrack& btt = animation.boneTransforms[skeleton.name];
 			dt = fmod(dt, animation.duration);
-			std::pair<uint, float> fp;
+			std::pair<unsigned int, float> fp;
 			//calculate interpolated position
 			fp = getTimeFraction(btt.positionTimestamps, dt);
 
@@ -81,15 +82,15 @@ namespace GLGame {
 			// std::cout << dt << " => " << position.x << ":" << position.y << ":" << position.z << ":" << std::endl;
 		}
 
-		std::pair<uint, float> Animator::getTimeFraction(std::vector<float>& times, float& dt) {
+		std::pair<unsigned int, float> getTimeFraction(std::vector<float>& times, float& dt) {
 			auto it = std::lower_bound(times.begin() + 1, times.end(), dt);
-			uint segment = std::distance(times.begin(), it);
+			unsigned int segment = std::distance(times.begin(), it);
 
 			float start = times[segment - 1];
 			float end = times[segment];
 			float frac = (dt - start) / (end - start);
 
-			return { segment, frac };
+			return std::make_pair(segment, frac);
 		}
 	};
 }

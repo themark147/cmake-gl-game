@@ -2,17 +2,12 @@
 
 #include <string>
 #include <vector>
+#include "Texture.h"
 
 using namespace std;
+using namespace GLGame;
 
 namespace GLGame {
-	struct Texture {
-		unsigned int id;
-		string name;
-
-		Texture(int id, string name): id(id), name(name) {}
-	};
-
 	// TODO: probably should contain scalar values of roughness / metallic
 	class Material {
 	public:
@@ -25,4 +20,4 @@ namespace GLGame {
 
 		vector<Texture*> textures;
 	};
-};
+}

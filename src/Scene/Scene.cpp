@@ -3,6 +3,7 @@
 #include <reactphysics3d/reactphysics3d.h>
 
 #include "../Application/Application.h"
+#include "../Model/Model.h"
 #include "../Object/Object.h"
 #include "../Shader.h"
 

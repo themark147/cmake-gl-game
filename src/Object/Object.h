@@ -6,14 +6,15 @@
 
 #include <reactphysics3d/reactphysics3d.h>
 
+#include "../Model/Model.h"
+
 using namespace reactphysics3d;
 
 namespace GLGame {
-
 	class Object
 	{
 	public:
-		Object::Object(glm::vec3 position);
+		Object(glm::vec3 position);
 
 		void create(PhysicsCommon& common, PhysicsWorld* world, BodyType type, Vector3 size);
 		glm::vec3 getPosition();
@@ -25,6 +26,7 @@ namespace GLGame {
 		void render();
 
 	private:
+		Model mesh;
 		glm::vec3 position;
 		Transform transform;
 		BoxShape* shape;
