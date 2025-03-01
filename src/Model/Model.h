@@ -30,8 +30,6 @@
 
 using namespace std;
 
-// unsigned int TextureFromFile(const char* path, const string& directory, bool gamma, const aiTexture* texture2);
-
 static const GLfloat gravity = -9.8f;
 
 namespace GLGame {
@@ -57,7 +55,7 @@ namespace GLGame {
         Model() : gammaCorrection(false) {}
 
         // constructor, expects a filepath to a 3D model.
-        Model(string const& path, glm::vec3 position, bool gamma = false) : gammaCorrection(gamma)
+        Model(string const& path, bool gamma = false) : gammaCorrection(gamma)
         {
             loadModel(path);
         }

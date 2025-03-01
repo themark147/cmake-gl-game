@@ -2,9 +2,6 @@
 
 #include <iostream>
 
-extern std::string vertexShaderDebug;
-extern std::string fragmentShaderDebug;
-
 int widthScreen = 1920;
 int heightScreen = 1080;
 ImGuiIO* io = nullptr;
@@ -51,8 +48,7 @@ namespace GLGame {
 
 		stbi_set_flip_vertically_on_load(true); // Because of textures
 
-		Shader debugShader(vertexShaderDebug, fragmentShaderDebug);
-		scene = new GLGame::Scene(debugShader);
+		scene = new GLGame::Scene();
 
 		// Setup Dear ImGui context
 		IMGUI_CHECKVERSION();
@@ -93,7 +89,7 @@ namespace GLGame {
 			ImGui_ImplGlfw_NewFrame();
 			ImGui::NewFrame();
 
-			ImGui::Begin("Light position");
+			ImGui::Begin("Main window");
 			// ImGui::SliderFloat("float", &XLight, -50.0f, 50.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
 			// ImGui::SliderFloat3("floatt", &light.x, -50.0f, 50.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
 

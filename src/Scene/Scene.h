@@ -17,12 +17,14 @@
 
 using namespace reactphysics3d;
 
-extern std::string vertexShaderMain, fragmentShaderMain, vertexShaderRender, fragmentShaderRender;
+extern std::string vertexShaderMain, fragmentShaderMain,
+	vertexShaderRender, fragmentShaderRender,
+	vertexShaderDebug, fragmentShaderDebug;
 
 namespace GLGame {
 	class Scene {
 	public:
-		Scene(Shader& shader);
+		Scene();
 		void render();
 
 		PhysicsCommon& getPhysicsCommon() {
@@ -106,7 +108,7 @@ namespace GLGame {
 		GLGame::Player player = GLGame::Player(glm::vec3(0.0f, 0.0f, 15.0f));
 		Camera& camera = Camera();
 
-		Shader shader;
+		Shader debugShader = Shader(vertexShaderDebug, fragmentShaderDebug);
 		Shader mainShader = Shader(vertexShaderMain, fragmentShaderMain);
 
 		/// Vertex Buffer Object for the debug info lines vertices data

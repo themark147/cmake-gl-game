@@ -3,9 +3,12 @@
 using namespace reactphysics3d;
 
 namespace GLGame {
-	Object::Object(glm::vec3 position) : position(position), mesh(Model())
+	Object::Object(PhysicsCommon& common, PhysicsWorld* world, glm::vec3 position, BodyType type, Model mesh) : position(position), mesh(mesh)
 	{
 		transform = Transform(Vector3(position.x, position.y, position.z), Quaternion::identity());
+
+		// TODO size
+		create(common, world, type, Vector3(1, 1, 1));
 	}
 
 	void Object::create(PhysicsCommon& common, PhysicsWorld* world, BodyType type, Vector3 size)
@@ -16,6 +19,7 @@ namespace GLGame {
 		collider->setIsSimulationCollider(true);
 		rigidBody->setType(type);
 		rigidBody->setIsDebugEnabled(true);
+		// rigidBody->applyLocalForceAtLocalPosition(Vector3(100, 100, 100) * Vector3(0, 1.5f, 0), Vector3(0.15, 0.7, 1.5));
 	}
 
 	glm::vec3 Object::getPosition()
@@ -70,8 +74,18 @@ namespace GLGame {
 		);
 	}
 
-	void Object::render()
+	void Object::render(Shader& shader)
 	{
-		// render mesh
+		glm::mat4 model = glm::mat4(1.0f);
+		model = glm::translate(model, getPosition());
+		model = glm::scale(model, glm::vec3(.0002f, .0002f, .0002f));
+
+		float angle = glm::radians(180.0f); // Convert degrees to radians
+		glm::vec3 axis = glm::vec3(1.0f, 0.0f, 0.0f); // X-axis
+		model = glm::rotate(model, angle, axis);
+
+		// lightingShader.setMat4("model", model * (*it)->getRotationMatrix());
+		shader.setMat4("model", model * getRotationMatrix());
+		mesh.Draw(shader);
 	}
 }

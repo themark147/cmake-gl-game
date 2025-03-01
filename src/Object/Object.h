@@ -14,7 +14,7 @@ namespace GLGame {
 	class Object
 	{
 	public:
-		Object(glm::vec3 position);
+		Object(PhysicsCommon& common, PhysicsWorld* world, glm::vec3 position, BodyType type = BodyType::STATIC, Model mesh = Model());
 
 		void create(PhysicsCommon& common, PhysicsWorld* world, BodyType type, Vector3 size);
 		glm::vec3 getPosition();
@@ -23,7 +23,7 @@ namespace GLGame {
 		BoxShape* getShape();
 		Vector3 toVector3Position();
 		glm::mat4 getRotationMatrix();
-		void render();
+		void render(Shader& shader);
 
 	private:
 		Model mesh;

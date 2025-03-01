@@ -24,7 +24,7 @@ std::chrono::duration<double> deltaTime;
 std::chrono::duration<double> timeStep = std::chrono::duration<double>(1.0f / 60.0f);
 
 namespace GLGame {
-	Scene::Scene(Shader& shader) : shader(shader) {
+	Scene::Scene() {
 		// TODO part of Physics.cpp -> tick() -> step()
 		mStartTime = std::chrono::high_resolution_clock::now();
 		mLastUpdateTime = mStartTime;
@@ -40,17 +40,36 @@ namespace GLGame {
 		world->getDebugRenderer().setIsDebugItemDisplayed(DebugRenderer::DebugItem::COLLISION_SHAPE, true);
 
 		// Init objects
-		objects.push_back(GLGame::Object(glm::vec3(0.0f, -2.0f, 0.0f)));
+		/*objects.push_back(GLGame::Object(
+			physicsCommon,
+			world,
+			glm::vec3(0.0f, -2.0f, 0.0f),
+			BodyType::STATIC,
+			Model("../../../resources/FirstPersonMap.glb")
+		));*/
 
-		// TODO: should be part of Object construct
+		objects.push_back(GLGame::Object(
+			physicsCommon,
+			world,
+			glm::vec3(0.0f, 0.0f, 10.0f),
+			BodyType::DYNAMIC,
+			Model("../../../resources/zombie_char_7_4.glb")
+		));
 
-		for (GLGame::Object& obj : objects) {
-			obj.create(physicsCommon, world, BodyType::STATIC, Vector3(10, 1, 10)); // last param only convex SIZE
-		}
-		
-		// models.push_back(Model("../../../resources/zombie_char_7_4.glb", glm::vec3(0.0f, 0.0f, 0.0f)));
-		models.push_back(Model("../../../resources/zombie_w_anim.glb", glm::vec3(0.0f, 0.0f, 0.0f)));
-		models.push_back(Model("../../../resources/zombie_another_anim.glb", glm::vec3(0.0f, 0.0f, 0.0f)));
+		objects.push_back(GLGame::Object(
+			physicsCommon,
+			world,
+			glm::vec3(3.0f, 0.0f, 10.0f),
+			BodyType::DYNAMIC,
+			Model("../../../resources/zombie_w_anim.glb")
+		));
+
+		mainShader.use();
+		mainShader.setVec3("lightPos", 10.0f, 7.0f, 20.0f);
+		mainShader.setVec3("lightColor", 0.5f, 0.5f, 0.5f);
+		mainShader.setVec3("lightDir", -0.5f, -0.5f, -0.5f);
+
+		// models.push_back(Model("../../../resources/zombie_another_anim.glb", glm::vec3(0.0f, 0.0f, 0.0f)));
 		// models.push_back(Model("../../../resources/turret.glb", glm::vec3(1.0f, 0.0f, 0.0f)));
 	}
 	
@@ -59,7 +78,7 @@ namespace GLGame {
 		camera = player.getCamera();
 		player.processInput();
 
-		shader.use();
+		debugShader.use();
 
 		// ----- Triangles ---- //
 		const uint nbTriangles = world->getDebugRenderer().getNbTriangles();
@@ -73,7 +92,7 @@ namespace GLGame {
 			mDebugVBOTrianglesVertices.unbind();
 		}
 
-		int vertexPositionLoc = shader.getAttribLocation("aPos");
+		int vertexPositionLoc = debugShader.getAttribLocation("aPos");
 		// int vertexColorLoc = debugShader.getAttribLocation("vertexColor");
 
 		// Triangles
@@ -99,45 +118,19 @@ namespace GLGame {
 		}
 
 		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)GLGame::Application::get().getWidth() / (float)GLGame::Application::get().getHeight(), 0.1f, 100.0f);
-		shader.setMat4("projection", projection);
+		debugShader.setMat4("projection", projection);
 		
 		glm::mat4 view = camera.GetViewMatrix();
-		shader.setMat4("view", view);
-
-		for (GLGame::Object obj : objects) {
-			// std::cout << "Pocet objects: " << objects.size() << "\n";
-			glm::mat4 model = glm::mat4(1.0f);
-			model = glm::translate(model, obj.getPosition());
-
-			// lightingShader.setMat4("model", model * (*it)->getRotationMatrix());
-			shader.setMat4("model", model);
-			// obj.render();
-		}
+		debugShader.setMat4("view", view);
 
 		mainShader.use();
 
 		mainShader.setMat4("projection", projection);
 		mainShader.setMat4("view", view);
-
 		mainShader.setVec3("viewPos", camera.Position);
 
-		mainShader.setVec3("lightPos", 10.0f, 7.0f, 20.0f);
-		mainShader.setVec3("lightColor", 0.5f, 0.5f, 0.5f);
-		mainShader.setVec3("lightDir", -0.5f, -0.5f, -0.5f);
-
-		for (Model meshModel : models) {
-			// std::cout << "Pocet: " << models.size();
-			glm::mat4 model = glm::mat4(1.0f);
-			model = glm::translate(model, glm::vec3(0.0f, -3.0f, 12.0f));
-			model = glm::scale(model, glm::vec3(.0002f, .0002f, .0002f));
-
-			float angle = glm::radians(180.0f); // Convert degrees to radians
-			glm::vec3 axis = glm::vec3(1.0f, 0.0f, 0.0f); // X-axis
-			model = glm::rotate(model, angle, axis);
-
-			// lightingShader.setMat4("model", model * (*it)->getRotationMatrix());
-			mainShader.setMat4("model", model);
-			meshModel.Draw(mainShader);
+		for (GLGame::Object obj : objects) {
+			obj.render(mainShader);
 		}
 	}
 }
