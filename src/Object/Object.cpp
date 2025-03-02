@@ -80,12 +80,15 @@ namespace GLGame {
 		model = glm::translate(model, getPosition());
 		model = glm::scale(model, mesh.scale);
 
-		float angle = glm::radians(180.0f); // Convert degrees to radians
-		glm::vec3 axis = glm::vec3(1.0f, 0.0f, 0.0f); // X-axis
-		model = glm::rotate(model, angle, axis);
+		model = glm::rotate(model, transformation.angle, transformation.axis);
 
 		// lightingShader.setMat4("model", model * (*it)->getRotationMatrix());
 		shader.setMat4("model", model * getRotationMatrix());
 		mesh.Draw(shader);
+	}
+
+	void Object::setTransformation(GLGame::Transformation transform)
+	{
+		transformation = transform;
 	}
 }

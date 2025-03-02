@@ -53,19 +53,39 @@ namespace GLGame {
 		objects.push_back(GLGame::Object(
 			physicsCommon,
 			world,
+			glm::vec3(-5.0f, -2.0f, 7.0f),
+			BodyType::STATIC,
+			glm::vec3(1.0f),
+			Model("../../../resources/electrical_substation.glb", glm::vec3(1.5f))
+		));
+
+		GLGame::Object zombie = GLGame::Object(
+			physicsCommon,
+			world,
 			glm::vec3(0.0f, 1.0f, 10.0f),
 			BodyType::DYNAMIC,
-			glm::vec3(1.0f),
+			glm::vec3(0.5f, .2f, .5f),
 			Model("../../../resources/zombie_w_anim.glb", glm::vec3(.0002f))
-		));
+		);
+
+		GLGame::Object zombie2 = GLGame::Object(
+			physicsCommon,
+			world,
+			glm::vec3(2.0f, 1.0f, 10.0f),
+			BodyType::DYNAMIC,
+			glm::vec3(0.5f, .2f, .5f),
+			Model("../../../resources/zombie_another_anim.glb", glm::vec3(.0002f))
+		);
+
+		zombie.setTransformation(GLGame::Transformation(glm::radians(180.0f)));
+		zombie2.setTransformation(GLGame::Transformation(glm::radians(180.0f)));
+		objects.push_back(zombie);
+		objects.push_back(zombie2);
 
 		mainShader.use();
 		mainShader.setVec3("lightPos", 10.0f, 7.0f, 20.0f);
 		mainShader.setVec3("lightColor", 0.5f, 0.5f, 0.5f);
 		mainShader.setVec3("lightDir", -0.5f, -0.5f, -0.5f);
-
-		// models.push_back(Model("../../../resources/zombie_another_anim.glb", glm::vec3(0.0f, 0.0f, 0.0f)));
-		// models.push_back(Model("../../../resources/turret.glb", glm::vec3(1.0f, 0.0f, 0.0f)));
 	}
 	
 	void Scene::render()

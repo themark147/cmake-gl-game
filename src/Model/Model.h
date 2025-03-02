@@ -19,6 +19,7 @@
 #include "../Material/Material.h"
 
 #include "Animator.h"
+#include "../Object/Transform.h"
 
 #include <string>
 #include <fstream>
@@ -43,6 +44,8 @@ namespace GLGame {
         string directory;
         bool gammaCorrection;
         glm::vec3 scale;
+
+        GLGame::Transformation transform;
 
         GLGame::Bone skeleton;
         GLGame::AnimationNode animation;
@@ -159,9 +162,7 @@ namespace GLGame {
             // retrieve the directory path of the filepath
             directory = path.substr(0, path.find_last_of('/'));
 
-            std::cout << "anim looad";
             loadAnimation(scene, animation);
-            std::cout << "anim looad 2";
 
             globalInverseTransform = assimpToGlmMatrix(scene->mRootNode->mTransformation);
             globalInverseTransform = glm::inverse(globalInverseTransform);
@@ -329,10 +330,12 @@ namespace GLGame {
                 aiTextureType_DIFFUSE_ROUGHNESS = 16,
                 aiTextureType_AMBIENT_OCCLUSION = 17,*/
 
-                // 1. diffuse maps
-            vector<Texture> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, "material.diffuse", scene);
+            // 1. diffuse maps
+            // vector<Texture> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, "material.diffuse", scene);
+            vector<Texture> diffuseMaps = loadMaterialTextures(material, aiTextureType_BASE_COLOR, "material.diffuse", scene);
             Texture diffuseTexture = diffuseMaps.front();
             textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
+
             // 2. specular maps
             //vector<Texture> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, "material.specular", scene);
             //textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());

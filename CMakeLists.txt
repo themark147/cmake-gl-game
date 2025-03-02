@@ -42,6 +42,8 @@ embed_shader(shaders/main.fs fragmentShaderMain)
     # configure_file(${RESOURCE} ${RESOURCES_BINARY} COPYONLY)
 # endforeach()
 
+
+
 option(ASSIMP_BUILD_ASSIMP_TOOLS OFF)
 option(ASSIMP_BUILD_SAMPLES OFF)
 option(ASSIMP_BUILD_TESTS OFF)

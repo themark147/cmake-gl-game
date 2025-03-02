@@ -7,6 +7,7 @@
 #include <reactphysics3d/reactphysics3d.h>
 
 #include "../Model/Model.h"
+#include "Transform.h"
 
 using namespace reactphysics3d;
 
@@ -25,10 +26,13 @@ namespace GLGame {
 		glm::mat4 getRotationMatrix();
 		void render(Shader& shader);
 
+		void setTransformation(GLGame::Transformation transform);
+
 	private:
 		Model mesh;
 		glm::vec3 position;
 		Transform transform;
+		GLGame::Transformation transformation;
 		BoxShape* shape;
 		Collider* collider;
 		RigidBody* rigidBody;
