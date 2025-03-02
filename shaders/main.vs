@@ -19,6 +19,8 @@ uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
 
+uniform int hasAnimation;
+
 uniform mat4 bone_transforms[50];
 out vec4 bw;
 

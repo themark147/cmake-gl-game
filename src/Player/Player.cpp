@@ -10,7 +10,7 @@ namespace GLGame {
 	float lastY = 1080 / 2.0f;
 	bool firstMouse = true;
 
-	Player::Player(glm::vec3 position) {
+	Player::Player(glm::vec3 position, GLGame::Model mesh) : mesh(mesh) {
 		camera = Camera(position);
 	}
 	

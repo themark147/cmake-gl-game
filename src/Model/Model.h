@@ -80,6 +80,10 @@ namespace GLGame {
 
                 animator.getPose(animation, skeleton, float(time), currentPose, identity, globalInverseTransform);
                 shader.setMat4Array("bone_transforms", currentPose, currentPose.size());
+                shader.setBool("hasAnimation", true);
+            }
+            else {
+                shader.setBool("hasAnimation", false);
             }
         }
 
@@ -168,7 +172,7 @@ namespace GLGame {
             globalInverseTransform = glm::inverse(globalInverseTransform);
 
             //currentPose is held in this vector and uploaded to gpu as a matrix array uniform
-            currentPose.resize(47, identity); // TODO cannot be hardcoded 
+            currentPose.resize(50, identity); // TODO cannot be hardcoded 
 
             // process ASSIMP's root node recursively
             processNode(scene->mRootNode, scene);

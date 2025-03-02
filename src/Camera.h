@@ -120,6 +120,22 @@ public:
             Zoom = 45.0f;
     }
 
+    glm::mat4 ApplyPitchAndYawToMatrix(glm::mat4 matrix, float pitch, float yaw)
+    {
+        // Convert angles to radians
+        float pitchRadians = glm::radians(pitch);
+        float yawRadians = glm::radians(yaw);
+
+        // Create pitch rotation (around X-axis)
+        glm::mat4 pitchRotation = glm::rotate(glm::mat4(1.0f), pitchRadians, glm::vec3(1.0f, 0.0f, 0.0f));
+
+        // Create yaw rotation (around Y-axis)
+        glm::mat4 yawRotation = glm::rotate(glm::mat4(1.0f), yawRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+
+        // Combine rotations and apply to the input matrix
+        return matrix * yawRotation * pitchRotation;
+    }
+
 private:
     // calculates the front vector from the Camera's (updated) Euler Angles
     void updateCameraVectors()

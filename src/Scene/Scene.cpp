@@ -40,7 +40,6 @@ namespace GLGame {
 		world->getDebugRenderer().setIsDebugItemDisplayed(DebugRenderer::DebugItem::COLLISION_SHAPE, true);
 
 		// Init objects
-
 		objects.push_back(GLGame::Object(
 			physicsCommon,
 			world,
@@ -76,11 +75,11 @@ namespace GLGame {
 			glm::vec3(0.5f, .2f, .5f),
 			Model("../../../resources/zombie_another_anim.glb", glm::vec3(.0002f))
 		);
-
-		zombie.setTransformation(GLGame::Transformation(glm::radians(180.0f)));
+		
 		zombie2.setTransformation(GLGame::Transformation(glm::radians(180.0f)));
-		objects.push_back(zombie);
 		objects.push_back(zombie2);
+		zombie.setTransformation(GLGame::Transformation(glm::radians(180.0f)));
+		objects.push_back(zombie);
 
 		mainShader.use();
 		mainShader.setVec3("lightPos", 10.0f, 7.0f, 20.0f);
@@ -143,6 +142,21 @@ namespace GLGame {
 		mainShader.setMat4("projection", projection);
 		mainShader.setMat4("view", view);
 		mainShader.setVec3("viewPos", camera.Position);
+
+
+		glm::mat4 playerMesh = glm::mat4(1.0f);
+		playerMesh = glm::translate(playerMesh, (camera.Front * glm::vec3(0.0f)) + camera.Position);
+		playerMesh = glm::scale(playerMesh, glm::vec3(.02f));
+
+		playerMesh = glm::rotate(playerMesh, -glm::radians(camera.Yaw) + glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		playerMesh = glm::rotate(playerMesh, -glm::radians(camera.Pitch), glm::vec3(1.0f, 0.0f, 0.0f));
+		// playerMesh = glm::translate(playerMesh, player.getCamera().Position);
+
+		// playerMesh = glm::rotate(playerMesh, glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+
+		mainShader.setMat4("model", playerMesh);
+		player.getMesh().Draw(mainShader);
+
 
 		for (GLGame::Object obj : objects) {
 			obj.render(mainShader);

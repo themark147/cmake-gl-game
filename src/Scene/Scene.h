@@ -105,7 +105,11 @@ namespace GLGame {
 		std::vector<Object> objects;
 		std::vector<Model> models;
 
-		GLGame::Player player = GLGame::Player(glm::vec3(0.0f, 0.0f, 15.0f));
+		GLGame::Player player = GLGame::Player(
+			glm::vec3(0.0f, 0.0f, 15.0f),
+			Model("../../../resources/first_person_arms_no_arm.glb", glm::vec3(.02f))
+		);
+
 		Camera& camera = Camera();
 
 		Shader debugShader = Shader(vertexShaderDebug, fragmentShaderDebug);
