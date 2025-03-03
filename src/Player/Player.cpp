@@ -68,4 +68,32 @@ namespace GLGame {
 			camera.ProcessKeyboard(RIGHT, step);
 		}
 	}
+
+	glm::mat4& Player::applyTransform(Shader& shader, glm::vec3 offset)
+	{
+		glm::mat4 playerMesh = glm::mat4(1.0f);
+		glm::vec3 modelPosition = applyMeshOffset(camera, glm::vec3(0.0f, -0.2f, 0.0f));
+
+		playerMesh = glm::translate(playerMesh, modelPosition);
+		playerMesh = glm::scale(playerMesh, glm::vec3(.02f));
+
+		playerMesh = glm::rotate(playerMesh, -glm::radians(camera.Yaw) + glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		playerMesh = glm::rotate(playerMesh, -glm::radians(camera.Pitch), glm::vec3(1.0f, 0.0f, 0.0f));
+
+		shader.setMat4("model", playerMesh);
+		mesh.Draw(shader);
+
+		return playerMesh;
+	}
+
+	glm::vec3 Player::applyMeshOffset(Camera& camera, glm::vec3& offset)
+	{
+		glm::vec3 modelPosition = camera.Position;
+
+		modelPosition += camera.Front * offset.z;  // Move along the camera's forward direction
+		modelPosition += camera.Right * offset.x;  // Move along the camera's right direction
+		modelPosition += camera.Up * offset.y;
+
+		return modelPosition;
+	}
 }

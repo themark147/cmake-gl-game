@@ -12,6 +12,8 @@ namespace GLGame {
 		void processInput();
 		void processMouseInput();
 		void processMovementInput();
+		glm::mat4& applyTransform(Shader& shader, glm::vec3 offset = glm::vec3(0.0f));
+		
 
 		Camera& getCamera() {
 			return camera;
@@ -25,6 +27,8 @@ namespace GLGame {
 			return mesh;
 		}
 	private:
+		glm::vec3 applyMeshOffset(Camera& camera, glm::vec3& offset);
+		
 		Camera& camera = Camera();
 		KeyInput::KeyController& keyController = KeyInput::KeyController::get();
 		GLGame::ObjectSpawner* spawner = nullptr;

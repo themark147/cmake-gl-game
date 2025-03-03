@@ -143,20 +143,18 @@ namespace GLGame {
 		mainShader.setMat4("view", view);
 		mainShader.setVec3("viewPos", camera.Position);
 
-
+		
 		glm::mat4 playerMesh = glm::mat4(1.0f);
-		playerMesh = glm::translate(playerMesh, (camera.Front * glm::vec3(0.0f)) + camera.Position);
+		glm::vec3 modelPosition = camera.getCameraOffset(glm::vec3(0.0f, -0.4f, 0.0f));
+
+		playerMesh = glm::translate(playerMesh, modelPosition);
 		playerMesh = glm::scale(playerMesh, glm::vec3(.02f));
 
 		playerMesh = glm::rotate(playerMesh, -glm::radians(camera.Yaw) + glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 		playerMesh = glm::rotate(playerMesh, -glm::radians(camera.Pitch), glm::vec3(1.0f, 0.0f, 0.0f));
-		// playerMesh = glm::translate(playerMesh, player.getCamera().Position);
-
-		// playerMesh = glm::rotate(playerMesh, glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 
 		mainShader.setMat4("model", playerMesh);
 		player.getMesh().Draw(mainShader);
-
 
 		for (GLGame::Object obj : objects) {
 			obj.render(mainShader);

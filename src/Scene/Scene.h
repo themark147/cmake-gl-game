@@ -100,6 +100,7 @@ namespace GLGame {
 	private:
 		PhysicsCommon physicsCommon;
 		PhysicsWorld* world;
+		glm::mat4 playerModelTransform;
 
 		// TODO: object should contain model
 		std::vector<Object> objects;

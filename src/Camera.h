@@ -72,6 +72,16 @@ public:
         return Front;
     }
 
+    glm::vec3& getCameraOffset(glm::vec3& offset)
+    {
+        glm::vec3 result = Position;
+        result += Front * offset.z;  // Move along the camera's forward direction
+        result += Right * offset.x;  // Move along the camera's right direction
+        result += Up * offset.y;
+
+        return result;
+    }
+
     // processes input received from any keyboard-like input system. Accepts input parameter in the form of camera defined ENUM (to abstract it from windowing systems)
     void ProcessKeyboard(Camera_Movement direction, float deltaTime)
     {
