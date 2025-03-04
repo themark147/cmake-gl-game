@@ -45,9 +45,13 @@ namespace GLGame {
 
 		lastX = xpos;
 		lastY = ypos;
+
+		if (keyController.isKeyPressed(KeyInput::KeyDefinition::KEY_SPACE)) {
+			camera.ProcessKeyboard(JUMP, step);
+		}
 		
 		if (glfwGetInputMode(window, GLFW_CURSOR) == GLFW_CURSOR_DISABLED)
-			camera.ProcessMouseMovement(xoffset, yoffset);
+			camera.ProcessMouseMovement(xoffset, yoffset, step);
 	}
 
 	void Player::processMovementInput()
@@ -72,7 +76,7 @@ namespace GLGame {
 	glm::mat4& Player::applyTransform(Shader& shader, glm::vec3 offset)
 	{
 		glm::mat4 playerMesh = glm::mat4(1.0f);
-		glm::vec3 modelPosition = applyMeshOffset(camera, glm::vec3(0.0f, -0.2f, 0.0f));
+		glm::vec3 modelPosition = applyMeshOffset(camera, offset);
 
 		playerMesh = glm::translate(playerMesh, modelPosition);
 		playerMesh = glm::scale(playerMesh, glm::vec3(.02f));
@@ -92,7 +96,7 @@ namespace GLGame {
 
 		modelPosition += camera.Front * offset.z;  // Move along the camera's forward direction
 		modelPosition += camera.Right * offset.x;  // Move along the camera's right direction
-		modelPosition += camera.Up * offset.y;
+		modelPosition += camera.Up * offset.y; // -||- up direction
 
 		return modelPosition;
 	}

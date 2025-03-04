@@ -7,13 +7,15 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include <vector>
+#include <iostream>
 
 // Defines several possible options for camera movement. Used as abstraction to stay away from window-system specific input methods
 enum Camera_Movement {
     FORWARD,
     BACKWARD,
     LEFT,
-    RIGHT
+    RIGHT,
+    JUMP
 };
 
 // Default camera values
@@ -22,7 +24,8 @@ const float PITCH = 0.0f;
 const float SPEED = 7.5f;
 const float SENSITIVITY = 0.05f;
 const float ZOOM = 85.0f;
-
+const float GRAVITY = -9.81;
+const float JUMP_SPEED = 5.0f; // Initial upward speed when jumping
 
 // An abstract camera class that processes input and calculates the corresponding Euler Angles, Vectors and Matrices for use in OpenGL
 class Camera
@@ -42,6 +45,10 @@ public:
     float MouseSensitivity;
     float Zoom;
 
+    // Jump-related variables
+    float verticalVelocity; // Tracks the camera's vertical velocity
+    bool isJumping; // Tracks whether the camera is currently jumping
+
     // constructor with vectors
     Camera(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), float yaw = YAW, float pitch = PITCH) : Front(glm::vec3(0.0f, 0.0f, -1.0f)), MovementSpeed(SPEED), MouseSensitivity(SENSITIVITY), Zoom(ZOOM)
     {
@@ -49,6 +56,8 @@ public:
         WorldUp = up;
         Yaw = yaw;
         Pitch = pitch;
+        verticalVelocity = 0.0f;
+        isJumping = false;
         updateCameraVectors();
     }
     // constructor with scalar values
@@ -58,6 +67,8 @@ public:
         WorldUp = glm::vec3(upX, upY, upZ);
         Yaw = yaw;
         Pitch = pitch;
+        verticalVelocity = 0.0f;
+        isJumping = false;
         updateCameraVectors();
     }
 
@@ -86,26 +97,54 @@ public:
     void ProcessKeyboard(Camera_Movement direction, float deltaTime)
     {
         float velocity = MovementSpeed * deltaTime;
+        
+        // Calculate horizontal movement vectors
+        glm::vec3 horizontalFront = glm::normalize(glm::vec3(Front.x, 0.0f, Front.z)); // Ignore the y component
+        glm::vec3 horizontalRight = glm::normalize(glm::vec3(Right.x, 0.0f, Right.z)); // Ignore the y component
+
         if (direction == FORWARD)
-            Position += Front * velocity;
+            Position += horizontalFront * velocity;
         if (direction == BACKWARD)
-            Position -= Front * velocity;
+            Position -= horizontalFront * velocity;
         if (direction == LEFT)
-            Position -= Right * velocity;
+            Position -= horizontalRight * velocity;
         if (direction == RIGHT)
-            Position += Right * velocity;
-        // make sure the user stays at the ground level
-        Position.y = 0.0f; // <-- this one-liner keeps the user at the ground level (xz plane)
+            Position += horizontalRight * velocity;
+
+        if (!isJumping)
+            Position.y = 0.0f;
+
+        if (direction == JUMP) // Only jump if not already jumping
+        {
+            if (!isJumping) {
+                verticalVelocity = JUMP_SPEED;
+                isJumping = true;
+            }
+        }
     }
 
     // processes input received from a mouse input system. Expects the offset value in both the x and y direction.
-    void ProcessMouseMovement(float xoffset, float yoffset, GLboolean constrainPitch = true)
+    void ProcessMouseMovement(float xoffset, float yoffset, float deltaTime, GLboolean constrainPitch = true)
     {
         xoffset *= MouseSensitivity;
         yoffset *= MouseSensitivity;
 
         Yaw += xoffset;
         Pitch += yoffset;
+
+        if (isJumping) {
+            // Apply gravity
+            verticalVelocity += GRAVITY * deltaTime;
+            Position.y += verticalVelocity * deltaTime;
+
+            if (Position.y <= 0.0f) // Assuming ground level is at y = 0
+            {
+                Position.y = 0.0f;
+                verticalVelocity = 0.0f;
+                isJumping = false;
+            }
+        }
+    
 
         // make sure that when pitch is out of bounds, screen doesn't get flipped
         if (constrainPitch)

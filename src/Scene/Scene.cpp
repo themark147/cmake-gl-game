@@ -58,6 +58,15 @@ namespace GLGame {
 			Model("../../../resources/electrical_substation.glb", glm::vec3(1.5f))
 		));
 
+		/*objects.push_back(GLGame::Object(
+			physicsCommon,
+			world,
+			glm::vec3(-3.0f, 1.0f, 12.0f),
+			BodyType::STATIC,
+			glm::vec3(1.0f),
+			Model("../../../resources/low_poly_amulet_normal.glb", glm::vec3(1.5f))
+		));*/
+
 		GLGame::Object zombie = GLGame::Object(
 			physicsCommon,
 			world,
@@ -67,17 +76,17 @@ namespace GLGame {
 			Model("../../../resources/zombie_w_anim.glb", glm::vec3(.0002f))
 		);
 
-		GLGame::Object zombie2 = GLGame::Object(
+		/*GLGame::Object zombie2 = GLGame::Object(
 			physicsCommon,
 			world,
 			glm::vec3(2.0f, 1.0f, 10.0f),
 			BodyType::DYNAMIC,
 			glm::vec3(0.5f, .2f, .5f),
 			Model("../../../resources/zombie_another_anim.glb", glm::vec3(.0002f))
-		);
+		);*/
 		
-		zombie2.setTransformation(GLGame::Transformation(glm::radians(180.0f)));
-		objects.push_back(zombie2);
+		//zombie2.setTransformation(GLGame::Transformation(glm::radians(180.0f)));
+		//objects.push_back(zombie2);
 		zombie.setTransformation(GLGame::Transformation(glm::radians(180.0f)));
 		objects.push_back(zombie);
 
@@ -143,9 +152,9 @@ namespace GLGame {
 		mainShader.setMat4("view", view);
 		mainShader.setVec3("viewPos", camera.Position);
 
-		
+		// TODO - move render mesh to player
 		glm::mat4 playerMesh = glm::mat4(1.0f);
-		glm::vec3 modelPosition = camera.getCameraOffset(glm::vec3(0.0f, -0.4f, 0.0f));
+		glm::vec3 modelPosition = camera.getCameraOffset(glm::vec3(0.0f, -0.25f, 0.0f));
 
 		playerMesh = glm::translate(playerMesh, modelPosition);
 		playerMesh = glm::scale(playerMesh, glm::vec3(.02f));
