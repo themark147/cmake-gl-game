@@ -172,7 +172,7 @@ namespace GLGame {
             globalInverseTransform = glm::inverse(globalInverseTransform);
 
             //currentPose is held in this vector and uploaded to gpu as a matrix array uniform
-            currentPose.resize(50, identity); // TODO cannot be hardcoded 
+            currentPose.resize(100, identity); // TODO cannot be hardcoded 
 
             // process ASSIMP's root node recursively
             processNode(scene->mRootNode, scene);

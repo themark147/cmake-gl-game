@@ -33,8 +33,8 @@ namespace GLGame {
        // int m_BoneIDs[MAX_BONE_INFLUENCE];
         // weights from each bone
        // float m_Weights[MAX_BONE_INFLUENCE];
-
-        glm::vec4 boneIds = glm::vec4(0);
+        
+        glm::ivec4 boneIds = glm::ivec4(0);
         glm::vec4 boneWeights = glm::vec4(0.0f);
     };
 
@@ -159,7 +159,8 @@ namespace GLGame {
 
 
                 glEnableVertexAttribArray(5);
-                glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, boneIds));
+                //glVertexAttribPointer(5, 4, GL_FLOAT, sizeof(Vertex), (void*)offsetof(Vertex, boneIds));
+                glVertexAttribIPointer(5, 4, GL_INT, sizeof(Vertex), (void*)offsetof(Vertex, boneIds));
                 glEnableVertexAttribArray(6);
                 glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, boneWeights));
 

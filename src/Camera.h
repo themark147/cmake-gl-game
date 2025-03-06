@@ -130,21 +130,7 @@ public:
         yoffset *= MouseSensitivity;
 
         Yaw += xoffset;
-        Pitch += yoffset;
-
-        if (isJumping) {
-            // Apply gravity
-            verticalVelocity += GRAVITY * deltaTime;
-            Position.y += verticalVelocity * deltaTime;
-
-            if (Position.y <= 0.0f) // Assuming ground level is at y = 0
-            {
-                Position.y = 0.0f;
-                verticalVelocity = 0.0f;
-                isJumping = false;
-            }
-        }
-    
+        Pitch += yoffset;    
 
         // make sure that when pitch is out of bounds, screen doesn't get flipped
         if (constrainPitch)
@@ -157,6 +143,21 @@ public:
 
         // update Front, Right and Up Vectors using the updated Euler angles
         updateCameraVectors();
+    }
+
+    void ProcessJumping(float deltaTime) {
+        if (isJumping) {
+            // Apply gravity
+            verticalVelocity += GRAVITY * deltaTime;
+            Position.y += verticalVelocity * deltaTime;
+
+            if (Position.y <= 0.0f) // Assuming ground level is at y = 0
+            {
+                Position.y = 0.0f;
+                verticalVelocity = 0.0f;
+                isJumping = false;
+            }
+        }
     }
 
     // processes input received from a mouse scroll-wheel event. Only requires input on the vertical wheel-axis

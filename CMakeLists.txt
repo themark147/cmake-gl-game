@@ -1,12 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
 
-
-
-
-
-
-
-
 set(CMAKE_CXX_STANDARD 17)
 
 project(openglgame)
@@ -42,11 +35,6 @@ embed_shader(shaders/main.fs fragmentShaderMain)
     # configure_file(${RESOURCE} ${RESOURCES_BINARY} COPYONLY)
 # endforeach()
 
-
-
-
-
-
 option(ASSIMP_BUILD_ASSIMP_TOOLS OFF)
 option(ASSIMP_BUILD_SAMPLES OFF)
 option(ASSIMP_BUILD_TESTS OFF)
@@ -57,16 +45,6 @@ add_subdirectory(lib/glm)
 add_subdirectory(lib/glfw)
 add_subdirectory(lib/reactphysics3d)
 
-
-
-
-
-
-
-
-
-
-
 set(INCLUDES "${CMAKE_CURRENT_SOURCE_DIR}/include/")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/lib/assimp/include/")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/lib/reactphysics3d/include/")
@@ -76,4 +54,3 @@ include_directories(${INCLUDES2})
 # target_include_directories("${CMAKE_PROJECT_NAME}" PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include/*")
 
 target_link_libraries("${CMAKE_PROJECT_NAME}" ${OPENGL_LIBRARY} glfw glm assimp ReactPhysics3D::reactphysics3d)
-

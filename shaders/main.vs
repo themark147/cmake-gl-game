@@ -6,7 +6,7 @@ layout(location = 2) in vec2 aTexCoords;
 layout(location = 3) in vec3 aTangent;
 layout(location = 4) in vec3 aBitangent;
 
-layout(location = 5) in vec4 boneIds;
+layout(location = 5) in ivec4 boneIds;
 layout(location = 6) in vec4 boneWeights;
 
 out vec3 FragPos;
@@ -19,20 +19,11 @@ uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
 
-uniform int hasAnimation;
-
-uniform mat4 bone_transforms[50];
+uniform mat4 bone_transforms[100];
 out vec4 bw;
 
 void main()
 {
-	/*vec4 totalPosition = vec4(0.0);
-    for (int i = 0; i < 50; i++) {
-        if (boneIds[i] == -1) break; // No more bones affecting this vertex
-        vec4 localPosition = bone_transforms[int(boneIds[i])] * vec4(aPos, 1.0);
-        totalPosition += localPosition * boneWeights[i];
-    }*/
-
     mat4 boneTransform  =  mat4(1.0);
 	boneTransform  +=    bone_transforms[int(boneIds.x)] * boneWeights.x;
 	boneTransform  +=    bone_transforms[int(boneIds.y)] * boneWeights.y;
@@ -44,7 +35,7 @@ void main()
     FragPos = vec3(model * vec4(aPos, 1.0));
     TexCoords = aTexCoords;
 
-    mat3 normalMatrix = transpose(inverse(mat3(model * boneTransform)));
+    mat3 normalMatrix = transpose(inverse(mat3(model))) * mat3(boneTransform);
 
     Normal = normalMatrix * aNormal;
     Tangent = normalMatrix * aTangent;
