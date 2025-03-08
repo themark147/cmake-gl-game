@@ -52,6 +52,15 @@ namespace GLGame {
 		
 		if (glfwGetInputMode(window, GLFW_CURSOR) == GLFW_CURSOR_DISABLED)
 			camera.ProcessMouseMovement(xoffset, yoffset, step);
+
+		collider.getRigidBody()->setLinearVelocity(reactphysics3d::Vector3(1, -9.81, 0));
+
+		/*getCollider().getRigidBody()->setTransform(
+			reactphysics3d::Transform(
+				reactphysics3d::Vector3(camera.Position.x, camera.Position.y, camera.Position.z),
+				getCollider().getRigidBody()->getTransform().getOrientation()
+			)
+		);*/
 	}
 
 	void Player::processMovementInput()

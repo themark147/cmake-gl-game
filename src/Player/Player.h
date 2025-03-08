@@ -4,6 +4,7 @@
 #include "../Input/KeyController.h"
 #include "../ObjectSpawner.h"
 #include "../Model/Model.h"
+#include "../Model/Collider.h"
 
 namespace GLGame {
 	class Player {
@@ -26,6 +27,14 @@ namespace GLGame {
 		GLGame::Model getMesh() {
 			return mesh;
 		}
+
+		void setCollider(GLGame::Collider collider) {
+			this->collider = collider;
+		}
+
+		GLGame::Collider getCollider() {
+			return collider;
+		}
 	private:
 		glm::vec3 applyMeshOffset(Camera& camera, glm::vec3& offset);
 		
@@ -33,5 +42,6 @@ namespace GLGame {
 		KeyInput::KeyController& keyController = KeyInput::KeyController::get();
 		GLGame::ObjectSpawner* spawner = nullptr;
 		GLGame::Model mesh;
+		GLGame::Collider collider;
 	};
 }

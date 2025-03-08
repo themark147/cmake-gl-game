@@ -33,6 +33,7 @@ namespace GLGame {
 		// Init physics
 		world = physicsCommon.createPhysicsWorld();
 		player.setSpawner(new GLGame::ObjectSpawner(physicsCommon, world, objects));
+		player.setCollider(GLGame::Collider(physicsCommon, world, glm::vec3(player.getCamera().Position)));
 
 		initDebug();
 
