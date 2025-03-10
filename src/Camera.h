@@ -58,17 +58,7 @@ public:
         Pitch = pitch;
         verticalVelocity = 0.0f;
         isJumping = false;
-        updateCameraVectors();
-    }
-    // constructor with scalar values
-    Camera(float posX, float posY, float posZ, float upX, float upY, float upZ, float yaw, float pitch) : Front(glm::vec3(0.0f, 0.0f, -1.0f)), MovementSpeed(SPEED), MouseSensitivity(SENSITIVITY), Zoom(ZOOM)
-    {
-        Position = glm::vec3(posX, posY, posZ);
-        WorldUp = glm::vec3(upX, upY, upZ);
-        Yaw = yaw;
-        Pitch = pitch;
-        verticalVelocity = 0.0f;
-        isJumping = false;
+
         updateCameraVectors();
     }
 
@@ -97,19 +87,15 @@ public:
     void ProcessKeyboard(Camera_Movement direction, float deltaTime)
     {
         float velocity = MovementSpeed * deltaTime;
-        
-        // Calculate horizontal movement vectors
-        glm::vec3 horizontalFront = glm::normalize(glm::vec3(Front.x, 0.0f, Front.z)); // Ignore the y component
-        glm::vec3 horizontalRight = glm::normalize(glm::vec3(Right.x, 0.0f, Right.z)); // Ignore the y component
 
         if (direction == FORWARD)
-            Position += horizontalFront * velocity;
+             // Position += horizontalFront * velocity;
         if (direction == BACKWARD)
-            Position -= horizontalFront * velocity;
+            // Position -= horizontalFront * velocity;
         if (direction == LEFT)
-            Position -= horizontalRight * velocity;
+            // Position -= horizontalRight * velocity;
         if (direction == RIGHT)
-            Position += horizontalRight * velocity;
+            // Position += horizontalRight * velocity;
 
         if (!isJumping)
             Position.y = 0.0f;
@@ -184,6 +170,13 @@ public:
 
         // Combine rotations and apply to the input matrix
         return matrix * yawRotation * pitchRotation;
+    }
+
+    glm::vec3 getVelocity(float deltaTime, glm::vec3 direction) {
+        glm::vec3 horizontalFront = glm::normalize(glm::vec3(Front.x, 0.0f, Front.z)); // Ignore the y component
+        glm::vec3 horizontalRight = glm::normalize(glm::vec3(Right.x, 0.0f, Right.z)); // Ignore the y component
+
+        return glm::normalize(horizontalFront * direction.z + horizontalRight * direction.x);
     }
 
 private:

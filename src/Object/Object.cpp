@@ -17,6 +17,7 @@ namespace GLGame {
 		rigidBody = world->createRigidBody(transform);
 		collider = rigidBody->addCollider(shape, Transform::identity());
 		collider->setIsSimulationCollider(true);
+		// collider->setIsTrigger(true);
 		rigidBody->setType(type);
 		rigidBody->setIsDebugEnabled(true);
 		// rigidBody->applyLocalForceAtLocalPosition(Vector3(100, 100, 100) * Vector3(0, 1.5f, 0), Vector3(0.15, 0.7, 1.5));

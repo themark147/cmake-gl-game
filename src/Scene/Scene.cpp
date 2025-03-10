@@ -6,6 +6,7 @@
 #include "../Model/Model.h"
 #include "../Object/Object.h"
 #include "../Shader.h"
+#include "../Object/CollisionEventListener.h"
 
 #include <vector>
 #include <iostream>
@@ -49,6 +50,9 @@ namespace GLGame {
 			glm::vec3(10.0f, 0.2f, 10.0f),
 			Model("../../../resources/FirstPersonMap.glb", glm::vec3(2.0f))
 		));
+
+		GLGame::CollisionEventListener eventListener;
+		//world->setEventListener(&eventListener);
 
 		/*objects.push_back(GLGame::Object(
 			physicsCommon,
