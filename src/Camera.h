@@ -172,11 +172,27 @@ public:
         return matrix * yawRotation * pitchRotation;
     }
 
-    glm::vec3 getVelocity(float deltaTime, glm::vec3 direction) {
+    void updateDirection(glm::vec3& direction, Camera_Movement movement)
+    {
+        if (movement == FORWARD)
+            direction.z += 1.0f;
+
+        if (movement == BACKWARD)
+            direction.z -= 1.0f;
+
+        if (movement == LEFT)
+            direction.x -= 1.0f;
+
+        if (movement == RIGHT)
+            direction.x += 1.0f;
+    }
+
+    glm::vec3 getVelocity(glm::vec3 direction)
+    {      
         glm::vec3 horizontalFront = glm::normalize(glm::vec3(Front.x, 0.0f, Front.z)); // Ignore the y component
         glm::vec3 horizontalRight = glm::normalize(glm::vec3(Right.x, 0.0f, Right.z)); // Ignore the y component
 
-        return glm::normalize(horizontalFront * direction.z + horizontalRight * direction.x);
+        return glm::normalize(horizontalFront * direction.z + horizontalRight * direction.x) * MovementSpeed;
     }
 
 private:

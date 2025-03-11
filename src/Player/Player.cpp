@@ -11,6 +11,8 @@ namespace GLGame {
 	bool firstMouse = true;
 	bool stopVelocity = true;
 
+	glm::vec3 direction = glm::vec3(0.0f);
+
 	Player::Player(glm::vec3 position, GLGame::Model mesh) : mesh(mesh) {
 		camera = Camera(position);
 	}
@@ -57,35 +59,27 @@ namespace GLGame {
 
 	void Player::processMovementInput()
 	{
-		glm::vec3 direction = glm::vec3(0.0f);
-		float speed = 0;
+		// because weird things happens when its zero
+		glm::vec3 direction = glm::vec3(0.0001f);
 
 		if (keyController.isKeyPressed(KeyInput::KeyDefinition::KEY_W)) {
-			speed = 5;
-			direction.z = 1.0f;
 			stopVelocity = true;
-			camera.ProcessKeyboard(FORWARD, step);
+			camera.updateDirection(direction, Camera_Movement::FORWARD);
 		}
 
 		if (keyController.isKeyPressed(KeyInput::KeyDefinition::KEY_A)) {
-			speed = 5;
-			direction.x = -1.0f;
 			stopVelocity = true;
-			camera.ProcessKeyboard(LEFT, step);
+			camera.updateDirection(direction, Camera_Movement::LEFT);
 		}
 
 		if (keyController.isKeyPressed(KeyInput::KeyDefinition::KEY_S)) {
-			speed = 5;
-			direction.z = -1.0f;
 			stopVelocity = true;
-			camera.ProcessKeyboard(BACKWARD, step);
+			camera.updateDirection(direction, Camera_Movement::BACKWARD);
 		}
 
 		if (keyController.isKeyPressed(KeyInput::KeyDefinition::KEY_D)) {
-			speed = 5;
-			direction.x = 1.0f;
 			stopVelocity = true;
-			camera.ProcessKeyboard(RIGHT, step);
+			camera.updateDirection(direction, Camera_Movement::RIGHT);
 		}
 
 		if (
@@ -104,8 +98,7 @@ namespace GLGame {
 			}
 		}
 		else {
-			// Move direction and speed right into camera
-			glm::vec3 velocity = camera.getVelocity(step, direction) * (float) speed;
+			glm::vec3 velocity = camera.getVelocity(direction);
 			collider.getRigidBody()->setLinearVelocity(
 				reactphysics3d::Vector3(velocity.x, velocity.y, velocity.z)
 			);
@@ -113,8 +106,6 @@ namespace GLGame {
 
 		reactphysics3d::Vector3 pos = collider.getRigidBody()->getTransform().getPosition();
 		camera.Position = glm::vec3(pos.x, pos.y, pos.z);
-
-		speed = 0;
 	}
 
 	glm::mat4& Player::applyTransform(Shader& shader, glm::vec3 offset)
