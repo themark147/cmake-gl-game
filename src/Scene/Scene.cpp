@@ -34,6 +34,7 @@ namespace GLGame {
 		// Init physics
 		world = physicsCommon.createPhysicsWorld();
 		player.setSpawner(new GLGame::ObjectSpawner(physicsCommon, world, objects));
+		player.setWorld(world);
 		player.setCollider(GLGame::Collider(physicsCommon, world, glm::vec3(player.getCamera().Position)));
 
 		initDebug();
@@ -54,14 +55,14 @@ namespace GLGame {
 		GLGame::CollisionEventListener eventListener;
 		//world->setEventListener(&eventListener);
 
-		objects.push_back(GLGame::Object(
+		/*objects.push_back(GLGame::Object(
 			physicsCommon,
 			world,
 			glm::vec3(-5.0f, -2.0f, 7.0f),
 			BodyType::STATIC,
 			glm::vec3(1.0f),
 			Model("../../../resources/electrical_substation.glb", glm::vec3(1.5f))
-		));
+		));*/
 
 		/*objects.push_back(GLGame::Object(
 			physicsCommon,
@@ -141,7 +142,6 @@ namespace GLGame {
 			// mainShader.setVec3("light.position", light.x, light.y, light.z); // ImGui
 			world->update(timeStep.count());
 			player.processMovementInput();
-			player.getCamera().ProcessJumping(1.0f/30.0f);
 
 			mAccumulator -= timeStep;
 		}

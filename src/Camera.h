@@ -86,25 +86,15 @@ public:
     // processes input received from any keyboard-like input system. Accepts input parameter in the form of camera defined ENUM (to abstract it from windowing systems)
     void ProcessKeyboard(Camera_Movement direction, float deltaTime)
     {
-        float velocity = MovementSpeed * deltaTime;
-
-        if (direction == FORWARD)
-             // Position += horizontalFront * velocity;
-        if (direction == BACKWARD)
-            // Position -= horizontalFront * velocity;
-        if (direction == LEFT)
-            // Position -= horizontalRight * velocity;
-        if (direction == RIGHT)
-            // Position += horizontalRight * velocity;
-
-        if (!isJumping)
-            Position.y = 0.0f;
+        /*if (!isJumping)
+            Position.y = 0.0f;*/
 
         if (direction == JUMP) // Only jump if not already jumping
         {
             if (!isJumping) {
                 verticalVelocity = JUMP_SPEED;
                 isJumping = true;
+                std::cout << "nastavil som" << std::endl;
             }
         }
     }
@@ -132,13 +122,17 @@ public:
     }
 
     void ProcessJumping(float deltaTime) {
-        if (isJumping) {
-            // Apply gravity
-            verticalVelocity += GRAVITY * deltaTime;
-            Position.y += verticalVelocity * deltaTime;
+        // std::cout << "Y: " << Position.y << std::endl;
 
-            if (Position.y <= 0.0f) // Assuming ground level is at y = 0
+        if (isJumping) {
+            std::cout << "jumpujeme" << std::endl;
+            // Apply gravity
+            // verticalVelocity += GRAVITY * deltaTime;
+            // Position.y += verticalVelocity * deltaTime;
+
+            if (Position.y <= 0.001f) // Assuming ground level is at y = 0
             {
+                std::cout << "vypiname" << std::endl;
                 Position.y = 0.0f;
                 verticalVelocity = 0.0f;
                 isJumping = false;
@@ -185,6 +179,9 @@ public:
 
         if (movement == RIGHT)
             direction.x += 1.0f;
+
+        if (movement == JUMP)
+            direction.y += 1.5f;
     }
 
     glm::vec3 getVelocity(glm::vec3 direction)
