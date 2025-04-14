@@ -52,6 +52,33 @@ namespace GLGame {
 			Model("../../../resources/FirstPersonMap.glb", glm::vec3(2.0f))
 		));
 
+		objects.push_back(GLGame::Object(
+			physicsCommon,
+			world,
+			glm::vec3(-21.5f, -1.0f, 10.0f),
+			BodyType::STATIC,
+			glm::vec3(10.0f, 0.2f, 10.0f),
+			Model("../../../resources/FirstPersonMap.glb", glm::vec3(2.0f))
+		));
+
+		objects.push_back(GLGame::Object(
+			physicsCommon,
+			world,
+			glm::vec3(21.5f, -3.0f, 10.0f),
+			BodyType::STATIC,
+			glm::vec3(10.0f, 0.2f, 10.0f),
+			Model("../../../resources/FirstPersonMap.glb", glm::vec3(2.0f))
+		));
+
+		objects.push_back(GLGame::Object(
+			physicsCommon,
+			world,
+			glm::vec3(0.0f, -3.5f, 31.0f),
+			BodyType::STATIC,
+			glm::vec3(10.0f, 0.2f, 10.0f),
+			Model("../../../resources/FirstPersonMap.glb", glm::vec3(2.0f))
+		));
+
 		GLGame::CollisionEventListener eventListener;
 		//world->setEventListener(&eventListener);
 

@@ -49,6 +49,7 @@ namespace GLGame {
 			//direction = glm::vec3(0.0001f, direction.y, 0.0001f);
 		//}
 		
+		
 		if (customRaycastCallback.isOnGround && startJump + 0.150f < glfwGetTime()) {
 			if (keyController.isKeyPressed(KeyInput::KeyDefinition::KEY_W)) {
 				stopVelocity = true;
@@ -77,7 +78,7 @@ namespace GLGame {
 
 		if (keyController.isKeyPressed(KeyInput::KeyDefinition::KEY_SPACE) && customRaycastCallback.isOnGround) {
 			// camera.ProcessKeyboard(JUMP, step);
-			std::cout << "JUMPED" << std::endl;
+			std::cout << "JUMPED" << velocity.x << " " << velocity.z << std::endl;
 			velocity.y = 5.0f;
 			// camera.updateDirection(direction, Camera_Movement::JUMP);
 			collider.getRigidBody()->setLinearVelocity(

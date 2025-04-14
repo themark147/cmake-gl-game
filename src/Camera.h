@@ -189,7 +189,7 @@ public:
         glm::vec3 horizontalFront = glm::normalize(glm::vec3(Front.x, 0.0f, Front.z)); // Ignore the y component
         glm::vec3 horizontalRight = glm::normalize(glm::vec3(Right.x, 0.0f, Right.z)); // Ignore the y component
 
-        return glm::normalize(horizontalFront * direction.z + horizontalRight * direction.x) * MovementSpeed;
+        return glm::vec3(horizontalFront * direction.z + horizontalRight * direction.x) * MovementSpeed;
     }
 
 private:
