@@ -12,12 +12,11 @@ namespace GLGame {
 	float lastY = 1080 / 2.0f;
 	bool firstMouse = true;
 	bool stopVelocity = true;
-	glm::vec3 direction = glm::vec3(0.0001f);
+	glm::vec3 direction = glm::vec3(0.00001f);
 	glm::vec3 velocity = glm::vec3(0.00001f);
 
 	bool isJumping = false;
 	double startJump;
-
 
 	Player::Player(glm::vec3 position, GLGame::Model mesh, reactphysics3d::PhysicsWorld* world) : world(world), mesh(mesh) {
 		camera = Camera(position);
@@ -25,6 +24,10 @@ namespace GLGame {
 	
 	void Player::processInput()
 	{
+		reactphysics3d::Material& material = collider.getRigidBody()->getCollider(0)->getMaterial();
+		material.setFrictionCoefficient(20.5f); // Friction coefficient
+		material.setBounciness(0.0f); // Bounciness coefficient
+
 		processMouseInput();
 
 		if (keyController.isKeyPressed(KeyInput::KeyDefinition::KEY_F)) {
@@ -33,24 +36,13 @@ namespace GLGame {
 			spawner->createBox(spawnPosition);
 		}
 
-		Vector3 startPoint(camera.Position.x, camera.Position.y, camera.Position.z);
-		Vector3 endPoint = (Vector3(camera.Position.x, camera.Position.y, camera.Position.z)) + Vector3(0.0f, -1.65f, 0.0f);
-		Ray ray(startPoint, endPoint);
-
 		GLGame::CustomRaycastCallback customRaycastCallback;
-		world->raycast(ray, &customRaycastCallback);
+		processRayCast(customRaycastCallback);
 
-		// std::cout << "Touching ground: " << customRaycastCallback.isOnGround << std::endl;
+		// because weird things happens when its zero
+		direction = glm::vec3(0.00001f);
 
-		//if (customRaycastCallback.isOnGround) {
-			direction = glm::vec3(0.0001f);
-		//}
-		//else {
-			//direction = glm::vec3(0.0001f, direction.y, 0.0001f);
-		//}
-		
-		
-		if (customRaycastCallback.isOnGround && startJump + 0.150f < glfwGetTime()) {
+		if (customRaycastCallback.isOnGround) {
 			if (keyController.isKeyPressed(KeyInput::KeyDefinition::KEY_W)) {
 				stopVelocity = true;
 				camera.updateDirection(direction, Camera_Movement::FORWARD);
@@ -75,10 +67,8 @@ namespace GLGame {
 		}
 
 		velocity = camera.getVelocity(direction);
-
 		if (keyController.isKeyPressed(KeyInput::KeyDefinition::KEY_SPACE) && customRaycastCallback.isOnGround) {
-			// camera.ProcessKeyboard(JUMP, step);
-			std::cout << "JUMPED" << velocity.x << " " << velocity.z << std::endl;
+			
 			velocity.y = 5.0f;
 			// camera.updateDirection(direction, Camera_Movement::JUMP);
 			collider.getRigidBody()->setLinearVelocity(
@@ -98,9 +88,9 @@ namespace GLGame {
 			)
 		{
 			if (stopVelocity == true && !isJumping) {
-				collider.getRigidBody()->setLinearVelocity(
+				/*collider.getRigidBody()->setLinearVelocity(
 					reactphysics3d::Vector3(0, 0, 0)
-				);
+				);*/
 
 				stopVelocity = false;
 			}
@@ -145,7 +135,7 @@ namespace GLGame {
 
 	void Player::processMovementInput()
 	{
-		// because weird things happens when its zero
+		
 	}
 
 	glm::mat4& Player::applyTransform(Shader& shader, glm::vec3 offset)
@@ -163,6 +153,35 @@ namespace GLGame {
 		mesh.Draw(shader);
 
 		return playerMesh;
+	}
+
+	void Player::processRayCast(RaycastCallback& callback)
+	{
+		Vector3 startPoint1(camera.Position.x + 0.5f, camera.Position.y, camera.Position.z + 0.5f);
+		Vector3 endPoint1 = (Vector3(camera.Position.x + 0.5f, camera.Position.y, camera.Position.z + 0.5f)) + Vector3(0.0f, -1.65f, 0.0f);
+
+		Vector3 startPoint2(camera.Position.x - 0.5f, camera.Position.y, camera.Position.z - 0.5f);
+		Vector3 endPoint2 = (Vector3(camera.Position.x - 0.5f, camera.Position.y, camera.Position.z - 0.5f)) + Vector3(0.0f, -1.65f, 0.0f);
+
+		Vector3 startPoint3(camera.Position.x - 0.5f, camera.Position.y, camera.Position.z + 0.5f);
+		Vector3 endPoint3 = (Vector3(camera.Position.x - 0.5f, camera.Position.y, camera.Position.z + 0.5f)) + Vector3(0.0f, -1.65f, 0.0f);
+
+		Vector3 startPoint4(camera.Position.x + 0.5f, camera.Position.y, camera.Position.z - 0.5f);
+		Vector3 endPoint4 = (Vector3(camera.Position.x + 0.5f, camera.Position.y, camera.Position.z - 0.5f)) + Vector3(0.0f, -1.65f, 0.0f);
+
+		Vector3 startPoint(camera.Position.x, camera.Position.y, camera.Position.z);
+		Vector3 endPoint = (Vector3(camera.Position.x, camera.Position.y, camera.Position.z)) + Vector3(0.0f, -1.65f, 0.0f);
+		Ray ray(startPoint, endPoint);
+		Ray ray1(startPoint1, endPoint1);
+		Ray ray2(startPoint2, endPoint2);
+		Ray ray3(startPoint3, endPoint3);
+		Ray ray4(startPoint4, endPoint4);
+
+		world->raycast(ray, &callback);
+		world->raycast(ray1, &callback);
+		world->raycast(ray2, &callback);
+		world->raycast(ray3, &callback);
+		world->raycast(ray4, &callback);
 	}
 
 	glm::vec3 Player::applyMeshOffset(Camera& camera, glm::vec3& offset)
