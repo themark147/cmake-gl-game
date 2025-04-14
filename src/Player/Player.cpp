@@ -11,7 +11,6 @@ namespace GLGame {
 	float lastX = 1920 / 2.0f;
 	float lastY = 1080 / 2.0f;
 	bool firstMouse = true;
-	bool stopVelocity = true;
 	glm::vec3 direction = glm::vec3(0.00001f);
 	glm::vec3 velocity = glm::vec3(0.00001f);
 
@@ -24,6 +23,7 @@ namespace GLGame {
 	
 	void Player::processInput()
 	{
+		// TODO inside player OFC
 		reactphysics3d::Material& material = collider.getRigidBody()->getCollider(0)->getMaterial();
 		material.setFrictionCoefficient(20.5f); // Friction coefficient
 		material.setBounciness(0.0f); // Bounciness coefficient
@@ -35,77 +35,6 @@ namespace GLGame {
 
 			spawner->createBox(spawnPosition);
 		}
-
-		GLGame::CustomRaycastCallback customRaycastCallback;
-		processRayCast(customRaycastCallback);
-
-		// because weird things happens when its zero
-		direction = glm::vec3(0.00001f);
-
-		if (customRaycastCallback.isOnGround) {
-			if (keyController.isKeyPressed(KeyInput::KeyDefinition::KEY_W)) {
-				stopVelocity = true;
-				camera.updateDirection(direction, Camera_Movement::FORWARD);
-			}
-
-			if (keyController.isKeyPressed(KeyInput::KeyDefinition::KEY_A)) {
-				stopVelocity = true;
-				camera.updateDirection(direction, Camera_Movement::LEFT);
-			}
-
-			if (keyController.isKeyPressed(KeyInput::KeyDefinition::KEY_S)) {
-				stopVelocity = true;
-				camera.updateDirection(direction, Camera_Movement::BACKWARD);
-			}
-
-			if (keyController.isKeyPressed(KeyInput::KeyDefinition::KEY_D)) {
-				stopVelocity = true;
-				camera.updateDirection(direction, Camera_Movement::RIGHT);
-			}
-
-			isJumping = false;
-		}
-
-		velocity = camera.getVelocity(direction);
-		if (keyController.isKeyPressed(KeyInput::KeyDefinition::KEY_SPACE) && customRaycastCallback.isOnGround) {
-			
-			velocity.y = 5.0f;
-			// camera.updateDirection(direction, Camera_Movement::JUMP);
-			collider.getRigidBody()->setLinearVelocity(
-				reactphysics3d::Vector3(velocity.x, velocity.y, velocity.z)
-			);
-
-			isJumping = true;
-			startJump = glfwGetTime();
-		}
-
-		if (
-			!keyController.isKeyPressed(KeyInput::KeyDefinition::KEY_W)
-			&& !keyController.isKeyPressed(KeyInput::KeyDefinition::KEY_A)
-			&& !keyController.isKeyPressed(KeyInput::KeyDefinition::KEY_S)
-			&& !keyController.isKeyPressed(KeyInput::KeyDefinition::KEY_D)
-			// && !keyController.isKeyPressed(KeyInput::KeyDefinition::KEY_SPACE)
-			)
-		{
-			if (stopVelocity == true && !isJumping) {
-				/*collider.getRigidBody()->setLinearVelocity(
-					reactphysics3d::Vector3(0, 0, 0)
-				);*/
-
-				stopVelocity = false;
-			}
-		}
-		else {
-			if (customRaycastCallback.isOnGround && isJumping == false) { // (int(glfwGetTime() * 1000.0f) % 30 == 0)
-				std::cout << "X: " << velocity.x << "Z: " << velocity.z << " " << glfwGetTime() * 1000.0f << std::endl;
-				collider.getRigidBody()->setLinearVelocity(
-					reactphysics3d::Vector3(velocity.x, velocity.y, velocity.z)
-				);
-			}
-		}
-
-		reactphysics3d::Vector3 pos = collider.getRigidBody()->getTransform().getPosition();
-		camera.Position = glm::vec3(pos.x, pos.y, pos.z);
 	}
 
 	void Player::processMouseInput()
@@ -135,7 +64,47 @@ namespace GLGame {
 
 	void Player::processMovementInput()
 	{
-		
+		GLGame::CustomRaycastCallback customRaycastCallback;
+		processRayCast(customRaycastCallback);
+
+		// because weird things happens when its zero
+		direction = glm::vec3(0.00001f);
+		isJumping = !customRaycastCallback.isOnGround;
+
+		if (isJumping == false && startJump + 0.150f <= glfwGetTime()) {
+			if (keyController.isKeyPressed(KeyInput::KeyDefinition::KEY_W)) {
+				camera.updateDirection(direction, Camera_Movement::FORWARD);
+			}
+
+			if (keyController.isKeyPressed(KeyInput::KeyDefinition::KEY_A)) {
+				camera.updateDirection(direction, Camera_Movement::LEFT);
+			}
+
+			if (keyController.isKeyPressed(KeyInput::KeyDefinition::KEY_S)) {
+				camera.updateDirection(direction, Camera_Movement::BACKWARD);
+			}
+
+			if (keyController.isKeyPressed(KeyInput::KeyDefinition::KEY_D)) {
+				camera.updateDirection(direction, Camera_Movement::RIGHT);
+			}
+
+			velocity = camera.getVelocity(direction);
+			collider.getRigidBody()->setLinearVelocity(
+				reactphysics3d::Vector3(velocity.x, velocity.y, velocity.z)
+			);
+		}
+
+		if (keyController.isKeyPressed(KeyInput::KeyDefinition::KEY_SPACE) && isJumping == false) {
+			velocity.y = 5.0f;
+			collider.getRigidBody()->setLinearVelocity(
+				reactphysics3d::Vector3(velocity.x, velocity.y, velocity.z)
+			);
+
+			startJump = glfwGetTime();
+		}
+
+		reactphysics3d::Vector3 pos = collider.getRigidBody()->getTransform().getPosition();
+		camera.Position = glm::vec3(pos.x, pos.y, pos.z);
 	}
 
 	glm::mat4& Player::applyTransform(Shader& shader, glm::vec3 offset)
