@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../Input/KeyController.h"
+#include "../Scene/Scene.h"
 
 #include "../imgui/imgui.h"
 #include "../imgui/imgui_impl_glfw.h"
@@ -9,13 +10,13 @@
 namespace GLGame {
 	class UI {
 	public:
-		UI(GLFWwindow* window, GLGame::Scene scene);
+		UI(GLFWwindow* window, GLGame::Scene* scene);
 		void init();
 		void render();
 		void terminate();
 	private:
 		KeyInput::KeyController& keyController = KeyInput::KeyController::get();
 		GLFWwindow* window = nullptr;
-		GLGame::Scene scene;
+		GLGame::Scene* scene;
 	};
 }

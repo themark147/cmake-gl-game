@@ -1,7 +1,8 @@
 #pragma once
 
 #include <vector>
-#include <GLFW/glfw3.h>
+#include "../../Common/OpenGL.h" // holds all OpenGL type declarations
+
 
 namespace KeyInput {
     enum KeyType { // TODO naming KeyFunctionality ???

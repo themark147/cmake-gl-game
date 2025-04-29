@@ -1,7 +1,7 @@
 #pragma once
 
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
+#include "../../Common/OpenGL.h" // holds all OpenGL type declarations
+
 #include <stb/stb_image.h>
 
 #include "../Shader.h"

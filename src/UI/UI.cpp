@@ -4,7 +4,7 @@
 ImGuiIO* io = nullptr;
 
 namespace GLGame {
-	UI::UI(GLFWwindow* window, GLGame::Scene scene) : window(window), scene(scene)
+	UI::UI(GLFWwindow* window, GLGame::Scene* scene) : window(window), scene(scene)
 	{
 	}
 
@@ -25,7 +25,7 @@ namespace GLGame {
 
 	void UI::render()
 	{
-		/*if (keyController.isKeyPressed(KeyInput::KeyDefinition::KEY_T)) {
+		if (keyController.isKeyPressed(KeyInput::KeyDefinition::KEY_T)) {
 			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 			ImGui_ImplOpenGL3_NewFrame();
 			ImGui_ImplGlfw_NewFrame();
@@ -48,7 +48,7 @@ namespace GLGame {
 		}
 		else {
 			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-		}*/
+		}
 	}
 
 	void UI::terminate()
