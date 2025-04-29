@@ -141,6 +141,7 @@ namespace GLGame {
 
 		Vector3 startPoint(camera.Position.x, camera.Position.y, camera.Position.z);
 		Vector3 endPoint = (Vector3(camera.Position.x, camera.Position.y, camera.Position.z)) + Vector3(0.0f, -1.65f, 0.0f);
+
 		Ray ray(startPoint, endPoint);
 		Ray ray1(startPoint1, endPoint1);
 		Ray ray2(startPoint2, endPoint2);
