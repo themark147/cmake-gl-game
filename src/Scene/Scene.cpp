@@ -3,6 +3,7 @@
 #include <reactphysics3d/reactphysics3d.h>
 
 #include "../Application/Application.h"
+#include "../Model/Model.h"
 #include "../Object/Object.h"
 #include "../Shader.h"
 
@@ -20,10 +21,10 @@ std::chrono::time_point<std::chrono::high_resolution_clock> mLastUpdateTime;
 std::chrono::duration<double> mAccumulator;
 std::chrono::duration<double> deltaTime;
 
-std::chrono::duration<double> timeStep = std::chrono::duration<double>(1.0f / 100.0f);
+std::chrono::duration<double> timeStep = std::chrono::duration<double>(1.0f / 60.0f);
 
 namespace GLGame {
-	Scene::Scene(Shader& shader) : shader(shader) {
+	Scene::Scene() {
 		// TODO part of Physics.cpp -> tick() -> step()
 		mStartTime = std::chrono::high_resolution_clock::now();
 		mLastUpdateTime = mStartTime;
@@ -32,6 +33,8 @@ namespace GLGame {
 		// Init physics
 		world = physicsCommon.createPhysicsWorld();
 		player.setSpawner(new GLGame::ObjectSpawner(physicsCommon, world, objects));
+		player.setWorld(world);
+		player.setCollider(GLGame::Collider(physicsCommon, world, glm::vec3(player.getCamera().Position)));
 
 		initDebug();
 
@@ -39,16 +42,87 @@ namespace GLGame {
 		world->getDebugRenderer().setIsDebugItemDisplayed(DebugRenderer::DebugItem::COLLISION_SHAPE, true);
 
 		// Init objects
-		objects.push_back(GLGame::Object(glm::vec3(0.0f, -2.0f, 0.0f)));
+		objects.push_back(GLGame::Object(
+			physicsCommon,
+			world,
+			glm::vec3(0.0f, -2.0f, 10.0f),
+			BodyType::STATIC,
+			glm::vec3(10.0f, 0.2f, 10.0f),
+			Model("../../../resources/FirstPersonMap.glb", glm::vec3(2.0f))
+		));
 
-		// TODO: should be part of Object construct
+		objects.push_back(GLGame::Object(
+			physicsCommon,
+			world,
+			glm::vec3(-21.5f, -1.0f, 10.0f),
+			BodyType::STATIC,
+			glm::vec3(10.0f, 0.2f, 10.0f),
+			Model("../../../resources/FirstPersonMap.glb", glm::vec3(2.0f))
+		));
 
-		for (GLGame::Object& obj : objects) {
-			obj.create(physicsCommon, world, BodyType::STATIC, Vector3(10, 1, 10)); // last param only convex SIZE
-		}
+		objects.push_back(GLGame::Object(
+			physicsCommon,
+			world,
+			glm::vec3(21.5f, -3.0f, 10.0f),
+			BodyType::STATIC,
+			glm::vec3(10.0f, 0.2f, 10.0f),
+			Model("../../../resources/FirstPersonMap.glb", glm::vec3(2.0f))
+		));
+
+		objects.push_back(GLGame::Object(
+			physicsCommon,
+			world,
+			glm::vec3(0.0f, -3.5f, 31.0f),
+			BodyType::STATIC,
+			glm::vec3(10.0f, 0.2f, 10.0f),
+			Model("../../../resources/FirstPersonMap.glb", glm::vec3(2.0f))
+		));
+
+		/*objects.push_back(GLGame::Object(
+			physicsCommon,
+			world,
+			glm::vec3(-5.0f, -2.0f, 7.0f),
+			BodyType::STATIC,
+			glm::vec3(1.0f),
+			Model("../../../resources/electrical_substation.glb", glm::vec3(1.5f))
+		));*/
+
+		/*objects.push_back(GLGame::Object(
+			physicsCommon,
+			world,
+			glm::vec3(-3.0f, 1.0f, 12.0f),
+			BodyType::STATIC,
+			glm::vec3(1.0f),
+			Model("../../../resources/low_poly_amulet_normal.glb", glm::vec3(1.5f))
+		));*/
+
+		GLGame::Object zombie = GLGame::Object(
+			physicsCommon,
+			world,
+			glm::vec3(0.0f, 1.0f, 10.0f),
+			BodyType::DYNAMIC,
+			glm::vec3(0.5f, .2f, .5f),
+			Model("../../../resources/zombie_w_anim.glb", glm::vec3(.0002f))
+		);
+
+		/*GLGame::Object zombie2 = GLGame::Object(
+			physicsCommon,
+			world,
+			glm::vec3(2.0f, 1.0f, 10.0f),
+			BodyType::DYNAMIC,
+			glm::vec3(0.5f, .2f, .5f),
+			Model("../../../resources/zombie_another_anim.glb", glm::vec3(.0002f))
+		);*/
 		
-		models.push_back(Model("../../../resources/zombie_char_7_4.glb", glm::vec3(0.0f, 0.0f, 0.0f)));
-		models.push_back(Model("../../../resources/turret.glb", glm::vec3(0.0f, 0.0f, 0.0f)));
+		//zombie2.setTransformation(GLGame::Transformation(glm::radians(180.0f)));
+		//objects.push_back(zombie2);
+		zombie.setTransformation(GLGame::Transformation(glm::radians(180.0f)));
+		objects.push_back(zombie);
+
+		mainShader.use();
+		mainShader.setVec3("lightPos", 10.0f, 7.0f, 20.0f);
+		mainShader.setVec3("lightColor", 0.5f, 0.5f, 0.5f);
+		mainShader.setVec3("lightDir", -0.5f, -0.5f, -0.5f);
 	}
 	
 	void Scene::render()
@@ -56,7 +130,7 @@ namespace GLGame {
 		camera = player.getCamera();
 		player.processInput();
 
-		shader.use();
+		debugShader.use();
 
 		// ----- Triangles ---- //
 		const uint nbTriangles = world->getDebugRenderer().getNbTriangles();
@@ -70,7 +144,7 @@ namespace GLGame {
 			mDebugVBOTrianglesVertices.unbind();
 		}
 
-		int vertexPositionLoc = shader.getAttribLocation("aPos");
+		int vertexPositionLoc = debugShader.getAttribLocation("aPos");
 		// int vertexColorLoc = debugShader.getAttribLocation("vertexColor");
 
 		// Triangles
@@ -85,7 +159,7 @@ namespace GLGame {
 
 		// Update the current display time
 		mLastUpdateTime = currentTime;
-		mAccumulator += deltaTime;
+		mAccumulator += deltaTime;		
 
 		while (mAccumulator >= timeStep) {
 			// mainShader.setVec3("light.position", light.x, light.y, light.z); // ImGui
@@ -96,40 +170,32 @@ namespace GLGame {
 		}
 
 		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)GLGame::Application::get().getWidth() / (float)GLGame::Application::get().getHeight(), 0.1f, 100.0f);
-		shader.setMat4("projection", projection);
+		debugShader.setMat4("projection", projection);
 		
 		glm::mat4 view = camera.GetViewMatrix();
-		shader.setMat4("view", view);
-
-		for (GLGame::Object obj : objects) {
-			// std::cout << "Pocet objects: " << objects.size() << "\n";
-			glm::mat4 model = glm::mat4(1.0f);
-			model = glm::translate(model, obj.getPosition());
-
-			// lightingShader.setMat4("model", model * (*it)->getRotationMatrix());
-			shader.setMat4("model", model);
-			// obj.render();
-		}
+		debugShader.setMat4("view", view);
 
 		mainShader.use();
 
 		mainShader.setMat4("projection", projection);
 		mainShader.setMat4("view", view);
-
 		mainShader.setVec3("viewPos", camera.Position);
 
-		mainShader.setVec3("lightPos", 10.0f, 7.0f, 20.0f);
-		mainShader.setVec3("lightColor", 0.5f, 0.5f, 0.5f);
-		mainShader.setVec3("lightDir", -0.5f, -0.5f, -0.5f);
+		// TODO - move render mesh to player
+		glm::mat4 playerMesh = glm::mat4(1.0f);
+		glm::vec3 modelPosition = camera.getCameraOffset(glm::vec3(0.0f, -0.25f, 0.0f));
 
-		for (Model meshModel : models) {
-			// std::cout << "Pocet: " << models.size();
-			glm::mat4 model = glm::mat4(1.0f);
-			model = glm::translate(model, glm::vec3(0.0f, -2.0f, 13.0f));
+		playerMesh = glm::translate(playerMesh, modelPosition);
+		playerMesh = glm::scale(playerMesh, glm::vec3(.02f));
 
-			// lightingShader.setMat4("model", model * (*it)->getRotationMatrix());
-			mainShader.setMat4("model", model);
-			meshModel.Draw(mainShader);
+		playerMesh = glm::rotate(playerMesh, -glm::radians(camera.Yaw) + glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		playerMesh = glm::rotate(playerMesh, -glm::radians(camera.Pitch), glm::vec3(1.0f, 0.0f, 0.0f));
+
+		mainShader.setMat4("model", playerMesh);
+		player.getMesh().Draw(mainShader);
+
+		for (GLGame::Object obj : objects) {
+			obj.render(mainShader);
 		}
 	}
 }

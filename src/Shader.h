@@ -3,6 +3,7 @@
 
 #include <glad/glad.h>
 #include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #include <string>
 #include <fstream>
@@ -133,6 +134,17 @@ public:
     void setMat4(const std::string& name, const glm::mat4& mat) const
     {
         glUniformMatrix4fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE, &mat[0][0]);
+    }
+
+    void setMat4Array(const std::string& name, const glm::mat4* matrices, int count) const {
+        for (int i = 0; i < count; i++) {
+            std::string uniformName = name + "[" + std::to_string(i) + "]";
+            glUniformMatrix4fv(glGetUniformLocation(ID, uniformName.c_str()), 1, GL_FALSE, glm::value_ptr(matrices[i]));
+        }
+    }
+
+    void setMat4Array(const std::string& name, const std::vector<glm::mat4>& matrices, int count) const {
+        glUniformMatrix4fv(glGetUniformLocation(ID, name.c_str()), count, GL_FALSE, glm::value_ptr(matrices[0]));
     }
 
     inline GLint getAttribLocation(const std::string& variableName, bool errorIfMissing = true) const {

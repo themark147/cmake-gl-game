@@ -17,12 +17,14 @@
 
 using namespace reactphysics3d;
 
-extern std::string vertexShaderMain, fragmentShaderMain, vertexShaderRender, fragmentShaderRender;
+extern std::string vertexShaderMain, fragmentShaderMain,
+	vertexShaderRender, fragmentShaderRender,
+	vertexShaderDebug, fragmentShaderDebug;
 
 namespace GLGame {
 	class Scene {
 	public:
-		Scene(Shader& shader);
+		Scene();
 		void render();
 
 		PhysicsCommon& getPhysicsCommon() {
@@ -71,7 +73,7 @@ namespace GLGame {
 			mDebugVBOTrianglesVertices.unbind();
 		}
 
-		void drawDebug(DebugRenderer& debugRenderer, uint vertexPositionLoc, uint vertexColorLoc)
+		void drawDebug(DebugRenderer& debugRenderer, unsigned int vertexPositionLoc, unsigned int vertexColorLoc)
 		{
 			// Bind the VAO
 			mDebugTrianglesVAO.bind();
@@ -98,15 +100,20 @@ namespace GLGame {
 	private:
 		PhysicsCommon physicsCommon;
 		PhysicsWorld* world;
+		glm::mat4 playerModelTransform;
 
 		// TODO: object should contain model
 		std::vector<Object> objects;
 		std::vector<Model> models;
 
-		GLGame::Player player = GLGame::Player(glm::vec3(0.0f, 0.0f, 15.0f));
+		GLGame::Player player = GLGame::Player(
+			glm::vec3(0.0f, 0.0f, 15.0f),
+			Model("../../../resources/first_person_arms_ue5_5.glb", glm::vec3(.02f))
+		);
+
 		Camera& camera = Camera();
 
-		Shader shader;
+		Shader debugShader = Shader(vertexShaderDebug, fragmentShaderDebug);
 		Shader mainShader = Shader(vertexShaderMain, fragmentShaderMain);
 
 		/// Vertex Buffer Object for the debug info lines vertices data

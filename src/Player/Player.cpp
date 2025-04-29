@@ -2,6 +2,8 @@
 #include "../Input/KeyController.h"
 #include "../Application/Application.h"
 
+#include "../Object/CustomRaycastCallback.h";
+
 namespace GLGame {
 	float step = 1.0f / 100.0f;
 	double x, y;
@@ -9,17 +11,27 @@ namespace GLGame {
 	float lastX = 1920 / 2.0f;
 	float lastY = 1080 / 2.0f;
 	bool firstMouse = true;
+	glm::vec3 direction = glm::vec3(0.00001f);
+	glm::vec3 velocity = glm::vec3(0.00001f);
 
-	Player::Player(glm::vec3 position) {
+	bool isJumping = false;
+	double startJump;
+
+	Player::Player(glm::vec3 position, GLGame::Model mesh, reactphysics3d::PhysicsWorld* world) : world(world), mesh(mesh) {
 		camera = Camera(position);
 	}
 	
 	void Player::processInput()
 	{
+		// TODO inside player OFC
+		reactphysics3d::Material& material = collider.getRigidBody()->getCollider(0)->getMaterial();
+		material.setFrictionCoefficient(20.5f); // Friction coefficient
+		material.setBounciness(0.0f); // Bounciness coefficient
+
 		processMouseInput();
 
 		if (keyController.isKeyPressed(KeyInput::KeyDefinition::KEY_F)) {
-			glm::vec3 spawnPosition = (camera.Front * glm::vec3(15)) + camera.Position;
+			glm::vec3 spawnPosition = (camera.Front * glm::vec3(10)) + camera.Position;
 
 			spawner->createBox(spawnPosition);
 		}
@@ -47,25 +59,117 @@ namespace GLGame {
 		lastY = ypos;
 		
 		if (glfwGetInputMode(window, GLFW_CURSOR) == GLFW_CURSOR_DISABLED)
-			camera.ProcessMouseMovement(xoffset, yoffset);
+			camera.ProcessMouseMovement(xoffset, yoffset, step);
 	}
 
 	void Player::processMovementInput()
 	{
-		if (keyController.isKeyPressed(KeyInput::KeyDefinition::KEY_W)) {
-			camera.ProcessKeyboard(FORWARD, step);
+		GLGame::CustomRaycastCallback customRaycastCallback;
+		processRayCast(customRaycastCallback);
+
+		// because weird things happens when its zero
+		direction = glm::vec3(0.00001f);
+		isJumping = !customRaycastCallback.isOnGround;
+
+		if (isJumping == false && startJump + 0.150f <= glfwGetTime()) {
+			if (keyController.isKeyPressed(KeyInput::KeyDefinition::KEY_W)) {
+				camera.updateDirection(direction, Camera_Movement::FORWARD);
+			}
+
+			if (keyController.isKeyPressed(KeyInput::KeyDefinition::KEY_A)) {
+				camera.updateDirection(direction, Camera_Movement::LEFT);
+			}
+
+			if (keyController.isKeyPressed(KeyInput::KeyDefinition::KEY_S)) {
+				camera.updateDirection(direction, Camera_Movement::BACKWARD);
+			}
+
+			if (keyController.isKeyPressed(KeyInput::KeyDefinition::KEY_D)) {
+				camera.updateDirection(direction, Camera_Movement::RIGHT);
+			}
+
+			velocity = camera.getVelocity(direction);
+			collider.getRigidBody()->setLinearVelocity(
+				reactphysics3d::Vector3(velocity.x, velocity.y, velocity.z)
+			);
 		}
 
-		if (keyController.isKeyPressed(KeyInput::KeyDefinition::KEY_A)) {
-			camera.ProcessKeyboard(LEFT, step);
+		if (keyController.isKeyPressed(KeyInput::KeyDefinition::KEY_SPACE) && isJumping == false) {
+			velocity.y = 5.0f;
+			collider.getRigidBody()->setLinearVelocity(
+				reactphysics3d::Vector3(velocity.x, velocity.y, velocity.z)
+			);
+
+			startJump = glfwGetTime();
 		}
 
-		if (keyController.isKeyPressed(KeyInput::KeyDefinition::KEY_S)) {
-			camera.ProcessKeyboard(BACKWARD, step);
-		}
+		reactphysics3d::Vector3 pos = collider.getRigidBody()->getTransform().getPosition();
+		camera.Position = glm::vec3(pos.x, pos.y, pos.z);
+	}
 
-		if (keyController.isKeyPressed(KeyInput::KeyDefinition::KEY_D)) {
-			camera.ProcessKeyboard(RIGHT, step);
-		}
+	glm::mat4& Player::applyTransform(Shader& shader, glm::vec3 offset)
+	{
+		glm::mat4 playerMesh = glm::mat4(1.0f);
+		glm::vec3 modelPosition = applyMeshOffset(camera, offset);
+
+		playerMesh = glm::translate(playerMesh, modelPosition);
+		playerMesh = glm::scale(playerMesh, glm::vec3(.02f));
+
+		playerMesh = glm::rotate(playerMesh, -glm::radians(camera.Yaw) + glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		playerMesh = glm::rotate(playerMesh, -glm::radians(camera.Pitch), glm::vec3(1.0f, 0.0f, 0.0f));
+
+		shader.setMat4("model", playerMesh);
+		mesh.Draw(shader);
+
+		return playerMesh;
+	}
+
+	// RayCast 5 points under player to better detect ground
+	void Player::processRayCast(RaycastCallback& callback)
+	{
+		Vector3 startPoint1(camera.Position.x + 0.5f, camera.Position.y, camera.Position.z + 0.5f);
+		Vector3 endPoint1 = (Vector3(camera.Position.x + 0.5f, camera.Position.y, camera.Position.z + 0.5f)) + Vector3(0.0f, -1.65f, 0.0f);
+
+		Vector3 startPoint2(camera.Position.x - 0.5f, camera.Position.y, camera.Position.z - 0.5f);
+		Vector3 endPoint2 = (Vector3(camera.Position.x - 0.5f, camera.Position.y, camera.Position.z - 0.5f)) + Vector3(0.0f, -1.65f, 0.0f);
+
+		Vector3 startPoint3(camera.Position.x - 0.5f, camera.Position.y, camera.Position.z + 0.5f);
+		Vector3 endPoint3 = (Vector3(camera.Position.x - 0.5f, camera.Position.y, camera.Position.z + 0.5f)) + Vector3(0.0f, -1.65f, 0.0f);
+
+		Vector3 startPoint4(camera.Position.x + 0.5f, camera.Position.y, camera.Position.z - 0.5f);
+		Vector3 endPoint4 = (Vector3(camera.Position.x + 0.5f, camera.Position.y, camera.Position.z - 0.5f)) + Vector3(0.0f, -1.65f, 0.0f);
+
+		Vector3 startPoint(camera.Position.x, camera.Position.y, camera.Position.z);
+		Vector3 endPoint = (Vector3(camera.Position.x, camera.Position.y, camera.Position.z)) + Vector3(0.0f, -1.65f, 0.0f);
+
+		Ray ray(startPoint, endPoint);
+		Ray ray1(startPoint1, endPoint1);
+		Ray ray2(startPoint2, endPoint2);
+		Ray ray3(startPoint3, endPoint3);
+		Ray ray4(startPoint4, endPoint4);
+
+		world->raycast(ray, &callback);
+		world->raycast(ray1, &callback);
+		world->raycast(ray2, &callback);
+		world->raycast(ray3, &callback);
+		world->raycast(ray4, &callback);
+	}
+
+	void Player::resetLocation()
+	{
+		collider.getRigidBody()->setTransform(
+			reactphysics3d::Transform(Vector3(0, 0, 15), reactphysics3d::Quaternion::identity())
+		);
+	}
+
+	glm::vec3 Player::applyMeshOffset(Camera& camera, glm::vec3& offset)
+	{
+		glm::vec3 modelPosition = camera.Position;
+
+		modelPosition += camera.Front * offset.z;  // Move along the camera's forward direction
+		modelPosition += camera.Right * offset.x;  // Move along the camera's right direction
+		modelPosition += camera.Up * offset.y; // -||- up direction
+
+		return modelPosition;
 	}
 }

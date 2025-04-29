@@ -2,13 +2,11 @@
 
 #include <iostream>
 
-extern std::string vertexShaderDebug;
-extern std::string fragmentShaderDebug;
-
 int widthScreen = 1920;
 int heightScreen = 1080;
 
 GLGame::Scene* scene = nullptr;
+GLGame::UI* ui = nullptr;
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
@@ -50,8 +48,10 @@ namespace GLGame {
 
 		stbi_set_flip_vertically_on_load(true); // Because of textures
 
-		Shader debugShader(vertexShaderDebug, fragmentShaderDebug);
-		scene = new GLGame::Scene(debugShader);
+		scene = new GLGame::Scene();
+		ui = new GLGame::UI(window, scene);
+
+		ui->init();
 
 		return 0;
 	}
@@ -73,15 +73,13 @@ namespace GLGame {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		scene->render();
+		ui->render();
 
 		glfwSwapBuffers(window);
 	}
 
 	void Application::Shutdown() {
-		// Application::shutdown
-		//ImGui_ImplOpenGL3_Shutdown();
-		//ImGui_ImplGlfw_Shutdown();
-		//ImGui::DestroyContext();
+		ui->terminate();
 		
 		glfwTerminate();
 	}

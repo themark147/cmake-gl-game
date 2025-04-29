@@ -1,7 +1,8 @@
 #pragma once
 
 #include <vector>
-#include <GLFW/glfw3.h>
+#include "../../Common/OpenGL.h" // holds all OpenGL type declarations
+
 
 namespace KeyInput {
     enum KeyType { // TODO naming KeyFunctionality ???
@@ -20,6 +21,7 @@ namespace KeyInput {
         KEY_S = 6,
         KEY_D = 7,
         KEY_F = 8,
+        KEY_SPACE = 9,
     };
 
     struct Key {
@@ -89,6 +91,7 @@ namespace KeyInput {
             keys.push_back(Key(GLFW_KEY_D));
 
             keys.push_back(Key(GLFW_KEY_F, KeyType::PRESS));
+            keys.push_back(Key(GLFW_KEY_SPACE));
         }
     };
 }
