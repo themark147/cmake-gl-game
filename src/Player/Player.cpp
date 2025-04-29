@@ -124,6 +124,7 @@ namespace GLGame {
 		return playerMesh;
 	}
 
+	// RayCast 5 points under player to better detect ground
 	void Player::processRayCast(RaycastCallback& callback)
 	{
 		Vector3 startPoint1(camera.Position.x + 0.5f, camera.Position.y, camera.Position.z + 0.5f);
@@ -151,6 +152,13 @@ namespace GLGame {
 		world->raycast(ray2, &callback);
 		world->raycast(ray3, &callback);
 		world->raycast(ray4, &callback);
+	}
+
+	void Player::resetLocation()
+	{
+		collider.getRigidBody()->setTransform(
+			reactphysics3d::Transform(Vector3(0, 0, 15), reactphysics3d::Quaternion::identity())
+		);
 	}
 
 	glm::vec3 Player::applyMeshOffset(Camera& camera, glm::vec3& offset)

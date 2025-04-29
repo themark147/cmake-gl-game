@@ -4,12 +4,9 @@
 #include <GLFW/glfw3.h>
 #include <stb/stb_image.h>
 
-#include "../imgui/imgui.h"
-#include "../imgui/imgui_impl_glfw.h"
-#include "../imgui/imgui_impl_opengl3.h"
-
 #include "../Shader.h"
 #include "../Scene/Scene.h"
+#include "../UI/UI.h"
 
 namespace GLGame {
 	class Application {

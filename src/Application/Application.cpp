@@ -4,9 +4,9 @@
 
 int widthScreen = 1920;
 int heightScreen = 1080;
-ImGuiIO* io = nullptr;
 
 GLGame::Scene* scene = nullptr;
+GLGame::UI* ui = nullptr;
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
@@ -49,18 +49,9 @@ namespace GLGame {
 		stbi_set_flip_vertically_on_load(true); // Because of textures
 
 		scene = new GLGame::Scene();
+		ui = new GLGame::UI(window, scene);
 
-		// Setup Dear ImGui context
-		IMGUI_CHECKVERSION();
-		ImGui::CreateContext();
-		io = &ImGui::GetIO(); (void)io;
-		io->ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-		io->ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
-
-		ImGui::StyleColorsLight();
-
-		ImGui_ImplGlfw_InitForOpenGL(window, true);
-		ImGui_ImplOpenGL3_Init("#version 130");
+		ui->init();
 
 		return 0;
 	}
@@ -82,34 +73,14 @@ namespace GLGame {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		scene->render();
-
-		if (controller.isKeyPressed(KeyInput::KeyDefinition::KEY_T)) {
-		    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-			ImGui_ImplOpenGL3_NewFrame();
-			ImGui_ImplGlfw_NewFrame();
-			ImGui::NewFrame();
-
-			ImGui::Begin("Main window");
-			// ImGui::SliderFloat("float", &XLight, -50.0f, 50.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-			// ImGui::SliderFloat3("floatt", &light.x, -50.0f, 50.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-
-			ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io->Framerate, io->Framerate);
-			ImGui::End();
-
-			// Rendering
-			ImGui::Render();
-			ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-		} else {
-		    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-	    }
+		// ui.render();
+		
 
 		glfwSwapBuffers(window);
 	}
 
 	void Application::Shutdown() {
-		ImGui_ImplOpenGL3_Shutdown();
-		ImGui_ImplGlfw_Shutdown();
-		ImGui::DestroyContext();
+		// ui.terminate();
 		
 		glfwTerminate();
 	}

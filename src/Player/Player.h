@@ -17,6 +17,7 @@ namespace GLGame {
 		void processMovementInput();
 		glm::mat4& applyTransform(Shader& shader, glm::vec3 offset = glm::vec3(0.0f));
 		void processRayCast(RaycastCallback &callback);
+		void resetLocation();
 
 		Camera& getCamera() {
 			return camera;
