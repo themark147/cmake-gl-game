@@ -1,8 +1,17 @@
 #pragma once
 
+#define GLM_ENABLE_EXPERIMENTAL
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/quaternion.hpp>
+
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
+
+#include "../Common/OpenGL.h"
+#include "../Shader.h"
 
 #include <vector>
 #include <unordered_map>
@@ -36,14 +45,7 @@ namespace GLGame {
 
 	class Animator {
 	public:
-		void animateSkeleton(Shader& shader, GLGame::AnimationNode& animation, GLGame::Bone& skeleton) {
-			if (!animation.boneTransforms.empty()) {
-				int time = (int(glfwGetTime() * 1000.0f) - 1000) % int(std::floor(animation.duration / 1000.0f));
-
-				getPose(animation, skeleton, float(time), currentPose, identity, globalInverseTransform);
-				shader.setMat4Array("bone_transforms", currentPose, currentPose.size());
-			}
-		}
+		void animateSkeleton(Shader& shader, GLGame::AnimationNode& animation, GLGame::Bone& skeleton);
 
 		void getPose(AnimationNode& animation, Bone& skeleton, float dt, std::vector<glm::mat4>& output, glm::mat4& parentTransform, glm::mat4& globalInverseTransform) {
 			BoneTransformTrack& btt = animation.boneTransforms[skeleton.name];

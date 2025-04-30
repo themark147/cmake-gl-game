@@ -17,7 +17,7 @@
 #include "../Shader.h"
 #include "../Material/Material.h"
 
-#include "Animator.h"
+#include "../Animator/Animator.h"
 #include "../Object/Transform.h"
 
 #include <string>
