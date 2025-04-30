@@ -1,8 +1,7 @@
 #pragma once
 #define GLM_ENABLE_EXPERIMENTAL
 
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
+#include "../Common/OpenGL.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -31,10 +30,7 @@
 
 using namespace std;
 
-static const GLfloat gravity = -9.8f;
-
 namespace GLGame {
-    // TODO: able to load more than 1 mesh
     class Model
     {
     public:
@@ -51,10 +47,6 @@ namespace GLGame {
         GLGame::AnimationNode animation;
         GLGame::Animator animator;
 
-        glm::mat4 globalInverseTransform;
-        std::vector<glm::mat4> currentPose = {};
-        glm::mat4 identity = glm::mat4(1.0);
-
         // Default constructor
         Model() : gammaCorrection(false) {}
 
@@ -67,24 +59,10 @@ namespace GLGame {
         // draws the model, and thus all its meshes
         void Draw(Shader& shader)
         {
-            AnimateSkeleton(shader);
+            animator.animateSkeleton(shader, animation, skeleton);
 
             for (unsigned int i = 0; i < meshes.size(); i++)
                 meshes[i].Draw(shader);
-        }
-
-        // TODO it could be part of animator
-        void AnimateSkeleton(Shader& shader) {
-            if (!animation.boneTransforms.empty()) {
-                int time = (int(glfwGetTime() * 1000.0f) - 1000) % int(std::floor(animation.duration / 1000.0f));
-
-                animator.getPose(animation, skeleton, float(time), currentPose, identity, globalInverseTransform);
-                shader.setMat4Array("bone_transforms", currentPose, currentPose.size());
-                shader.setBool("hasAnimation", true);
-            }
-            else {
-                shader.setBool("hasAnimation", false);
-            }
         }
 
     private:
@@ -98,57 +76,6 @@ namespace GLGame {
                 }
             }
             return m;
-        }
-        inline glm::vec3 assimpToGlmVec3(aiVector3D vec) {
-            return glm::vec3(vec.x, vec.y, vec.z);
-        }
-
-        inline glm::quat assimpToGlmQuat(aiQuaternion quat) {
-            glm::quat q;
-            q.x = quat.x;
-            q.y = quat.y;
-            q.z = quat.z;
-            q.w = quat.w;
-
-            return q;
-        }
-
-        // Animation loader?
-        void loadAnimation(const aiScene* scene, GLGame::AnimationNode& animation) {
-            //loading first Animation
-            if (scene->HasAnimations()) {
-                aiAnimation* anim = scene->mAnimations[0];
-
-                if (anim->mTicksPerSecond != 0.0f)
-                    animation.ticksPerSecond = anim->mTicksPerSecond;
-                else
-                    animation.ticksPerSecond = 1;
-
-                animation.duration = anim->mDuration * anim->mTicksPerSecond;
-                animation.boneTransforms = {};
-
-                // load positions rotations and scales for each bone
-                // each channel represents each bone
-                for (int i = 0; i < anim->mNumChannels; i++) {
-                    aiNodeAnim* channel = anim->mChannels[i];
-                    GLGame::BoneTransformTrack track;
-                    for (int j = 0; j < channel->mNumPositionKeys; j++) {
-                        track.positionTimestamps.push_back(channel->mPositionKeys[j].mTime);
-                        track.positions.push_back(assimpToGlmVec3(channel->mPositionKeys[j].mValue));
-                    }
-                    for (int j = 0; j < channel->mNumRotationKeys; j++) {
-                        track.rotationTimestamps.push_back(channel->mRotationKeys[j].mTime);
-                        track.rotations.push_back(assimpToGlmQuat(channel->mRotationKeys[j].mValue));
-
-                    }
-                    for (int j = 0; j < channel->mNumScalingKeys; j++) {
-                        track.scaleTimestamps.push_back(channel->mScalingKeys[j].mTime);
-                        track.scales.push_back(assimpToGlmVec3(channel->mScalingKeys[j].mValue));
-
-                    }
-                    animation.boneTransforms[channel->mNodeName.C_Str()] = track;
-                }
-            }
         }
 
         // loads a model with supported ASSIMP extensions from file and stores the resulting meshes in the meshes vector.
@@ -166,13 +93,7 @@ namespace GLGame {
             // retrieve the directory path of the filepath
             directory = path.substr(0, path.find_last_of('/'));
 
-            loadAnimation(scene, animation);
-
-            globalInverseTransform = assimpToGlmMatrix(scene->mRootNode->mTransformation);
-            globalInverseTransform = glm::inverse(globalInverseTransform);
-
-            //currentPose is held in this vector and uploaded to gpu as a matrix array uniform
-            currentPose.resize(100, identity); // TODO cannot be hardcoded 
+            animator.load(scene, animation);
 
             // process ASSIMP's root node recursively
             processNode(scene->mRootNode, scene);
@@ -318,21 +239,9 @@ namespace GLGame {
                 for (unsigned int j = 0; j < face.mNumIndices; j++)
                     indices.push_back(face.mIndices[j]);
             }
+
             // process materials
             aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
-            // we assume a convention for sampler names in the shaders. Each diffuse texture should be named
-            // as 'texture_diffuseN' where N is a sequential number ranging from 1 to MAX_SAMPLER_NUMBER. 
-            // Same applies to other texture as the following list summarizes:
-            // diffuse: texture_diffuseN
-            // specular: texture_specularN
-            // normal: texture_normalN
-
-            /*aiTextureType_BASE_COLOR = 12,
-                aiTextureType_NORMAL_CAMERA = 13,
-                aiTextureType_EMISSION_COLOR = 14,
-                aiTextureType_METALNESS = 15,
-                aiTextureType_DIFFUSE_ROUGHNESS = 16,
-                aiTextureType_AMBIENT_OCCLUSION = 17,*/
 
             // 1. diffuse maps
             // vector<Texture> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, "material.diffuse", scene);
@@ -475,6 +384,7 @@ namespace GLGame {
             return textureID;
         }
 
+        // TODO Skeleton loader/reader?
         bool readSkeleton(GLGame::Bone& boneOutput, aiNode* node, std::unordered_map<std::string, std::pair<int, glm::mat4>>& boneInfoTable) {
 
             if (boneInfoTable.find(node->mName.C_Str()) != boneInfoTable.end()) { // if node is actually a bone

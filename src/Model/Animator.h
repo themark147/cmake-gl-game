@@ -36,6 +36,15 @@ namespace GLGame {
 
 	class Animator {
 	public:
+		void animateSkeleton(Shader& shader, GLGame::AnimationNode& animation, GLGame::Bone& skeleton) {
+			if (!animation.boneTransforms.empty()) {
+				int time = (int(glfwGetTime() * 1000.0f) - 1000) % int(std::floor(animation.duration / 1000.0f));
+
+				getPose(animation, skeleton, float(time), currentPose, identity, globalInverseTransform);
+				shader.setMat4Array("bone_transforms", currentPose, currentPose.size());
+			}
+		}
+
 		void getPose(AnimationNode& animation, Bone& skeleton, float dt, std::vector<glm::mat4>& output, glm::mat4& parentTransform, glm::mat4& globalInverseTransform) {
 			BoneTransformTrack& btt = animation.boneTransforms[skeleton.name];
 			dt = fmod(dt, animation.duration);
@@ -82,6 +91,49 @@ namespace GLGame {
 			// std::cout << dt << " => " << position.x << ":" << position.y << ":" << position.z << ":" << std::endl;
 		}
 
+		void load(const aiScene* scene, GLGame::AnimationNode& animation) {
+			globalInverseTransform = assimpToGlmMatrix(scene->mRootNode->mTransformation);
+			globalInverseTransform = glm::inverse(globalInverseTransform);
+
+			//currentPose is held in this vector and uploaded to gpu as a matrix array uniform
+			currentPose.resize(100, identity); // TODO cannot be hardcoded 
+
+			//loading first Animation
+			if (scene->HasAnimations()) {
+				aiAnimation* anim = scene->mAnimations[0];
+
+				if (anim->mTicksPerSecond != 0.0f)
+					animation.ticksPerSecond = anim->mTicksPerSecond;
+				else
+					animation.ticksPerSecond = 1;
+
+				animation.duration = anim->mDuration * anim->mTicksPerSecond;
+				animation.boneTransforms = {};
+
+				// load positions rotations and scales for each bone
+				// each channel represents each bone
+				for (int i = 0; i < anim->mNumChannels; i++) {
+					aiNodeAnim* channel = anim->mChannels[i];
+					GLGame::BoneTransformTrack track;
+					for (int j = 0; j < channel->mNumPositionKeys; j++) {
+						track.positionTimestamps.push_back(channel->mPositionKeys[j].mTime);
+						track.positions.push_back(assimpToGlmVec3(channel->mPositionKeys[j].mValue));
+					}
+					for (int j = 0; j < channel->mNumRotationKeys; j++) {
+						track.rotationTimestamps.push_back(channel->mRotationKeys[j].mTime);
+						track.rotations.push_back(assimpToGlmQuat(channel->mRotationKeys[j].mValue));
+
+					}
+					for (int j = 0; j < channel->mNumScalingKeys; j++) {
+						track.scaleTimestamps.push_back(channel->mScalingKeys[j].mTime);
+						track.scales.push_back(assimpToGlmVec3(channel->mScalingKeys[j].mValue));
+
+					}
+					animation.boneTransforms[channel->mNodeName.C_Str()] = track;
+				}
+			}
+		}
+
 		std::pair<unsigned int, float> getTimeFraction(std::vector<float>& times, float& dt) {
 			auto it = std::lower_bound(times.begin() + 1, times.end(), dt);
 			unsigned int segment = std::distance(times.begin(), it);
@@ -91,6 +143,37 @@ namespace GLGame {
 			float frac = (dt - start) / (end - start);
 
 			return std::make_pair(segment, frac);
+		}
+
+	private:
+		glm::mat4 globalInverseTransform;
+		std::vector<glm::mat4> currentPose = {};
+		glm::mat4 identity = glm::mat4(1.0);
+
+		inline glm::vec3 assimpToGlmVec3(aiVector3D vec) {
+			return glm::vec3(vec.x, vec.y, vec.z);
+		}
+
+		inline glm::quat assimpToGlmQuat(aiQuaternion quat) {
+			glm::quat q;
+			q.x = quat.x;
+			q.y = quat.y;
+			q.z = quat.z;
+			q.w = quat.w;
+
+			return q;
+		}
+
+		inline glm::mat4 assimpToGlmMatrix(aiMatrix4x4 mat) {
+			glm::mat4 m;
+			for (int y = 0; y < 4; y++)
+			{
+				for (int x = 0; x < 4; x++)
+				{
+					m[x][y] = mat[y][x];
+				}
+			}
+			return m;
 		}
 	};
 }

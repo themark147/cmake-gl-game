@@ -94,6 +94,7 @@ namespace GLGame {
 			);
 		}
 
+		// Jumping
 		if (keyController.isKeyPressed(KeyInput::KeyDefinition::KEY_SPACE) && isJumping == false) {
 			velocity.y = 5.0f;
 			collider.getRigidBody()->setLinearVelocity(

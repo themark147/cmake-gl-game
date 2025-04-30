@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../Common/OpenGL.h" // holds all OpenGL type declarations
+#include "../../Common/OpenGL.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -29,10 +29,6 @@ namespace GLGame {
         glm::vec3 Tangent;
         // bitangent
         glm::vec3 Bitangent;
-        // bone indexes which will influence this vertex
-       // int m_BoneIDs[MAX_BONE_INFLUENCE];
-        // weights from each bone
-       // float m_Weights[MAX_BONE_INFLUENCE];
         
         glm::ivec4 boneIds = glm::ivec4(0);
         glm::vec4 boneWeights = glm::vec4(0.0f);
@@ -71,10 +67,7 @@ namespace GLGame {
             void Draw(Shader& shader)
             {
                 // bind appropriate textures
-                unsigned int diffuseNr = 1;
-                unsigned int specularNr = 1;
-                unsigned int normalNr = 1;
-                unsigned int heightNr = 1;
+				// only one type of texture is supported at the moment
                 vector<GLGame::Texture*> textures = material.getTextures();
 
                 for (unsigned int i = 0; i < textures.size(); i++)
@@ -84,18 +77,6 @@ namespace GLGame {
                     }
 
                      glActiveTexture(GL_TEXTURE0 + i); // active proper texture unit before binding
-                    // retrieve texture number (the N in diffuse_textureN)
-                    // string number;
-                    // string name = textures[i].name;
-
-                    //if (name == "material.diffuse")
-                   //     number = std::to_string(diffuseNr++);
-                    //else if (name == "material.specular")
-                    //    number = std::to_string(specularNr++); // transfer unsigned int to string
-                    //else if (name == "material.normal")
-                    //    number = std::to_string(normalNr++); // transfer unsigned int to string
-                   // else if (name == "material.height")
-                   //     number = std::to_string(heightNr++); // transfer unsigned int to string
 
                     // now set the sampler to the correct texture unit
                     glUniform1i(glGetUniformLocation(shader.ID, textures[i]->type.c_str()), i);
@@ -153,20 +134,11 @@ namespace GLGame {
                 glEnableVertexAttribArray(4);
                 glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Bitangent));
 
-                // ids
-               // glEnableVertexAttribArray(5);
-                //glVertexAttribIPointer(5, 4, GL_INT, sizeof(Vertex), (void*)offsetof(Vertex, m_BoneIDs));
-
-
                 glEnableVertexAttribArray(5);
                 //glVertexAttribPointer(5, 4, GL_FLOAT, sizeof(Vertex), (void*)offsetof(Vertex, boneIds));
                 glVertexAttribIPointer(5, 4, GL_INT, sizeof(Vertex), (void*)offsetof(Vertex, boneIds));
                 glEnableVertexAttribArray(6);
                 glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, boneWeights));
-
-                // weights
-                //glEnableVertexAttribArray(6);
-                //glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, m_Weights));
 
                 glBindVertexArray(0);
             }

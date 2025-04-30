@@ -13,10 +13,6 @@ struct Material {
     sampler2D normal;
 }; 
 
-// Material textures
-// uniform sampler2D albedoMap;
-// uniform sampler2D normalMap;
-
 // Camera position
 uniform vec3 viewPos;
 
