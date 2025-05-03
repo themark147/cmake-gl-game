@@ -46,10 +46,6 @@ public:
     float MouseSensitivity;
     float Zoom;
 
-    // Jump-related variables
-    float verticalVelocity; // Tracks the camera's vertical velocity
-    bool isJumping; // Tracks whether the camera is currently jumping
-
     // constructor with vectors
     Camera(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), float yaw = YAW, float pitch = PITCH) : Front(glm::vec3(0.0f, 0.0f, -1.0f)), MovementSpeed(SPEED), MouseSensitivity(SENSITIVITY), Zoom(ZOOM)
     {
@@ -57,8 +53,6 @@ public:
         WorldUp = up;
         Yaw = yaw;
         Pitch = pitch;
-        verticalVelocity = 0.0f;
-        isJumping = false;
 
         updateCameraVectors();
     }
@@ -84,22 +78,6 @@ public:
         return result;
     }
 
-    // processes input received from any keyboard-like input system. Accepts input parameter in the form of camera defined ENUM (to abstract it from windowing systems)
-    void ProcessKeyboard(Camera_Movement direction, float deltaTime)
-    {
-        /*if (!isJumping)
-            Position.y = 0.0f;*/
-
-        if (direction == JUMP) // Only jump if not already jumping
-        {
-            if (!isJumping) {
-                verticalVelocity = JUMP_SPEED;
-                isJumping = true;
-                std::cout << "nastavil som" << std::endl;
-            }
-        }
-    }
-
     // processes input received from a mouse input system. Expects the offset value in both the x and y direction.
     void ProcessMouseMovement(float xoffset, float yoffset, float deltaTime, GLboolean constrainPitch = true)
     {
@@ -120,25 +98,6 @@ public:
 
         // update Front, Right and Up Vectors using the updated Euler angles
         updateCameraVectors();
-    }
-
-    void ProcessJumping(float deltaTime) {
-        // std::cout << "Y: " << Position.y << std::endl;
-
-        if (isJumping) {
-            std::cout << "jumpujeme" << std::endl;
-            // Apply gravity
-            // verticalVelocity += GRAVITY * deltaTime;
-            // Position.y += verticalVelocity * deltaTime;
-
-            if (Position.y <= 0.001f) // Assuming ground level is at y = 0
-            {
-                std::cout << "vypiname" << std::endl;
-                Position.y = 0.0f;
-                verticalVelocity = 0.0f;
-                isJumping = false;
-            }
-        }
     }
 
     // processes input received from a mouse scroll-wheel event. Only requires input on the vertical wheel-axis
