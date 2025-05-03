@@ -19,6 +19,7 @@
 
 #include "../Animator/Animator.h"
 #include "../Object/Transform.h"
+#include "BinaryMeshLoader.h"
 
 #include <string>
 #include <fstream>
@@ -53,7 +54,22 @@ namespace GLGame {
         // constructor, expects a filepath to a 3D model.
         Model(string const& path, glm::vec3 scale = glm::vec3(1.0f), bool gamma = false) : scale(scale), gammaCorrection(gamma)
         {
-            loadModel(path);
+            // Check if the file is a binary mesh file
+            if (path.substr(path.find_last_of(".") + 1) == "bmesh") {
+                loadBinaryModel(path);
+            } else {
+                loadModel(path);
+            }
+        }
+
+        // Save the model to a binary file
+        bool SaveBinary(const string& path) {
+            if (meshes.empty()) {
+                return false;
+            }
+
+            // For now, we only save the first mesh
+            return BinaryMeshLoader::SaveMesh(path, meshes[0]);
         }
 
         // draws the model, and thus all its meshes
@@ -66,6 +82,16 @@ namespace GLGame {
         }
 
     private:
+        // Load a binary mesh file
+        void loadBinaryModel(string const& path) {
+            Mesh mesh;
+            if (BinaryMeshLoader::LoadMesh(path, mesh)) {
+                meshes.push_back(mesh);
+            } else {
+                cout << "ERROR::BINARY:: Failed to load binary mesh file: " << path << endl;
+            }
+        }
+
         inline glm::mat4 assimpToGlmMatrix(aiMatrix4x4 mat) {
             glm::mat4 m;
             for (int y = 0; y < 4; y++)
@@ -287,7 +313,9 @@ namespace GLGame {
             meshMaterial.setTextures(texturesToMaterial);
 
             // Create a Mesh object with the correct parameter types
-            return Mesh(vertices, indices, textures, meshMaterial);
+            Mesh meshka = Mesh(vertices, indices, textures, meshMaterial);
+
+            return meshka;
         }
 
         // checks all material textures of a given type and loads the textures if they're not loaded yet.

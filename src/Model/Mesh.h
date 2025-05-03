@@ -51,6 +51,9 @@ namespace GLGame {
 
             unsigned int VAO;
 
+            // Default constructor
+            Mesh() : VAO(0) {}
+
             // constructor
             Mesh(vector<Vertex> vertices, vector<unsigned int> indices, vector<Texture> textures, Material material)
             {
@@ -67,22 +70,29 @@ namespace GLGame {
             void Draw(Shader& shader)
             {
                 // bind appropriate textures
-				// only one type of texture is supported at the moment
-                vector<GLGame::Texture*> textures = material.getTextures();
-
+                unsigned int diffuseNr = 1;
+                unsigned int specularNr = 1;
+                unsigned int normalNr = 1;
+                unsigned int heightNr = 1;
                 for (unsigned int i = 0; i < textures.size(); i++)
                 {
-                    if (textures[i] == nullptr) {
-                        continue;
-                    }
-
-                     glActiveTexture(GL_TEXTURE0 + i); // active proper texture unit before binding
+                    glActiveTexture(GL_TEXTURE0 + i); // active proper texture unit before binding
+                    // retrieve texture number (the N in diffuse_textureN)
+                    string number;
+                    string name = textures[i].type;
+                    if (name == "material.diffuse")
+                        number = std::to_string(diffuseNr++);
+                    else if (name == "material.specular")
+                        number = std::to_string(specularNr++); // transfer unsigned int to stream
+                    else if (name == "material.normal")
+                        number = std::to_string(normalNr++); // transfer unsigned int to stream
+                    else if (name == "material.height")
+                        number = std::to_string(heightNr++); // transfer unsigned int to stream
 
                     // now set the sampler to the correct texture unit
-                    glUniform1i(glGetUniformLocation(shader.ID, textures[i]->type.c_str()), i);
-
+                    glUniform1i(glGetUniformLocation(shader.ID, (name + number).c_str()), i);
                     // and finally bind the texture
-                    glBindTexture(GL_TEXTURE_2D, textures[i]->id);
+                    glBindTexture(GL_TEXTURE_2D, textures[i].id);
                 }
 
                 // draw mesh
@@ -94,11 +104,6 @@ namespace GLGame {
                 glActiveTexture(GL_TEXTURE0);
             }
 
-        private:
-            // render data 
-            unsigned int VBO, EBO;
-
-            // initializes all the buffer objects/arrays
             void setupMesh()
             {
                 // create buffers/arrays
@@ -133,14 +138,17 @@ namespace GLGame {
                 // vertex bitangent
                 glEnableVertexAttribArray(4);
                 glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Bitangent));
-
+                // ids
                 glEnableVertexAttribArray(5);
-                //glVertexAttribPointer(5, 4, GL_FLOAT, sizeof(Vertex), (void*)offsetof(Vertex, boneIds));
                 glVertexAttribIPointer(5, 4, GL_INT, sizeof(Vertex), (void*)offsetof(Vertex, boneIds));
+                // weights
                 glEnableVertexAttribArray(6);
                 glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, boneWeights));
-
                 glBindVertexArray(0);
             }
+
+        private:
+            // render data 
+            unsigned int VBO, EBO;
     };
 }

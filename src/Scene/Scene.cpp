@@ -48,8 +48,15 @@ namespace GLGame {
 			glm::vec3(0.0f, -2.0f, 10.0f),
 			BodyType::STATIC,
 			glm::vec3(10.0f, 0.2f, 10.0f),
-			Model("../../../resources/FirstPersonMap.glb", glm::vec3(2.0f))
+			Model("../../../datas/FirstPersonMap.bmesh", glm::vec3(2.0f))
+			// Model("../../../datas/simple_box.bmesh", glm::vec3(2.0f))
 		));
+
+		// Load a model normally first
+		//Model model("../../../resources/electrical_substation.glb");
+
+		// Save it as a binary file
+		 //model.SaveBinary("../../../datas/station.bmesh");
 
 		objects.push_back(GLGame::Object(
 			physicsCommon,
@@ -78,14 +85,15 @@ namespace GLGame {
 			Model("../../../resources/FirstPersonMap.glb", glm::vec3(2.0f))
 		));
 
-		/*objects.push_back(GLGame::Object(
+		objects.push_back(GLGame::Object(
 			physicsCommon,
 			world,
 			glm::vec3(-5.0f, -2.0f, 7.0f),
 			BodyType::STATIC,
 			glm::vec3(1.0f),
-			Model("../../../resources/electrical_substation.glb", glm::vec3(1.5f))
-		));*/
+			Model("../../../datas/station.bmesh", glm::vec3(1.5f))
+			// Model("../../../resources/electrical_substation.glb", glm::vec3(1.5f))
+		));
 
 		/*objects.push_back(GLGame::Object(
 			physicsCommon,
