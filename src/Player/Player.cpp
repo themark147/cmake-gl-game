@@ -23,11 +23,6 @@ namespace GLGame {
 	
 	void Player::processInput()
 	{
-		// TODO inside player OFC
-		reactphysics3d::Material& material = collider.getRigidBody()->getCollider(0)->getMaterial();
-		material.setFrictionCoefficient(20.5f); // Friction coefficient
-		material.setBounciness(0.0f); // Bounciness coefficient
-
 		processMouseInput();
 
 		if (keyController.isKeyPressed(KeyInput::KeyDefinition::KEY_F)) {
@@ -108,23 +103,6 @@ namespace GLGame {
 		camera.Position = glm::vec3(pos.x, pos.y, pos.z);
 	}
 
-	glm::mat4& Player::applyTransform(Shader& shader, glm::vec3 offset)
-	{
-		glm::mat4 playerMesh = glm::mat4(1.0f);
-		glm::vec3 modelPosition = applyMeshOffset(camera, offset);
-
-		playerMesh = glm::translate(playerMesh, modelPosition);
-		playerMesh = glm::scale(playerMesh, glm::vec3(.02f));
-
-		playerMesh = glm::rotate(playerMesh, -glm::radians(camera.Yaw) + glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-		playerMesh = glm::rotate(playerMesh, -glm::radians(camera.Pitch), glm::vec3(1.0f, 0.0f, 0.0f));
-
-		shader.setMat4("model", playerMesh);
-		mesh.Draw(shader);
-
-		return playerMesh;
-	}
-
 	// RayCast 5 points under player to better detect ground
 	void Player::processRayCast(RaycastCallback& callback)
 	{
@@ -163,14 +141,32 @@ namespace GLGame {
 		);
 	}
 
-	glm::vec3 Player::applyMeshOffset(Camera& camera, glm::vec3& offset)
+	void Player::draw(Shader& shader)
 	{
-		glm::vec3 modelPosition = camera.Position;
+		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)GLGame::Application::get().getWidth() / (float)GLGame::Application::get().getHeight(), 0.1f, 100.0f);
+		glm::mat4 view = camera.GetViewMatrix();
 
-		modelPosition += camera.Front * offset.z;  // Move along the camera's forward direction
-		modelPosition += camera.Right * offset.x;  // Move along the camera's right direction
-		modelPosition += camera.Up * offset.y; // -||- up direction
+		shader.setMat4("projection", projection);
+		shader.setMat4("view", view);
+		shader.setVec3("viewPos", camera.Position);
 
-		return modelPosition;
+		glm::mat4 model = applyTransform(shader);
+
+		shader.setMat4("model", model);
+		getMesh().Draw(shader);
+	}
+
+	glm::mat4& Player::applyTransform(Shader& shader)
+	{
+		glm::mat4 model = glm::mat4(1.0f);
+		glm::vec3 modelPosition = camera.getCameraOffset(glm::vec3(0.0f, -0.25f, 0.0f));
+
+		model = glm::translate(model, modelPosition);
+		model = glm::scale(model, glm::vec3(.02f));
+
+		model = glm::rotate(model, -glm::radians(camera.Yaw) + glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::rotate(model, -glm::radians(camera.Pitch), glm::vec3(1.0f, 0.0f, 0.0f));
+
+		return model;
 	}
 }

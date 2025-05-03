@@ -54,3 +54,4 @@ include_directories(${INCLUDES2})
 # target_include_directories("${CMAKE_PROJECT_NAME}" PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include/*")
 
 target_link_libraries("${CMAKE_PROJECT_NAME}" ${OPENGL_LIBRARY} glfw glm assimp ReactPhysics3D::reactphysics3d)
+

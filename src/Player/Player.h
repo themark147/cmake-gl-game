@@ -15,9 +15,9 @@ namespace GLGame {
 		void processInput();
 		void processMouseInput();
 		void processMovementInput();
-		glm::mat4& applyTransform(Shader& shader, glm::vec3 offset = glm::vec3(0.0f));
 		void processRayCast(RaycastCallback &callback);
 		void resetLocation();
+		void draw(Shader& shader);
 
 		Camera& getCamera() {
 			return camera;
@@ -33,6 +33,10 @@ namespace GLGame {
 
 		void setCollider(GLGame::Collider collider) {
 			this->collider = collider;
+
+			/*reactphysics3d::Material& material = collider.getRigidBody()->getCollider(0)->getMaterial();
+			material.setFrictionCoefficient(20.5f); // Friction coefficient
+			material.setBounciness(0.0f); // Bounciness coefficient*/
 		}
 
 		GLGame::Collider getCollider() {
@@ -43,7 +47,7 @@ namespace GLGame {
 			this->world = world;
 		}
 	private:
-		glm::vec3 applyMeshOffset(Camera& camera, glm::vec3& offset);
+		glm::mat4& applyTransform(Shader& shader);
 		
 		Camera& camera = Camera();
 		KeyInput::KeyController& keyController = KeyInput::KeyController::get();
