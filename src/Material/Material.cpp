@@ -5,6 +5,10 @@ using namespace GLGame;
 namespace GLGame {
 	Material::Material() {}
 
+	Material::Material(vector<Texture*>& textures) : textures(textures)
+	{
+	}
+
 	void Material::setTextures(vector<Texture*> &textures) {
 		this->textures = textures;
 	}

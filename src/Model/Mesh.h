@@ -24,7 +24,7 @@ namespace GLGame {
         // normal
         glm::vec3 Normal;
         // texCoords
-        glm::vec2 TexCoords;
+        glm::vec2 TexCoords = glm::vec2(0.0f, 0.0f);
         // tangent
         glm::vec3 Tangent;
         // bitangent
@@ -44,7 +44,6 @@ namespace GLGame {
             // mesh Data
             vector<Vertex>          vertices;
             vector<unsigned int>    indices;
-            vector<Texture>         textures;
             Material        material;
 
             map<string, BoneInfo> boneMap; // Maps bone names to their info
@@ -52,11 +51,10 @@ namespace GLGame {
             unsigned int VAO;
 
             // constructor
-            Mesh(vector<Vertex> vertices, vector<unsigned int> indices, vector<Texture> textures, Material material)
+            Mesh(vector<Vertex> vertices, vector<unsigned int> indices, Material material)
             {
                 this->vertices = vertices;
                 this->indices = indices;
-                this->textures = textures;
                 this->material = material;
 
                 // now that we have all the required data, set the vertex buffers and its attribute pointers.
@@ -137,6 +135,7 @@ namespace GLGame {
                 glEnableVertexAttribArray(5);
                 //glVertexAttribPointer(5, 4, GL_FLOAT, sizeof(Vertex), (void*)offsetof(Vertex, boneIds));
                 glVertexAttribIPointer(5, 4, GL_INT, sizeof(Vertex), (void*)offsetof(Vertex, boneIds));
+
                 glEnableVertexAttribArray(6);
                 glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, boneWeights));
 

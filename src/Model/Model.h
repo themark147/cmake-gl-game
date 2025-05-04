@@ -38,7 +38,6 @@ namespace GLGame {
         vector<GLGame::Texture> textures_loaded;	// stores all the textures loaded so far, optimization to make sure textures aren't loaded more than once.
         vector<Mesh>    meshes;
         string directory;
-        bool gammaCorrection;
         glm::vec3 scale;
 
         GLGame::Transformation transform;
@@ -48,10 +47,10 @@ namespace GLGame {
         GLGame::Animator animator;
 
         // Default constructor
-        Model() : gammaCorrection(false) {}
+        Model() {}
 
         // constructor, expects a filepath to a 3D model.
-        Model(string const& path, glm::vec3 scale = glm::vec3(1.0f), bool gamma = false) : scale(scale), gammaCorrection(gamma)
+        Model(string const& path, glm::vec3 scale = glm::vec3(1.0f), bool gamma = false) : scale(scale)
         {
             loadModel(path);
         }
@@ -124,8 +123,7 @@ namespace GLGame {
             // data to fill
             vector<Vertex> vertices;
             vector<unsigned int> indices;
-            vector<Texture> textures;
-            GLGame::Material meshMaterial = GLGame::Material();
+            
 
             std::cout << "number of bones: " << mesh->mNumBones << std::endl;
             std::cout << "number of verticies: " << mesh->mNumVertices;
@@ -168,8 +166,6 @@ namespace GLGame {
                     vector.z = mesh->mBitangents[i].z;
                     vertex.Bitangent = vector;
                 }
-                else
-                    vertex.TexCoords = glm::vec2(0.0f, 0.0f);
 
                 vertices.push_back(vertex);
             }
@@ -245,27 +241,24 @@ namespace GLGame {
 
             // 1. diffuse maps
             // vector<Texture> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, "material.diffuse", scene);
-            vector<Texture> diffuseMaps = loadMaterialTextures(material, aiTextureType_BASE_COLOR, "material.diffuse", scene);
+            vector<Texture> diffuseMaps = loadTextures(material, aiTextureType_BASE_COLOR, "material.diffuse", scene);
             Texture diffuseTexture = diffuseMaps.front();
-            textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
 
             // 2. specular maps
             //vector<Texture> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, "material.specular", scene);
             //textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
             // 3. normal maps
-            std::vector<Texture> normalMaps = loadMaterialTextures(material, aiTextureType_NORMALS, "material.normal", scene);
+            std::vector<Texture> normalMaps = loadTextures(material, aiTextureType_NORMALS, "material.normal", scene);
             Texture normalTexture = normalMaps.front();
-            textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
             // 4. height maps
             //std::vector<Texture> heightMaps = loadMaterialTextures(material, aiTextureType_HEIGHT, "texture_height");
             //textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
 
-            std::vector<Texture> metallicMaps = loadMaterialTextures(material, aiTextureType_METALNESS, "material.metallic", scene);
+            std::vector<Texture> metallicMaps = loadTextures(material, aiTextureType_METALNESS, "material.metallic", scene);
             GLGame::Texture* metallic = nullptr;
             if (!metallicMaps.empty()) {
                 Texture metallicTexture = metallicMaps.front();
                 metallic = new GLGame::Texture(metallicTexture.id, metallicTexture.type, "");
-                textures.insert(textures.end(), metallicMaps.begin(), metallicMaps.end());
             }
 
             // std::vector<Texture> roughness = loadMaterialTextures(material, aiTextureType_DIFFUSE_ROUGHNESS, "material.roughness", scene);
@@ -274,9 +267,6 @@ namespace GLGame {
             //std::vector<Texture> ao = loadMaterialTextures(material, aiTextureType_AMBIENT_OCCLUSION, "material.ao", scene);
             //textures.insert(textures.end(), ao.begin(), ao.end());
 
-            // return a mesh object created from the extracted mesh data
-            std::cout << "\npocet textur vo vectore: " << textures.size();
-
             std::vector<GLGame::Texture*> texturesToMaterial;
             std::string path = "";
 
@@ -284,49 +274,34 @@ namespace GLGame {
             texturesToMaterial.push_back(new GLGame::Texture(normalTexture.id, normalTexture.type, path));
             texturesToMaterial.push_back(metallic);
 
-            meshMaterial.setTextures(texturesToMaterial);
-
             // Create a Mesh object with the correct parameter types
-            return Mesh(vertices, indices, textures, meshMaterial);
+            return Mesh(vertices, indices, GLGame::Material(texturesToMaterial));
         }
 
-        // checks all material textures of a given type and loads the textures if they're not loaded yet.
-        // the required info is returned as a Texture struct.
-        vector<Texture> loadMaterialTextures(aiMaterial* mat, aiTextureType type, string typeName, const aiScene* scene)
+        vector<Texture> loadTextures(aiMaterial* mat, aiTextureType type, string typeName, const aiScene* scene)
         {
-            vector<Texture> textures;
+			vector<Texture> textures;
+
             for (unsigned int i = 0; i < mat->GetTextureCount(type); i++)
             {
                 aiString str;
                 mat->GetTexture(type, i, &str);
                 // Check if texture is embedded
                 const aiTexture* embeddedTexture = scene->GetEmbeddedTexture(str.C_Str());
-                // check if texture was loaded before and if so, continue to next iteration: skip loading a new texture
-                bool skip = false;
-                for (unsigned int j = 0; j < textures_loaded.size(); j++)
-                {
-                    if (std::strcmp(textures_loaded[j].path.data(), str.C_Str()) == 0)
-                    {
-                        textures.push_back(textures_loaded[j]);
-                        skip = true; // a texture with the same filepath has already been loaded, continue to next one. (optimization)
-                        break;
-                    }
-                }
-                if (!skip)
-                {   // if texture hasn't been loaded already, load it
-                    GLGame::Texture texture(
-                        TextureFromFile(str.C_Str(), this->directory, false, embeddedTexture),
-                        typeName,
-                        str.C_Str()
-                    );
-                    textures.push_back(texture);
-                    textures_loaded.push_back(texture);  // store it as texture loaded for entire model, to ensure we won't unnecessary load duplicate textures.
-                }
+                
+                GLGame::Texture texture(
+                    TextureFromFile(str.C_Str(), this->directory, embeddedTexture),
+                    typeName,
+                    str.C_Str()
+                );
+                textures.push_back(texture);
+                textures_loaded.push_back(texture);  // store it as texture loaded for entire model, to ensure we won't unnecessary load duplicate textures.
             }
-            return textures;
+
+			return textures;
         }
 
-        unsigned int TextureFromFile(const char* path, const string& directory, bool gamma, const aiTexture* embeddedTexture)
+        unsigned int TextureFromFile(const char* path, const string& directory, const aiTexture* embeddedTexture)
         {
             string filename = string(path);
             filename = directory + '/' + filename;
