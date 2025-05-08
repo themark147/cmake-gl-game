@@ -14,6 +14,7 @@ set(SOURCE_FILES ${SOURCES} src/Main.cpp src/stb.cpp external/glad.c)
 
 add_executable("${CMAKE_PROJECT_NAME}" ${SOURCE_FILES})
 
+
 function(embed_shader SHADER_SRC SHADER_VAR_NAME)
     file(READ ${SHADER_SRC} SHADER_CONTENT)
 
@@ -29,6 +30,11 @@ embed_shader(shaders/render.vs vertexShaderRender)
 embed_shader(shaders/render.fs fragmentShaderRender)
 embed_shader(shaders/main.vs vertexShaderMain)
 embed_shader(shaders/main.fs fragmentShaderMain)
+embed_shader(shaders/simpleDepth.fs fragmentShaderSimpleDepth)
+embed_shader(shaders/simpleDepth.vs vertexShaderSimpleDepth)
+
+
+
 
 # file(GLOB RESOURCE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/resources/*")
 # foreach(RESOURCE ${RESOURCE_FILES})

@@ -19,7 +19,8 @@ using namespace reactphysics3d;
 
 extern std::string vertexShaderMain, fragmentShaderMain,
 	vertexShaderRender, fragmentShaderRender,
-	vertexShaderDebug, fragmentShaderDebug;
+	vertexShaderDebug, fragmentShaderDebug,
+	vertexShaderSimpleDepth, fragmentShaderSimpleDepth;
 
 namespace GLGame {
 	class Scene {
@@ -115,6 +116,7 @@ namespace GLGame {
 
 		Shader debugShader = Shader(vertexShaderDebug, fragmentShaderDebug);
 		Shader mainShader = Shader(vertexShaderMain, fragmentShaderMain);
+		Shader simpleDepthShader = Shader(vertexShaderSimpleDepth, fragmentShaderSimpleDepth);
 
 		/// Vertex Buffer Object for the debug info lines vertices data
 		openglframework::VertexBufferObject mDebugVBOLinesVertices = openglframework::VertexBufferObject(GL_ARRAY_BUFFER);

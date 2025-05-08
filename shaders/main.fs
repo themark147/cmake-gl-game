@@ -5,6 +5,7 @@ in vec2 TexCoords;
 in vec3 Normal;
 in vec3 Tangent;
 in vec3 Bitangent;
+in vec4 FragPosLightSpace;
 
 out vec4 FragColor;
 
@@ -12,6 +13,8 @@ struct Material {
     sampler2D diffuse; // albedo
     sampler2D normal;
 }; 
+
+uniform sampler2D shadowMap;
 
 // Camera position
 uniform vec3 viewPos;
@@ -24,6 +27,22 @@ uniform vec3 lightDir;
 uniform Material material;
 
 const float PI = 3.14159265359;
+
+float ShadowCalculation(vec4 fragPosLightSpace)
+{
+    // perform perspective divide
+    vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
+    // transform to [0,1] range
+    projCoords = projCoords * 0.5 + 0.5;
+    // get closest depth value from light's perspective (using [0,1] range fragPosLight as coords)
+    float closestDepth = texture(shadowMap, projCoords.xy).r; 
+    // get depth of current fragment from light's perspective
+    float currentDepth = projCoords.z;
+    // check whether current frag pos is in shadow
+    float shadow = currentDepth > closestDepth  ? 1.0 : 0.0;
+
+    return shadow;
+}
 
 // Function to calculate the normal from the normal map
 vec3 getNormalFromMap()
@@ -144,5 +163,8 @@ void main()
     color = color / (color + vec3(1.0));
     color = pow(color, vec3(1.0 / 2.2));
 
-    FragColor = vec4(color, 1.0);
+    float shadow = ShadowCalculation(FragPosLightSpace);                      
+    vec3 lighting = (1.0 - shadow) * color;  
+
+    FragColor = vec4(lighting, 1.0);
 }
