@@ -13,6 +13,15 @@
 
 #include <iostream>
 
+// Shadow mapping constants
+const glm::vec3 G_LIGHT_SOURCE_ORIGINAL_POS(-2.0f, 4.0f, -1.0f);
+const glm::vec3 G_LIGHT_DIRECTION = glm::normalize(glm::vec3(0.0f) - G_LIGHT_SOURCE_ORIGINAL_POS);
+const float G_SHADOW_ORTHO_WIDTH = 20.0f;
+const float G_SHADOW_ORTHO_HEIGHT = 20.0f;
+const float G_SHADOW_BOX_DEPTH = 15.0f; // Desired depth of the shadow box
+const float G_SHADOW_ORTHO_NEAR_OFFSET = 0.1f; // Near plane for ortho, relative to light's new eye
+const float G_SHADOW_ORTHO_FAR_OFFSET = G_SHADOW_ORTHO_NEAR_OFFSET + G_SHADOW_BOX_DEPTH;
+
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
@@ -326,7 +335,7 @@ int main()
 
     // lighting info
     // -------------
-    glm::vec3 lightPos(-2.0f, 4.0f, -1.0f);
+    glm::vec3 lightPos(-2.0f, 4.0f, -1.0f); // This remains for point light shading
 
     // render loop
     // -----------
@@ -351,10 +360,21 @@ int main()
         // --------------------------------------------------------------
         glm::mat4 lightProjection, lightView;
         glm::mat4 lightSpaceMatrix;
-        float near_plane = 1.0f, far_plane = 15.5f;
-        lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
-        lightView = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
+
+        // Calculate dynamic light view and projection for camera-centric shadow map
+        glm::vec3 shadowMapCenter = camera.Position;
+        // Distance to place light's eye so that shadowMapCenter is in the middle of the ortho projection's depth.
+        float eyeDistanceFactor = G_SHADOW_ORTHO_NEAR_OFFSET + (G_SHADOW_BOX_DEPTH / 2.0f);
+        glm::vec3 lightEyePosition = shadowMapCenter - G_LIGHT_DIRECTION * eyeDistanceFactor;
+
+        lightView = glm::lookAt(lightEyePosition, shadowMapCenter, glm::vec3(0.0, 1.0, 0.0));
+
+        lightProjection = glm::ortho(-G_SHADOW_ORTHO_WIDTH / 2.0f, G_SHADOW_ORTHO_WIDTH / 2.0f,
+                                     -G_SHADOW_ORTHO_HEIGHT / 2.0f, G_SHADOW_ORTHO_HEIGHT / 2.0f,
+                                     G_SHADOW_ORTHO_NEAR_OFFSET, G_SHADOW_ORTHO_FAR_OFFSET);
+        
         lightSpaceMatrix = lightProjection * lightView;
+        
         // render scene from light's point of view
         simpleDepthShader.use();
         simpleDepthShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
@@ -391,8 +411,8 @@ int main()
         // render Depth map to quad for visual debugging
         // ---------------------------------------------
         debugDepthQuad.use();
-        debugDepthQuad.setFloat("near_plane", near_plane);
-        debugDepthQuad.setFloat("far_plane", far_plane);
+        debugDepthQuad.setFloat("near_plane", G_SHADOW_ORTHO_NEAR_OFFSET);
+        debugDepthQuad.setFloat("far_plane", G_SHADOW_ORTHO_FAR_OFFSET);
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, depthMap);
         // renderQuad();
