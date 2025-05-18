@@ -8,13 +8,13 @@ int heightScreen = 1080;
 GLGame::Scene* scene = nullptr;
 GLGame::UI* ui = nullptr;
 
-void framebuffer_size_callback(GLFWwindow* window, int width, int height)
+/*void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
 	widthScreen = width;
 	heightScreen = height;
 
 	glViewport(0, 0, width, height);
-}
+}*/
 
 namespace GLGame {
 	Application::Application() {
@@ -39,7 +39,7 @@ namespace GLGame {
 			return -1;
 		}
 
-		glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+//		glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
 		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
