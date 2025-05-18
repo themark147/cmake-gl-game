@@ -220,7 +220,7 @@ void main()
 }
 )glsl";
 
-int main()
+int mainShadow()
 {
     // glfw: initialize and configure
     // ------------------------------
