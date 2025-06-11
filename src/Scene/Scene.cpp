@@ -35,6 +35,8 @@ const float G_SHADOW_ORTHO_FAR_OFFSET = G_SHADOW_ORTHO_NEAR_OFFSET + G_SHADOW_BO
 unsigned int depthMapFBO;
 unsigned int depthMap;
 
+Model mo;
+
 namespace GLGame {
 	Scene::Scene() {
 		// TODO part of Physics.cpp -> tick() -> step()
@@ -108,14 +110,14 @@ namespace GLGame {
 			Model("../../../resources/low_poly_amulet_normal.glb", glm::vec3(1.5f))
 		));*/
 
-		/*GLGame::Object zombie = GLGame::Object(
+		GLGame::Object zombie = GLGame::Object(
 			physicsCommon,
 			world,
 			glm::vec3(0.0f, 1.0f, 10.0f),
 			BodyType::DYNAMIC,
 			glm::vec3(0.5f, .2f, .5f),
 			Model("../../../resources/zombie_w_anim.glb", glm::vec3(.0002f))
-		);*/
+		);
 
 		/*GLGame::Object zombie2 = GLGame::Object(
 			physicsCommon,
@@ -128,16 +130,16 @@ namespace GLGame {
 		
 		//zombie2.setTransformation(GLGame::Transformation(glm::radians(180.0f)));
 		//objects.push_back(zombie2);
-		//zombie.setTransformation(GLGame::Transformation(glm::radians(180.0f)));
-		//objects.push_back(zombie);
+		zombie.setTransformation(GLGame::Transformation(glm::radians(180.0f)));
+		objects.push_back(zombie);
 
 		mainShader.use();
-		mainShader.setInt("shadowMap", 2);
+		mainShader.setInt("shadowMap", 3);
 
 		depthQuadShader.use();
 		depthQuadShader.setInt("depthMap", 0);
 
-		mainShader.setVec3("lightPos", -2.0f, 4.0f, -1.0f);
+		mainShader.setVec3("lightPos", -2.0f, 6.0f, -1.0f);
 		mainShader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
 		mainShader.setVec3("lightDir", -0.5f, -0.5f, -0.5f);
 
@@ -172,7 +174,7 @@ namespace GLGame {
 		
 		glGenTextures(1, &depthMap);
 		glBindTexture(GL_TEXTURE_2D, depthMap);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, 2048, 2048, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, 4096, 4096, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		// set GL_CLAMP_TO_BORDER and border color to prevent shadow map repeating
@@ -186,6 +188,8 @@ namespace GLGame {
 		glDrawBuffer(GL_NONE);
 		glReadBuffer(GL_NONE);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+		mo = Model("../../../resources/zombie_w_anim.glb", glm::vec3(.0002f));
 	}
 	
 	void Scene::render()
@@ -261,12 +265,32 @@ namespace GLGame {
 		shadowMappingShader.use();
 		shadowMappingShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
 
-		glViewport(0, 0, 2048, 2048);
+		glViewport(0, 0, 4096, 4096);
 		glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
 		glClear(GL_DEPTH_BUFFER_BIT);
 		
 		// player.draw(mainShader);
 		renderScene(shadowMappingShader);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+		
+		glm::mat4 model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(2.0f, 0.25f, (glfwGetTime() / -5.0f) + 5.0f));
+		model = glm::scale(model, glm::vec3(.0002f));
+
+		model = glm::rotate(model, 180.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+
+		// lightingShader.setMat4("model", model * (*it)->getRotationMatrix());
+		shadowMappingShader.setMat4("model", model);
+		mo.Draw(shadowMappingShader);
+		/*model = glm::translate(model, glm::vec3(2.0f, 1.0f, 5.0f));
+		model = glm::scale(model, glm::vec3(.0002f));
+
+		model = glm::rotate(model, 180.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+
+		// lightingShader.setMat4("model", model * (*it)->getRotationMatrix());
+		shadowMappingShader.setMat4("model", model);
+		mo.Draw(shadowMappingShader);*/
 
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -278,17 +302,27 @@ namespace GLGame {
 		mainShader.use();
 		
 		mainShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
-		glActiveTexture(GL_TEXTURE2);
+		glActiveTexture(GL_TEXTURE3);
 		glBindTexture(GL_TEXTURE_2D, depthMap);
 
 		mainShader.setMat4("projection", projection);
 		mainShader.setMat4("view", view);
 		mainShader.setVec3("viewPos", camera.Position);
 
-		glm::mat4 model(1.0f);
-		mainShader.setMat4("model", model);
+		// glm::mat4 model(1.0f);
+		// mainShader.setMat4("model", model);
 
 		renderScene(mainShader);
+
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(2.0f, 0.25f, (glfwGetTime() / -5.0f) + 5.0f));
+		model = glm::scale(model, glm::vec3(.0002f));
+
+		model = glm::rotate(model, 180.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+
+		// lightingShader.setMat4("model", model * (*it)->getRotationMatrix());
+		mainShader.setMat4("model", model);
+		mo.Draw(mainShader);
 
 		//
 

@@ -7,12 +7,11 @@ project(openglgame)
 find_package(OpenGL REQUIRED)
 
 
-
 # set(RESOURCES_BINARY "${CMAKE_CURRENT_BINARY_DIR}/resources/")
 
 file(GLOB SOURCES "src/**/*.cpp")
 file(GLOB INCLUDES2 "src/**/*.h")
-set(SOURCE_FILES ${SOURCES} src/Main.cpp src/stb.cpp external/glad.c)
+set(SOURCE_FILES ${SOURCES} src/MainShadow.cpp src/stb.cpp external/glad.c)
 
 add_executable("${CMAKE_PROJECT_NAME}" ${SOURCE_FILES})
 

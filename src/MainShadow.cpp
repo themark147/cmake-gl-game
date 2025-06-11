@@ -8,6 +8,7 @@
 
 #include "Camera.h"
 #include "Shader.h"
+#include "Model/Model.h"
 
 #include "Input/KeyController.h"
 
@@ -27,7 +28,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow* window);
 unsigned int loadTexture(const char* path);
-void renderScene(const Shader& shader);
+void renderScene(Shader& shader);
 void renderCube();
 void renderQuad();
 
@@ -44,6 +45,7 @@ bool firstMouse = true;
 // timing
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
+Model modelik;
 
 // meshes
 unsigned int planeVAO;
@@ -220,7 +222,7 @@ void main()
 }
 )glsl";
 
-int mainShadow()
+int main()
 {
     // glfw: initialize and configure
     // ------------------------------
@@ -267,6 +269,8 @@ int mainShadow()
     Shader shader(shadow_mapping_vertex, shadow_mapping_fragment);
     Shader simpleDepthShader(shadow_mapping_vertex_depth, shadow_mapping_fragment_depth);
     Shader debugDepthQuad(debug_quad_vertex, debug_quad_fragment);
+
+    modelik = Model("../../../resources/zombie_w_anim.glb", glm::vec3(.0002f));
 
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
@@ -320,8 +324,16 @@ int mainShadow()
     // attach depth texture as FBO's depth buffer
     glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
+
     glDrawBuffer(GL_NONE);
     glReadBuffer(GL_NONE);
+
+	GLenum Status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+	if (Status != GL_FRAMEBUFFER_COMPLETE)
+	{
+		std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
+	}
+
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 
@@ -375,13 +387,16 @@ int mainShadow()
         
         lightSpaceMatrix = lightProjection * lightView;
         
+        
+
+        glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+        glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
+        glClear(GL_DEPTH_BUFFER_BIT);
+
         // render scene from light's point of view
         simpleDepthShader.use();
         simpleDepthShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
 
-        glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
-        glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
-        glClear(GL_DEPTH_BUFFER_BIT);
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, woodTexture);
         renderScene(simpleDepthShader);
@@ -434,10 +449,22 @@ int mainShadow()
 
 // renders the 3D scene
 // --------------------
-void renderScene(const Shader& shader)
+void renderScene(Shader& shader)
 {
-    // floor
+    //zombie
     glm::mat4 model = glm::mat4(1.0f);
+    model = glm::translate(model, glm::vec3(2.0f, 0.75f, 1.0f));
+    model = glm::scale(model, glm::vec3(0.5f));
+
+    // model = glm::rotate(model, transformation.angle, transformation.axis);
+
+    // lightingShader.setMat4("model", model * (*it)->getRotationMatrix());
+    shader.setMat4("model", model);
+    modelik.Draw(shader);
+
+    // floor
+    // glm::mat4 model = glm::mat4(1.0f);
+    model = glm::mat4(1.0f);
     shader.setMat4("model", model);
     glBindVertexArray(planeVAO);
     glDrawArrays(GL_TRIANGLES, 0, 6);

@@ -85,7 +85,7 @@ namespace GLGame {
 
 			// cubes
 			model = glm::mat4(1.0f);
-			model = glm::translate(model, glm::vec3(0.0f, 0.5f, 2.5f));
+			model = glm::translate(model, glm::vec3(0.0f, 0.5f, (glfwGetTime() / -5.0f) + 2.5f));
 			model = glm::scale(model, glm::vec3(0.5f));
 			shader.setMat4("model", model);
 			renderCube();

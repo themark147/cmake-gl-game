@@ -1,6 +1,6 @@
 #include "Application/Application.h"
 
-int main()
+int mainLa()
 {
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
