@@ -29,6 +29,14 @@ unsigned int depthMap;
 
 const unsigned int SHADOW_WIDTH = 4096, SHADOW_HEIGHT = 4096;
 
+const glm::vec3 G_LIGHT_SOURCE_ORIGINAL_POS(-2.0f, 4.0f, -1.0f);
+const glm::vec3 G_LIGHT_DIRECTION = glm::normalize(glm::vec3(0.0f) - G_LIGHT_SOURCE_ORIGINAL_POS);
+const float G_SHADOW_ORTHO_WIDTH = 20.0f;
+const float G_SHADOW_ORTHO_HEIGHT = 20.0f;
+const float G_SHADOW_BOX_DEPTH = 15.0f; // Desired depth of the shadow box
+const float G_SHADOW_ORTHO_NEAR_OFFSET = 0.1f; // Near plane for ortho, relative to light's new eye
+const float G_SHADOW_ORTHO_FAR_OFFSET = G_SHADOW_ORTHO_NEAR_OFFSET + G_SHADOW_BOX_DEPTH;
+
 namespace GLGame {
 	Scene::Scene() {
 		// TODO part of Physics.cpp -> tick() -> step()
@@ -42,7 +50,7 @@ namespace GLGame {
 		player.setWorld(world);
 		player.setCollider(GLGame::Collider(physicsCommon, world, glm::vec3(player.getCamera().Position)));
 
-		initDebug();
+		//initDebug();
 
 		// Shader simpleDepthShader("3.1.2.shadow_mapping_depth.vs", "3.1.2.shadow_mapping_depth.fs");
 
@@ -50,6 +58,18 @@ namespace GLGame {
 		world->getDebugRenderer().setIsDebugItemDisplayed(DebugRenderer::DebugItem::COLLISION_SHAPE, true);
 
 		// Init objects
+
+		GLGame::Object zombie = GLGame::Object(
+			physicsCommon,
+			world,
+			glm::vec3(0.0f, 1.0f, 10.0f),
+			BodyType::DYNAMIC,
+			glm::vec3(0.5f, .2f, .5f),
+			Model("../../../resources/zombie_w_anim.glb", glm::vec3(.0002f))
+		);
+		zombie.setTransformation(GLGame::Transformation(glm::radians(180.0f)));
+		objects.push_back(zombie);
+
 		objects.push_back(GLGame::Object(
 			physicsCommon,
 			world,
@@ -102,18 +122,9 @@ namespace GLGame {
 			BodyType::STATIC,
 			glm::vec3(1.0f),
 			Model("../../../resources/low_poly_amulet_normal.glb", glm::vec3(1.5f))
-		));*/
+		));
 
-		GLGame::Object zombie = GLGame::Object(
-			physicsCommon,
-			world,
-			glm::vec3(0.0f, 1.0f, 10.0f),
-			BodyType::DYNAMIC,
-			glm::vec3(0.5f, .2f, .5f),
-			Model("../../../resources/zombie_w_anim.glb", glm::vec3(.0002f))
-		);
-
-		/*GLGame::Object zombie2 = GLGame::Object(
+		GLGame::Object zombie2 = GLGame::Object(
 			physicsCommon,
 			world,
 			glm::vec3(2.0f, 1.0f, 10.0f),
@@ -124,8 +135,7 @@ namespace GLGame {
 		
 		//zombie2.setTransformation(GLGame::Transformation(glm::radians(180.0f)));
 		//objects.push_back(zombie2);
-		zombie.setTransformation(GLGame::Transformation(glm::radians(180.0f)));
-		objects.push_back(zombie);
+		
 
 		mainShader.use();
 		mainShader.setVec3("lightColor", 0.5f, 0.5f, 0.5f);
@@ -141,13 +151,24 @@ namespace GLGame {
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		// set GL_CLAMP_TO_BORDER and border color to prevent shadow map repeating
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+		float borderColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+		glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
 		// attach depth texture as FBO's depth buffer
 		glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
+
 		glDrawBuffer(GL_NONE);
 		glReadBuffer(GL_NONE);
+
+		GLenum Status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+		if (Status != GL_FRAMEBUFFER_COMPLETE)
+		{
+			std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
+		}
+
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}
 	
@@ -195,32 +216,39 @@ namespace GLGame {
 			mAccumulator -= timeStep;
 		}
 
-		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)GLGame::Application::get().getWidth() / (float)GLGame::Application::get().getHeight(), 0.1f, 100.0f);
+		/*glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)GLGame::Application::get().getWidth() / (float)GLGame::Application::get().getHeight(), 0.1f, 100.0f);
 		debugShader.setMat4("projection", projection);
 		
 		glm::mat4 view = camera.GetViewMatrix();
-		debugShader.setMat4("view", view);
+		debugShader.setMat4("view", view);*/
 
 		glm::vec3 lightPos(-2.0f, 4.0f, -1.0f);
 
 		glm::mat4 lightProjection, lightView;
 		glm::mat4 lightSpaceMatrix;
-		float near_plane = 1.0f, far_plane = 7.5f;
-		lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
-		lightView = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
+
+		glm::vec3 shadowMapCenter = camera.Position;
+		// Distance to place light's eye so that shadowMapCenter is in the middle of the ortho projection's depth.
+		float eyeDistanceFactor = G_SHADOW_ORTHO_NEAR_OFFSET + (G_SHADOW_BOX_DEPTH / 2.0f);
+		glm::vec3 lightEyePosition = shadowMapCenter - G_LIGHT_DIRECTION * eyeDistanceFactor;
+
+		lightView = glm::lookAt(lightEyePosition, shadowMapCenter, glm::vec3(0.0, 1.0, 0.0));
+
+		lightProjection = glm::ortho(-G_SHADOW_ORTHO_WIDTH / 2.0f, G_SHADOW_ORTHO_WIDTH / 2.0f,
+			-G_SHADOW_ORTHO_HEIGHT / 2.0f, G_SHADOW_ORTHO_HEIGHT / 2.0f,
+			G_SHADOW_ORTHO_NEAR_OFFSET, G_SHADOW_ORTHO_FAR_OFFSET);
+
 		lightSpaceMatrix = lightProjection * lightView;
 
 		// render scene from light's point of view
-		glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
 		glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+		glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);		
 		glClear(GL_DEPTH_BUFFER_BIT);
 
 		simpleDepthShader.use();
 		simpleDepthShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
 		
-		//mainShader.use();
 		player.draw(simpleDepthShader);
-
 		for (GLGame::Object obj : objects) {
 			obj.render(simpleDepthShader);
 		}
@@ -236,21 +264,22 @@ namespace GLGame {
 		// --------------------------------------------------------------
 		mainShader.use();
 
-		mainShader.setMat4("projection", projection);
-		mainShader.setMat4("view", view);
+		//mainShader.setMat4("projection", projection);
+		//mainShader.setMat4("view", view);
 		// set light uniforms
 		mainShader.setVec3("lightPos", lightPos);
 		mainShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, depthMap);
+		glActiveTexture(GL_TEXTURE0);
+
 
 		player.draw(mainShader);
 
 		for (GLGame::Object obj : objects) {
 			obj.render(mainShader);
 		}
-
 		
 
 		// render Depth map to quad for visual debugging

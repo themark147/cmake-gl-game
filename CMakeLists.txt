@@ -53,6 +53,11 @@ add_subdirectory(lib/glm)
 add_subdirectory(lib/glfw)
 add_subdirectory(lib/reactphysics3d)
 
+
+
+
+
+
 set(INCLUDES "${CMAKE_CURRENT_SOURCE_DIR}/include/")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/lib/assimp/include/")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/lib/reactphysics3d/include/")
