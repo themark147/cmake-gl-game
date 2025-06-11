@@ -24,6 +24,8 @@ function(embed_shader SHADER_SRC SHADER_VAR_NAME)
     target_sources("${CMAKE_PROJECT_NAME}" PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/${SHADER_VAR_NAME}.cpp)
 endfunction()
 
+
+
 embed_shader(shaders/debug.vs vertexShaderDebug)
 embed_shader(shaders/debug.fs fragmentShaderDebug)
 embed_shader(shaders/render.vs vertexShaderRender)
