@@ -25,7 +25,6 @@ function(embed_shader SHADER_SRC SHADER_VAR_NAME)
 endfunction()
 
 
-
 embed_shader(shaders/debug.vs vertexShaderDebug)
 embed_shader(shaders/debug.fs fragmentShaderDebug)
 embed_shader(shaders/render.vs vertexShaderRender)
@@ -34,9 +33,6 @@ embed_shader(shaders/mainWShadow.vs vertexShaderMain)
 embed_shader(shaders/mainWShadow.fs fragmentShaderMain)
 embed_shader(shaders/simpleDepth.fs fragmentShaderSimpleDepth)
 embed_shader(shaders/simpleDepth.vs vertexShaderSimpleDepth)
-
-
-
 
 # file(GLOB RESOURCE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/resources/*")
 # foreach(RESOURCE ${RESOURCE_FILES})
@@ -53,11 +49,6 @@ add_subdirectory(lib/glm)
 add_subdirectory(lib/glfw)
 add_subdirectory(lib/reactphysics3d)
 
-
-
-
-
-
 set(INCLUDES "${CMAKE_CURRENT_SOURCE_DIR}/include/")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/lib/assimp/include/")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/lib/reactphysics3d/include/")
@@ -67,4 +58,3 @@ include_directories(${INCLUDES2})
 # target_include_directories("${CMAKE_PROJECT_NAME}" PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include/*")
 
 target_link_libraries("${CMAKE_PROJECT_NAME}" ${OPENGL_LIBRARY} glfw glm assimp ReactPhysics3D::reactphysics3d)
-

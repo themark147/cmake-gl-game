@@ -68,7 +68,7 @@ namespace GLGame {
 				// only one type of texture is supported at the moment
                 vector<GLGame::Texture*> textures = material.getTextures();
 
-                /*for (unsigned int i = 0; i < textures.size(); i++)
+                for (unsigned int i = 0; i < textures.size(); i++)
                 {
                     if (textures[i] == nullptr) {
                         continue;
@@ -81,7 +81,7 @@ namespace GLGame {
 
                     // and finally bind the texture
                     glBindTexture(GL_TEXTURE_2D, textures[i]->id);
-                }*/
+                }
 
                 // draw mesh
                 glBindVertexArray(VAO);

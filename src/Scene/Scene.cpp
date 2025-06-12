@@ -50,15 +50,12 @@ namespace GLGame {
 		player.setWorld(world);
 		player.setCollider(GLGame::Collider(physicsCommon, world, glm::vec3(player.getCamera().Position)));
 
-		//initDebug();
-
-		// Shader simpleDepthShader("3.1.2.shadow_mapping_depth.vs", "3.1.2.shadow_mapping_depth.fs");
+		initDebug();
 
 		// Select the contact points and contact normals to be displayed
 		world->getDebugRenderer().setIsDebugItemDisplayed(DebugRenderer::DebugItem::COLLISION_SHAPE, true);
 
 		// Init objects
-
 		GLGame::Object zombie = GLGame::Object(
 			physicsCommon,
 			world,
@@ -140,7 +137,8 @@ namespace GLGame {
 		mainShader.use();
 		mainShader.setVec3("lightColor", 0.5f, 0.5f, 0.5f);
 		mainShader.setVec3("lightDir", -0.5f, -0.5f, -0.5f);
-		mainShader.setInt("shadowMap", 0);
+		// LAST texture of shader
+		mainShader.setInt("shadowMap", 15);
 
 		// configure depth map FBO
 		// -----------------------
@@ -177,7 +175,7 @@ namespace GLGame {
 		camera = player.getCamera();
 		player.processInput();
 
-		/*debugShader.use();
+		debugShader.use();
 
 		// ----- Triangles ---- //
 		const uint nbTriangles = world->getDebugRenderer().getNbTriangles();
@@ -199,7 +197,7 @@ namespace GLGame {
 			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 			drawDebug(world->getDebugRenderer(), vertexPositionLoc, 2);
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-		}*/
+		}
 
 		std::chrono::time_point<std::chrono::high_resolution_clock> currentTime = std::chrono::high_resolution_clock::now();
 		deltaTime = currentTime - mLastUpdateTime;
@@ -216,11 +214,11 @@ namespace GLGame {
 			mAccumulator -= timeStep;
 		}
 
-		/*glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)GLGame::Application::get().getWidth() / (float)GLGame::Application::get().getHeight(), 0.1f, 100.0f);
+		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)GLGame::Application::get().getWidth() / (float)GLGame::Application::get().getHeight(), 0.1f, 100.0f);
 		debugShader.setMat4("projection", projection);
 		
 		glm::mat4 view = camera.GetViewMatrix();
-		debugShader.setMat4("view", view);*/
+		debugShader.setMat4("view", view);
 
 		glm::vec3 lightPos(-2.0f, 4.0f, -1.0f);
 
@@ -247,6 +245,11 @@ namespace GLGame {
 
 		simpleDepthShader.use();
 		simpleDepthShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
+
+		// as last texture
+		glActiveTexture(GL_TEXTURE15);
+		glBindTexture(GL_TEXTURE_2D, depthMap);
+		glActiveTexture(GL_TEXTURE0);
 		
 		player.draw(simpleDepthShader);
 		for (GLGame::Object obj : objects) {
@@ -270,17 +273,11 @@ namespace GLGame {
 		mainShader.setVec3("lightPos", lightPos);
 		mainShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
 
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, depthMap);
-		glActiveTexture(GL_TEXTURE0);
-
-
 		player.draw(mainShader);
 
 		for (GLGame::Object obj : objects) {
 			obj.render(mainShader);
 		}
-		
 
 		// render Depth map to quad for visual debugging
 		// ---------------------------------------------
@@ -289,8 +286,5 @@ namespace GLGame {
 		debugDepthQuad.setFloat("far_plane", far_plane);*/
 		//glActiveTexture(GL_TEXTURE0);
 		//glBindTexture(GL_TEXTURE_2D, depthMap);
-		
-
-		
 	}
 }
