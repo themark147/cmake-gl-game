@@ -22,7 +22,6 @@ uniform mat4 projection;
 uniform mat4 lightSpaceMatrix;
 
 uniform mat4 bone_transforms[100];
-out vec4 bw;
 
 void main()
 {

@@ -34,6 +34,7 @@ embed_shader(shaders/mainWShadow.fs fragmentShaderMain)
 embed_shader(shaders/simpleDepth.fs fragmentShaderSimpleDepth)
 embed_shader(shaders/simpleDepth.vs vertexShaderSimpleDepth)
 
+
 # file(GLOB RESOURCE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/resources/*")
 # foreach(RESOURCE ${RESOURCE_FILES})
     # configure_file(${RESOURCE} ${RESOURCES_BINARY} COPYONLY)
