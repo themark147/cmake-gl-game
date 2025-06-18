@@ -14,7 +14,6 @@ set(SOURCE_FILES ${SOURCES} src/Main.cpp src/stb.cpp external/glad.c)
 
 add_executable("${CMAKE_PROJECT_NAME}" ${SOURCE_FILES})
 
-
 function(embed_shader SHADER_SRC SHADER_VAR_NAME)
     file(READ ${SHADER_SRC} SHADER_CONTENT)
 
@@ -23,7 +22,6 @@ function(embed_shader SHADER_SRC SHADER_VAR_NAME)
     # Add the generated .cpp file to your target sources
     target_sources("${CMAKE_PROJECT_NAME}" PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/${SHADER_VAR_NAME}.cpp)
 endfunction()
-
 
 embed_shader(shaders/debug.vs vertexShaderDebug)
 embed_shader(shaders/debug.fs fragmentShaderDebug)

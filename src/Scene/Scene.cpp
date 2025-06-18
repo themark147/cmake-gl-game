@@ -23,20 +23,6 @@ std::chrono::duration<double> deltaTime;
 
 std::chrono::duration<double> timeStep = std::chrono::duration<double>(1.0f / 60.0f);
 
-unsigned int depthMapFBO;
-// create depth texture
-unsigned int depthMap;
-
-const unsigned int SHADOW_WIDTH = 4096, SHADOW_HEIGHT = 4096;
-
-const glm::vec3 G_LIGHT_SOURCE_ORIGINAL_POS(-2.0f, 4.0f, -1.0f);
-const glm::vec3 G_LIGHT_DIRECTION = glm::normalize(glm::vec3(0.0f) - G_LIGHT_SOURCE_ORIGINAL_POS);
-const float G_SHADOW_ORTHO_WIDTH = 20.0f;
-const float G_SHADOW_ORTHO_HEIGHT = 20.0f;
-const float G_SHADOW_BOX_DEPTH = 15.0f; // Desired depth of the shadow box
-const float G_SHADOW_ORTHO_NEAR_OFFSET = 0.1f; // Near plane for ortho, relative to light's new eye
-const float G_SHADOW_ORTHO_FAR_OFFSET = G_SHADOW_ORTHO_NEAR_OFFSET + G_SHADOW_BOX_DEPTH;
-
 namespace GLGame {
 	Scene::Scene() {
 		// TODO part of Physics.cpp -> tick() -> step()
@@ -102,42 +88,16 @@ namespace GLGame {
 			glm::vec3(10.0f, 0.2f, 10.0f),
 			Model("../../../resources/FirstPersonMap.glb", glm::vec3(2.0f))
 		));
-		
 
 		mainShader.use();
 		mainShader.setVec3("lightColor", 0.5f, 0.5f, 0.5f);
 		mainShader.setVec3("lightDir", -0.5f, -0.5f, -0.5f);
+
 		// LAST texture of shader
 		mainShader.setInt("shadowMap", 15);
 
-		// configure depth map FBO
-		// -----------------------
-		
-		glGenFramebuffers(1, &depthMapFBO);
-		glGenTextures(1, &depthMap);
-		glBindTexture(GL_TEXTURE_2D, depthMap);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		// set GL_CLAMP_TO_BORDER and border color to prevent shadow map repeating
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-		float borderColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-		glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
-		// attach depth texture as FBO's depth buffer
-		glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
-
-		glDrawBuffer(GL_NONE);
-		glReadBuffer(GL_NONE);
-
-		GLenum Status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-		if (Status != GL_FRAMEBUFFER_COMPLETE)
-		{
-			std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
-		}
-
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		// Init shadow map
+		shadowMap.init();
 	}
 	
 	void Scene::render()
@@ -160,36 +120,8 @@ namespace GLGame {
 			mAccumulator -= timeStep;
 		}
 
-		glm::vec3 lightPos(-2.0f, 4.0f, -1.0f);
-
-		glm::mat4 lightProjection, lightView;
-		glm::mat4 lightSpaceMatrix;
-
-		glm::vec3 shadowMapCenter = camera.Position;
-		// Distance to place light's eye so that shadowMapCenter is in the middle of the ortho projection's depth.
-		float eyeDistanceFactor = G_SHADOW_ORTHO_NEAR_OFFSET + (G_SHADOW_BOX_DEPTH / 2.0f);
-		glm::vec3 lightEyePosition = shadowMapCenter - G_LIGHT_DIRECTION * eyeDistanceFactor;
-
-		lightView = glm::lookAt(lightEyePosition, shadowMapCenter, glm::vec3(0.0, 1.0, 0.0));
-
-		lightProjection = glm::ortho(-G_SHADOW_ORTHO_WIDTH / 2.0f, G_SHADOW_ORTHO_WIDTH / 2.0f,
-			-G_SHADOW_ORTHO_HEIGHT / 2.0f, G_SHADOW_ORTHO_HEIGHT / 2.0f,
-			G_SHADOW_ORTHO_NEAR_OFFSET, G_SHADOW_ORTHO_FAR_OFFSET);
-
-		lightSpaceMatrix = lightProjection * lightView;
-
-		// render scene from light's point of view
-		glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
-		glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);		
-		glClear(GL_DEPTH_BUFFER_BIT);
-
-		simpleDepthShader.use();
-		simpleDepthShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
-
-		// as last texture
-		glActiveTexture(GL_TEXTURE15);
-		glBindTexture(GL_TEXTURE_2D, depthMap);
-		glActiveTexture(GL_TEXTURE0);
+		// 1. Render to shadow map
+		shadowMap.render(simpleDepthShader, camera.Position);
 		
 		player.draw(simpleDepthShader);
 		for (GLGame::Object obj : objects) {
@@ -199,7 +131,7 @@ namespace GLGame {
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);		
 
 		// reset viewport
-		glViewport(0, 0, 1920, 1080);
+		glViewport(0, 0, GLGame::Application::get().getWidth(), GLGame::Application::get().getHeight());
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		// 2. Debug
@@ -237,24 +169,17 @@ namespace GLGame {
 		// --------------------------------------------------------------
 		mainShader.use();
 
-		//mainShader.setMat4("projection", projection);
-		//mainShader.setMat4("view", view);
+		// mainShader.setMat4("projection", projection);
+		// mainShader.setMat4("view", view);
 		// set light uniforms
-		mainShader.setVec3("lightPos", lightPos);
-		mainShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
+		//glm::vec3 lightPos(-2.0f, 4.0f, -1.0f);
+		//mainShader.setVec3("lightPos", -2.0f, 4.0f, -1.0f);
+		mainShader.setMat4("lightSpaceMatrix", shadowMap.getLightSpaceMatrix());
 
 		player.draw(mainShader);
 
 		for (GLGame::Object obj : objects) {
 			obj.render(mainShader);
 		}
-
-		// render Depth map to quad for visual debugging
-		// ---------------------------------------------
-		/*debugDepthQuad.use();
-		debugDepthQuad.setFloat("near_plane", near_plane);
-		debugDepthQuad.setFloat("far_plane", far_plane);*/
-		//glActiveTexture(GL_TEXTURE0);
-		//glBindTexture(GL_TEXTURE_2D, depthMap);
 	}
 }

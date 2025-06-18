@@ -5,6 +5,7 @@
 
 #include "../Object/Object.h"
 #include "../Player/Player.h"
+#include "../Scene/ShadowMap.h"
 
 #include "../Shader.h"
 #include "../Camera.h"
@@ -102,6 +103,8 @@ namespace GLGame {
 		PhysicsCommon physicsCommon;
 		PhysicsWorld* world;
 		glm::mat4 playerModelTransform;
+
+		GLGame::ShadowMap shadowMap;
 
 		// TODO: object should contain model
 		std::vector<Object> objects;
