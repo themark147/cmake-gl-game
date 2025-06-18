@@ -102,36 +102,6 @@ namespace GLGame {
 			glm::vec3(10.0f, 0.2f, 10.0f),
 			Model("../../../resources/FirstPersonMap.glb", glm::vec3(2.0f))
 		));
-
-		/*objects.push_back(GLGame::Object(
-			physicsCommon,
-			world,
-			glm::vec3(-5.0f, -2.0f, 7.0f),
-			BodyType::STATIC,
-			glm::vec3(1.0f),
-			Model("../../../resources/electrical_substation.glb", glm::vec3(1.5f))
-		));*/
-
-		/*objects.push_back(GLGame::Object(
-			physicsCommon,
-			world,
-			glm::vec3(-3.0f, 1.0f, 12.0f),
-			BodyType::STATIC,
-			glm::vec3(1.0f),
-			Model("../../../resources/low_poly_amulet_normal.glb", glm::vec3(1.5f))
-		));
-
-		GLGame::Object zombie2 = GLGame::Object(
-			physicsCommon,
-			world,
-			glm::vec3(2.0f, 1.0f, 10.0f),
-			BodyType::DYNAMIC,
-			glm::vec3(0.5f, .2f, .5f),
-			Model("../../../resources/zombie_another_anim.glb", glm::vec3(.0002f))
-		);*/
-		
-		//zombie2.setTransformation(GLGame::Transformation(glm::radians(180.0f)));
-		//objects.push_back(zombie2);
 		
 
 		mainShader.use();
@@ -175,30 +145,6 @@ namespace GLGame {
 		camera = player.getCamera();
 		player.processInput();
 
-		debugShader.use();
-
-		// ----- Triangles ---- //
-		const uint nbTriangles = world->getDebugRenderer().getNbTriangles();
-
-		if (nbTriangles > 0)
-		{
-			// Vertices
-			mDebugVBOTrianglesVertices.bind();
-			GLsizei sizeVertices = static_cast<GLsizei>(nbTriangles * sizeof(rp3d::DebugRenderer::DebugTriangle));
-			mDebugVBOTrianglesVertices.copyDataIntoVBO(sizeVertices, world->getDebugRenderer().getTrianglesArray(), GL_STREAM_DRAW);
-			mDebugVBOTrianglesVertices.unbind();
-		}
-
-		int vertexPositionLoc = debugShader.getAttribLocation("aPos");
-		// int vertexColorLoc = debugShader.getAttribLocation("vertexColor");
-
-		// Triangles
-		if (nbTriangles > 0) {
-			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-			drawDebug(world->getDebugRenderer(), vertexPositionLoc, 2);
-			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-		}
-
 		std::chrono::time_point<std::chrono::high_resolution_clock> currentTime = std::chrono::high_resolution_clock::now();
 		deltaTime = currentTime - mLastUpdateTime;
 
@@ -213,12 +159,6 @@ namespace GLGame {
 
 			mAccumulator -= timeStep;
 		}
-
-		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)GLGame::Application::get().getWidth() / (float)GLGame::Application::get().getHeight(), 0.1f, 100.0f);
-		debugShader.setMat4("projection", projection);
-		
-		glm::mat4 view = camera.GetViewMatrix();
-		debugShader.setMat4("view", view);
 
 		glm::vec3 lightPos(-2.0f, 4.0f, -1.0f);
 
@@ -262,8 +202,38 @@ namespace GLGame {
 		glViewport(0, 0, 1920, 1080);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+		// 2. Debug
+		debugShader.use();
 
-		// 2. render scene as normal using the generated depth/shadow map  
+		// ----- Triangles ---- //
+		const uint nbTriangles = world->getDebugRenderer().getNbTriangles();
+
+		if (nbTriangles > 0)
+		{
+			// Vertices
+			mDebugVBOTrianglesVertices.bind();
+			GLsizei sizeVertices = static_cast<GLsizei>(nbTriangles * sizeof(rp3d::DebugRenderer::DebugTriangle));
+			mDebugVBOTrianglesVertices.copyDataIntoVBO(sizeVertices, world->getDebugRenderer().getTrianglesArray(), GL_STREAM_DRAW);
+			mDebugVBOTrianglesVertices.unbind();
+		}
+
+		int vertexPositionLoc = debugShader.getAttribLocation("aPos");
+		// int vertexColorLoc = debugShader.getAttribLocation("vertexColor");
+
+		// Triangles
+		if (nbTriangles > 0) {
+			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+			drawDebug(world->getDebugRenderer(), vertexPositionLoc, 2);
+			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		}
+
+		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)GLGame::Application::get().getWidth() / (float)GLGame::Application::get().getHeight(), 0.1f, 100.0f);
+		debugShader.setMat4("projection", projection);
+
+		glm::mat4 view = camera.GetViewMatrix();
+		debugShader.setMat4("view", view);
+
+		// 3. render scene as normal using the generated depth/shadow map  
 		// --------------------------------------------------------------
 		mainShader.use();
 
