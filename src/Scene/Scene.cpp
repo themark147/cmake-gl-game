@@ -172,8 +172,8 @@ namespace GLGame {
 		// mainShader.setMat4("projection", projection);
 		// mainShader.setMat4("view", view);
 		// set light uniforms
-		//glm::vec3 lightPos(-2.0f, 4.0f, -1.0f);
-		//mainShader.setVec3("lightPos", -2.0f, 4.0f, -1.0f);
+		glm::vec3 lightPos(-2.0f, 4.0f, -1.0f);
+		mainShader.setVec3("lightPos", -2.0f, 4.0f, -1.0f);
 		mainShader.setMat4("lightSpaceMatrix", shadowMap.getLightSpaceMatrix());
 
 		player.draw(mainShader);
