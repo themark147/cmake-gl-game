@@ -14,8 +14,8 @@ class Shader
 {
 public:
     unsigned int ID;
-    // constructor generates the shader on the fly
-    // ------------------------------------------------------------------------
+    
+    // compile shaders from Code
     Shader(std::string vertexCode, std::string fragmentCode)
     {
         const char* vShaderCode = vertexCode.c_str();
@@ -24,6 +24,7 @@ public:
         compileShaders(vShaderCode, fShaderCode);
     }
 
+    // compile shaders from Path
     Shader(const char* vertexPath, const char* fragmentPath)
     {
         // 1. retrieve the vertex/fragment source code from filePath

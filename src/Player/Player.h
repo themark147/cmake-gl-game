@@ -47,7 +47,7 @@ namespace GLGame {
 			this->world = world;
 		}
 	private:
-		glm::mat4& applyTransform(Shader& shader);
+		glm::mat4 applyTransform(Shader& shader);
 		
 		Camera& camera = Camera();
 		KeyInput::KeyController& keyController = KeyInput::KeyController::get();

@@ -68,7 +68,7 @@ public:
         return Front;
     }
 
-    glm::vec3& getCameraOffset(glm::vec3& offset)
+    glm::vec3 getCameraOffset(const glm::vec3& offset)
     {
         glm::vec3 result = Position;
         result += Front * offset.z;  // Move along the camera's forward direction

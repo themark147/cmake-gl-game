@@ -1,4 +1,4 @@
-#include "Scene.h";
+#include "Scene.h"
 
 #include <reactphysics3d/reactphysics3d.h>
 
