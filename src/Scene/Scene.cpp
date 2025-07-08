@@ -48,18 +48,18 @@ namespace GLGame {
 			glm::vec3(0.0f, 1.0f, 10.0f),
 			BodyType::DYNAMIC,
 			glm::vec3(0.5f, .2f, .5f),
-			Model("../../../resources/zombie_w_anim.glb", glm::vec3(.0002f))
+			Model(std::string("zombie_w_anim.glb").insert(0, GLGame::RESOURCE_PATH), glm::vec3(.0002f))
 		);
 		zombie.setTransformation(GLGame::Transformation(glm::radians(180.0f)));
 		objects.push_back(zombie);
-
+		
 		objects.push_back(GLGame::Object(
 			physicsCommon,
 			world,
 			glm::vec3(0.0f, -2.0f, 10.0f),
 			BodyType::STATIC,
 			glm::vec3(10.0f, 0.2f, 10.0f),
-			Model("../../../resources/FirstPersonMap.glb", glm::vec3(2.0f))
+			Model(std::string("FirstPersonMap.glb").insert(0, GLGame::RESOURCE_PATH), glm::vec3(2.0f))
 		));
 
 		objects.push_back(GLGame::Object(
@@ -68,7 +68,7 @@ namespace GLGame {
 			glm::vec3(-21.5f, -1.0f, 10.0f),
 			BodyType::STATIC,
 			glm::vec3(10.0f, 0.2f, 10.0f),
-			Model("../../../resources/FirstPersonMap.glb", glm::vec3(2.0f))
+			Model(std::string("FirstPersonMap.glb").insert(0, GLGame::RESOURCE_PATH), glm::vec3(2.0f))
 		));
 
 		objects.push_back(GLGame::Object(
@@ -77,7 +77,7 @@ namespace GLGame {
 			glm::vec3(21.5f, -3.0f, 10.0f),
 			BodyType::STATIC,
 			glm::vec3(10.0f, 0.2f, 10.0f),
-			Model("../../../resources/FirstPersonMap.glb", glm::vec3(2.0f))
+			Model(std::string("FirstPersonMap.glb").insert(0, GLGame::RESOURCE_PATH), glm::vec3(2.0f))
 		));
 
 		objects.push_back(GLGame::Object(
@@ -86,7 +86,7 @@ namespace GLGame {
 			glm::vec3(0.0f, -3.5f, 31.0f),
 			BodyType::STATIC,
 			glm::vec3(10.0f, 0.2f, 10.0f),
-			Model("../../../resources/FirstPersonMap.glb", glm::vec3(2.0f))
+			Model(std::string("FirstPersonMap.glb").insert(0, GLGame::RESOURCE_PATH), glm::vec3(2.0f))
 		));
 
 		mainShader.use();

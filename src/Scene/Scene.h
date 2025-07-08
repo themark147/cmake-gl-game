@@ -112,7 +112,7 @@ namespace GLGame {
 
 		GLGame::Player player = GLGame::Player(
 			glm::vec3(0.0f, 0.0f, 15.0f),
-			Model("../../../resources/first_person_arms_ue5_5.glb", glm::vec3(.02f))
+			Model(std::string("first_person_arms_ue5_5.glb").insert(0, GLGame::RESOURCE_PATH), glm::vec3(.02f))
 		);
 
 		Camera& camera = Camera();
