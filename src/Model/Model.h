@@ -38,7 +38,7 @@ namespace GLGame {
         vector<GLGame::Texture> textures_loaded;	// stores all the textures loaded so far, optimization to make sure textures aren't loaded more than once.
         vector<Mesh>    meshes;
         string directory;
-        glm::vec3 scale;
+        glm::vec3 scale = glm::vec3(1.0f);
 
         GLGame::Transformation transform;
 
