@@ -3,17 +3,16 @@
 using namespace reactphysics3d;
 
 namespace GLGame {
-	Object::Object(PhysicsCommon& common, PhysicsWorld* world, glm::vec3 position, BodyType type, glm::vec3 size, Model mesh)
+	Object::Object(PhysicsWorld* world, glm::vec3 position, BodyType type, CollisionShape *shape, Model mesh)
 		: position(position), mesh(mesh)
 	{
 		transform = Transform(Vector3(position.x, position.y, position.z), Quaternion::identity());
 
-		create(common, world, type, Vector3(size.x, size.y, size.z));
+		create(world, type, shape);
 	}
 
-	void Object::create(PhysicsCommon& common, PhysicsWorld* world, BodyType type, Vector3 size)
+	void Object::create(PhysicsWorld* world, BodyType type, CollisionShape *shape)
 	{
-		shape = common.createBoxShape(size);
 		rigidBody = world->createRigidBody(transform);
 		collider = rigidBody->addCollider(shape, Transform::identity());
 		collider->setIsSimulationCollider(true);

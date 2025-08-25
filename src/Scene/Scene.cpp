@@ -32,7 +32,7 @@ namespace GLGame {
 
 		// Init physics
 		world = physicsCommon.createPhysicsWorld();
-		player.setSpawner(new GLGame::ObjectSpawner(physicsCommon, world, objects));
+		player.setSpawner(new GLGame::ObjectSpawner(world, objects));
 		player.setWorld(world);
 		player.setCollider(GLGame::Collider(physicsCommon, world, glm::vec3(player.getCamera().Position)));
 
@@ -43,49 +43,44 @@ namespace GLGame {
 
 		// Init objects
 		GLGame::Object zombie = GLGame::Object(
-			physicsCommon,
 			world,
 			glm::vec3(0.0f, 1.0f, 10.0f),
 			BodyType::DYNAMIC,
-			glm::vec3(0.5f, .2f, .5f),
+			physicsCommon.createCapsuleShape(0.5f, 1.5f),
 			Model(std::string("zombie_w_anim.glb").insert(0, GLGame::RESOURCE_PATH), glm::vec3(.0002f))
 		);
 		zombie.setTransformation(GLGame::Transformation(glm::radians(180.0f)));
 		objects.push_back(zombie);
 		
 		objects.push_back(GLGame::Object(
-			physicsCommon,
 			world,
 			glm::vec3(0.0f, -2.0f, 10.0f),
 			BodyType::STATIC,
-			glm::vec3(10.0f, 0.2f, 10.0f),
+			physicsCommon.createBoxShape(Vector3(10.0f, 0.2f, 10.0f)),
 			Model(std::string("FirstPersonMap.glb").insert(0, GLGame::RESOURCE_PATH), glm::vec3(2.0f))
 		));
 
 		objects.push_back(GLGame::Object(
-			physicsCommon,
 			world,
 			glm::vec3(-21.5f, -1.0f, 10.0f),
 			BodyType::STATIC,
-			glm::vec3(10.0f, 0.2f, 10.0f),
+			physicsCommon.createBoxShape(Vector3(10.0f, 0.2f, 10.0f)),
 			Model(std::string("FirstPersonMap.glb").insert(0, GLGame::RESOURCE_PATH), glm::vec3(2.0f))
 		));
 
 		objects.push_back(GLGame::Object(
-			physicsCommon,
 			world,
 			glm::vec3(21.5f, -3.0f, 10.0f),
 			BodyType::STATIC,
-			glm::vec3(10.0f, 0.2f, 10.0f),
+			physicsCommon.createBoxShape(Vector3(10.0f, 0.2f, 10.0f)),
 			Model(std::string("FirstPersonMap.glb").insert(0, GLGame::RESOURCE_PATH), glm::vec3(2.0f))
 		));
 
 		objects.push_back(GLGame::Object(
-			physicsCommon,
 			world,
 			glm::vec3(0.0f, -3.5f, 31.0f),
 			BodyType::STATIC,
-			glm::vec3(10.0f, 0.2f, 10.0f),
+			physicsCommon.createBoxShape(Vector3(10.0f, 0.2f, 10.0f)),
 			Model(std::string("FirstPersonMap.glb").insert(0, GLGame::RESOURCE_PATH), glm::vec3(2.0f))
 		));
 
