@@ -14,11 +14,15 @@ namespace GLGame {
 	void Object::create(PhysicsWorld* world, BodyType type, CollisionShape *shape)
 	{
 		rigidBody = world->createRigidBody(transform);
-		collider = rigidBody->addCollider(shape, Transform::identity());
+
+		glm::vec3 centerOffset = (mesh.GetBoundingBox().m_maxBounds + mesh.GetBoundingBox().m_minBounds) * 0.5f;
+		collider = rigidBody->addCollider(shape, Transform(Vector3(centerOffset.x, centerOffset.y, centerOffset.z), Quaternion::identity()));
+
 		collider->setIsSimulationCollider(true);
 		// collider->setIsTrigger(true);
 		rigidBody->setType(type);
 		rigidBody->setIsDebugEnabled(true);
+		// rigidBody->setAngularLockAxisFactor(reactphysics3d::Vector3(0.0, 1.0, 0.0));
 		// rigidBody->applyLocalForceAtLocalPosition(Vector3(100, 100, 100) * Vector3(0, 1.5f, 0), Vector3(0.15, 0.7, 1.5));
 	}
 

@@ -39,14 +39,14 @@ namespace GLGame {
 		initDebug();
 
 		// Select the contact points and contact normals to be displayed
-		world->getDebugRenderer().setIsDebugItemDisplayed(DebugRenderer::DebugItem::COLLISION_SHAPE, true);
+		world->getDebugRenderer().setIsDebugItemDisplayed(DebugRenderer::DebugItem::COLLISION_SHAPE, true);	
 
 		// Init objects
 		GLGame::Object zombie = GLGame::Object(
 			world,
-			glm::vec3(0.0f, 1.0f, 10.0f),
+			glm::vec3(0.0f, 4.0f, 10.0f),
 			BodyType::DYNAMIC,
-			physicsCommon.createCapsuleShape(0.5f, 1.5f),
+			physicsCommon.createCapsuleShape(.5f, 1.5f),
 			Model(std::string("zombie_w_anim.glb").insert(0, GLGame::RESOURCE_PATH), glm::vec3(.0002f))
 		);
 		zombie.setTransformation(GLGame::Transformation(glm::radians(180.0f)));
