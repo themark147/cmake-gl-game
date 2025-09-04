@@ -1,7 +1,5 @@
 #include "Scene.h"
 
-#include <reactphysics3d/reactphysics3d.h>
-
 #include "../Application/Application.h"
 #include "../Model/Model.h"
 #include "../Object/Object.h"
@@ -10,31 +8,15 @@
 #include <vector>
 #include <iostream>
 
-using namespace reactphysics3d;
-
-using chrono_clock = std::chrono::high_resolution_clock;
-
-std::chrono::time_point<chrono_clock> mStartTime;
-std::chrono::time_point<std::chrono::high_resolution_clock> mLastUpdateTime;
-
-/// Used to fix the time step and avoid strange time effects
-std::chrono::duration<double> mAccumulator;
-std::chrono::duration<double> deltaTime;
-
-std::chrono::duration<double> timeStep = std::chrono::duration<double>(1.0f / 60.0f);
-
 namespace GLGame {
 	Scene::Scene() {
-		// TODO part of Physics.cpp -> tick() -> step()
-		mStartTime = std::chrono::high_resolution_clock::now();
-		mLastUpdateTime = mStartTime;
-		mAccumulator = std::chrono::duration<double>::zero();
+		reactphysics3d::PhysicsWorld* world = physics.getWorld();
+		reactphysics3d::PhysicsCommon& common = physics.getPhysicsCommon();
 
-		// Init physics
-		world = physicsCommon.createPhysicsWorld();
+		// Init player
 		player.setSpawner(new GLGame::ObjectSpawner(world, objects));
 		player.setWorld(world);
-		player.setCollider(GLGame::Collider(physicsCommon, world, glm::vec3(player.getCamera().Position)));
+		player.setCollider(GLGame::Collider(common, world, glm::vec3(player.getCamera().Position)));
 
 		initDebug();
 
@@ -46,7 +28,7 @@ namespace GLGame {
 			world,
 			glm::vec3(0.0f, 4.0f, 10.0f),
 			BodyType::DYNAMIC,
-			physicsCommon.createCapsuleShape(.5f, 1.25f),
+			common.createCapsuleShape(.5f, 1.22f),
 			Model(std::string("zombie_w_anim.glb").insert(0, GLGame::RESOURCE_PATH), glm::vec3(.0002f))
 		);
 		zombie.setTransformation(GLGame::Transformation(glm::radians(180.0f)));
@@ -56,7 +38,7 @@ namespace GLGame {
 			world,
 			glm::vec3(0.0f, -2.0f, 10.0f),
 			BodyType::STATIC,
-			physicsCommon.createBoxShape(Vector3(10.0f, 0.2f, 10.0f)),
+			common.createBoxShape(Vector3(10.0f, 0.2f, 10.0f)),
 			Model(std::string("FirstPersonMap.glb").insert(0, GLGame::RESOURCE_PATH), glm::vec3(2.0f))
 		));
 
@@ -64,7 +46,7 @@ namespace GLGame {
 			world,
 			glm::vec3(-21.5f, -1.0f, 10.0f),
 			BodyType::STATIC,
-			physicsCommon.createBoxShape(Vector3(10.0f, 0.2f, 10.0f)),
+			common.createBoxShape(Vector3(10.0f, 0.2f, 10.0f)),
 			Model(std::string("FirstPersonMap.glb").insert(0, GLGame::RESOURCE_PATH), glm::vec3(2.0f))
 		));
 
@@ -72,7 +54,7 @@ namespace GLGame {
 			world,
 			glm::vec3(21.5f, -3.0f, 10.0f),
 			BodyType::STATIC,
-			physicsCommon.createBoxShape(Vector3(10.0f, 0.2f, 10.0f)),
+			common.createBoxShape(Vector3(10.0f, 0.2f, 10.0f)),
 			Model(std::string("FirstPersonMap.glb").insert(0, GLGame::RESOURCE_PATH), glm::vec3(2.0f))
 		));
 
@@ -80,7 +62,7 @@ namespace GLGame {
 			world,
 			glm::vec3(0.0f, -3.5f, 31.0f),
 			BodyType::STATIC,
-			physicsCommon.createBoxShape(Vector3(10.0f, 0.2f, 10.0f)),
+			common.createBoxShape(Vector3(10.0f, 0.2f, 10.0f)),
 			Model(std::string("FirstPersonMap.glb").insert(0, GLGame::RESOURCE_PATH), glm::vec3(2.0f))
 		));
 
@@ -100,19 +82,8 @@ namespace GLGame {
 		camera = player.getCamera();
 		player.processInput();
 
-		std::chrono::time_point<std::chrono::high_resolution_clock> currentTime = std::chrono::high_resolution_clock::now();
-		deltaTime = currentTime - mLastUpdateTime;
-
-		// Update the current display time
-		mLastUpdateTime = currentTime;
-		mAccumulator += deltaTime;		
-
-		while (mAccumulator >= timeStep) {
-			// mainShader.setVec3("light.position", light.x, light.y, light.z); // ImGui
-			world->update(timeStep.count());
+		if (physics.tick()) {
 			player.processMovementInput();
-
-			mAccumulator -= timeStep;
 		}
 
 		// 1. Render to shadow map
@@ -133,14 +104,14 @@ namespace GLGame {
 		debugShader.use();
 
 		// ----- Triangles ---- //
-		const uint nbTriangles = world->getDebugRenderer().getNbTriangles();
+		const uint nbTriangles = physics.getWorld()->getDebugRenderer().getNbTriangles();
 
 		if (nbTriangles > 0)
 		{
 			// Vertices
 			mDebugVBOTrianglesVertices.bind();
 			GLsizei sizeVertices = static_cast<GLsizei>(nbTriangles * sizeof(rp3d::DebugRenderer::DebugTriangle));
-			mDebugVBOTrianglesVertices.copyDataIntoVBO(sizeVertices, world->getDebugRenderer().getTrianglesArray(), GL_STREAM_DRAW);
+			mDebugVBOTrianglesVertices.copyDataIntoVBO(sizeVertices, physics.getWorld()->getDebugRenderer().getTrianglesArray(), GL_STREAM_DRAW);
 			mDebugVBOTrianglesVertices.unbind();
 		}
 
@@ -150,7 +121,7 @@ namespace GLGame {
 		// Triangles
 		if (nbTriangles > 0) {
 			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-			drawDebug(world->getDebugRenderer(), vertexPositionLoc, 2);
+			drawDebug(physics.getWorld()->getDebugRenderer(), vertexPositionLoc, 2);
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		}
 

@@ -1,8 +1,8 @@
 #pragma once
 
-#ifndef GLAD_GLAD_H_
+//#ifndef GLAD_GLAD_H_
 #include <glad/glad.h>
-#endif
+//#endif
 
 #include <GLFW/glfw3.h>
 #include <string>

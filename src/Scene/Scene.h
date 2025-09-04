@@ -10,6 +10,7 @@
 #include "../Shader.h"
 #include "../Camera.h"
 #include "../Model/Model.h"
+#include "../Physics/Physics.h"
 
 #include "../Debug/VertexArrayObject.h"
 #include "../Debug/VertexBufferObject.h"
@@ -28,17 +29,13 @@ namespace GLGame {
 	public:
 		Scene();
 		void render();
-
-		PhysicsCommon& getPhysicsCommon() {
-			return physicsCommon;
-		}
-
-		PhysicsWorld* getWorld() {
-			return world;
-		}
 		
 		GLGame::Player& getPlayer() {
 			return player;
+		}
+
+		GLGame::Physics& getPhysics() {
+			return physics;
 		}
 
 		void initDebug()
@@ -100,8 +97,7 @@ namespace GLGame {
 			mDebugTrianglesVAO.unbind();
 		}
 	private:
-		PhysicsCommon physicsCommon;
-		PhysicsWorld* world;
+		GLGame::Physics physics;
 		glm::mat4 playerModelTransform;
 
 		GLGame::ShadowMap shadowMap;
