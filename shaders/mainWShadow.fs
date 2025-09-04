@@ -19,48 +19,51 @@ struct Material {
 // Camera position
 uniform vec3 viewPos;
 
-// Light information
-uniform vec3 lightPos;
+// Light information - use either position OR direction, not both for directional light
+uniform vec3 lightDir;        // For directional light
 uniform vec3 lightColor;
-uniform vec3 lightDir;
 
 uniform Material material;
 
 const float PI = 3.14159265359;
 
-float ShadowCalculation(vec4 fragPosLightSpace)
+float ShadowCalculation(vec4 fragPosLightSpace, vec3 normal, vec3 lightDir)
 {
-    // perform perspective divide
+    // Perform perspective divide
     vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
-    // transform to [0,1] range
+    
+    // Transform to [0,1] range
     projCoords = projCoords * 0.5 + 0.5;
-    // get closest depth value from light's perspective (using [0,1] range fragPosLight as coords)
+    
+    // Check if position is outside the light frustum
+    if(projCoords.z > 1.0 || projCoords.x < 0.0 || projCoords.x > 1.0 || projCoords.y < 0.0 || projCoords.y > 1.0)
+        return 0.0;
+    
+    // Get closest depth value from light's perspective
     float closestDepth = texture(shadowMap, projCoords.xy).r; 
-    // get depth of current fragment from light's perspective
+    
+    // Get depth of current fragment from light's perspective
     float currentDepth = projCoords.z;
-    // calculate bias (based on depth map resolution and slope)
-    vec3 normal = normalize(Normal);
-    vec3 lightDir = normalize(lightPos - FragPos);
-    float bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.005);
-    // check whether current frag pos is in shadow
-    // float shadow = currentDepth - bias > closestDepth  ? 1.0 : 0.0;
-    // PCF
+    
+    // Calculate bias based on surface normal and light direction
+    float bias = max(0.005 * (1.0 - dot(normal, lightDir)), 0.0005);
+    
+    // PCF for smoother shadows
     float shadow = 0.0;
-    vec2 texelSize = 1.0 / textureSize(shadowMap, 0);
+    vec2 texelSize = 1.5 / textureSize(shadowMap, 0);
+    
     for(int x = -2; x <= 2; ++x)
     {
         for(int y = -2; y <= 2; ++y)
         {
             float pcfDepth = texture(shadowMap, projCoords.xy + vec2(x, y) * texelSize).r; 
-            shadow += currentDepth - bias > pcfDepth  ? 1.0 : 0.0;        
+            
+            // Add a small offset to prevent shadow acne
+            shadow += (currentDepth - bias) > pcfDepth ? 1.0 : 0.0;
         }    
     }
     shadow /= 25.0;
     
-    // keep the shadow at 0.0 when outside the far_plane region of the light's frustum.
-    if(projCoords.z > 1.0)
-        shadow = 0.0;
-        
     return shadow;
 }
 
@@ -69,14 +72,9 @@ vec3 getNormalFromMap()
 {
     vec3 tangentNormal = texture(material.normal, TexCoords).rgb * 2.0 - 1.0;
 
-    vec3 Q1  = dFdx(FragPos);
-    vec3 Q2  = dFdy(FragPos);
-    vec2 st1 = dFdx(TexCoords);
-    vec2 st2 = dFdy(TexCoords);
-
-    vec3 N   = normalize(Normal);
-    vec3 T   = normalize(Tangent);
-    vec3 B   = normalize(Bitangent);
+    vec3 N = normalize(Normal);
+    vec3 T = normalize(Tangent);
+    vec3 B = normalize(Bitangent);
     mat3 TBN = mat3(T, B, N);
 
     return normalize(TBN * tangentNormal);
@@ -134,7 +132,7 @@ vec3 sRGBToLinear(vec3 color)
 void main()
 {
     vec3 albedo = sRGBToLinear(texture(material.diffuse, TexCoords).rgb);
-    float metallic = 0;
+    float metallic = 0.0;
     float roughness = 0.859;
     vec3 N = getNormalFromMap();
     vec3 V = normalize(viewPos - FragPos);
@@ -143,11 +141,14 @@ void main()
     vec3 F0 = vec3(0.04);
     F0 = mix(F0, albedo, metallic);
 
+    // For directional light, use the uniform light direction
+    vec3 L = normalize(-lightDir);
+    
+    // Shadow calculation - pass the light direction
+    float shadow = ShadowCalculation(FragPosLightSpace, N, L);
+
     // Reflectance equation
     vec3 Lo = vec3(0.0);
-
-    // Directional light calculation
-    vec3 L = normalize(-lightDir);
     vec3 H = normalize(V + L);
 
     // Cook-Torrance BRDF
@@ -156,28 +157,22 @@ void main()
     vec3 F = fresnelSchlick(max(dot(H, V), 0.0), F0);
 
     vec3 numerator = NDF * G * F;
-    float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.0001; // + 0.0001 to prevent divide by zero
+    float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.0001;
     vec3 specular = numerator / denominator;
 
-    // kS is equal to Fresnel
     vec3 kS = F;
-    // For energy conservation, the diffuse and specular light can't be above 1.0 (unless the surface emits light);
-    // to preserve this relationship the diffuse component (kD) should equal 1.0 - kS.
     vec3 kD = vec3(1.0) - kS;
-    // Multiply kD by the inverse metalness such that only non-metals have diffuse lighting
     kD *= 1.0 - metallic;
 
-    // Scale light by NdotL
     float NdotL = max(dot(N, L), 0.0);
 
     // Add to outgoing radiance Lo
     Lo += (kD * albedo / PI + specular) * lightColor * NdotL * 5.0;
 
-    // Ambient lighting (simple approximation)
+    // Ambient lighting
     vec3 ambient = vec3(0.03) * albedo;
 
-    float shadow = ShadowCalculation(FragPosLightSpace);
-
+    // Apply shadow to direct lighting only
     vec3 color = ambient + (1.0 - shadow) * Lo;
 
     // Gamma correction

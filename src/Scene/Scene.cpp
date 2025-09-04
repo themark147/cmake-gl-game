@@ -46,7 +46,7 @@ namespace GLGame {
 			world,
 			glm::vec3(0.0f, 4.0f, 10.0f),
 			BodyType::DYNAMIC,
-			physicsCommon.createCapsuleShape(.5f, 1.5f),
+			physicsCommon.createCapsuleShape(.5f, 1.25f),
 			Model(std::string("zombie_w_anim.glb").insert(0, GLGame::RESOURCE_PATH), glm::vec3(.0002f))
 		);
 		zombie.setTransformation(GLGame::Transformation(glm::radians(180.0f)));

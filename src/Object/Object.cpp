@@ -22,7 +22,7 @@ namespace GLGame {
 		// collider->setIsTrigger(true);
 		rigidBody->setType(type);
 		rigidBody->setIsDebugEnabled(true);
-		// rigidBody->setAngularLockAxisFactor(reactphysics3d::Vector3(0.0, 1.0, 0.0));
+		rigidBody->setAngularLockAxisFactor(reactphysics3d::Vector3(0.0, 1.0, 0.0));
 		// rigidBody->applyLocalForceAtLocalPosition(Vector3(100, 100, 100) * Vector3(0, 1.5f, 0), Vector3(0.15, 0.7, 1.5));
 	}
 
