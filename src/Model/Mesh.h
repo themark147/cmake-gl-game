@@ -20,15 +20,15 @@ using namespace GLGame;
 namespace GLGame {
     struct Vertex {
         // position
-        glm::vec3 Position;
+        glm::vec3 Position = glm::vec3(1.0f);
         // normal
-        glm::vec3 Normal;
+        glm::vec3 Normal = glm::vec3(1.0f);
         // texCoords
         glm::vec2 TexCoords = glm::vec2(0.0f, 0.0f);
         // tangent
-        glm::vec3 Tangent;
+        glm::vec3 Tangent = glm::vec3(1.0f);
         // bitangent
-        glm::vec3 Bitangent;
+        glm::vec3 Bitangent = glm::vec3(1.0f);
         
         glm::ivec4 boneIds = glm::ivec4(0);
         glm::vec4 boneWeights = glm::vec4(0.0f);

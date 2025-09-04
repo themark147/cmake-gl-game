@@ -5,10 +5,12 @@
 
 #include "../Object/Object.h"
 #include "../Player/Player.h"
+#include "../Scene/ShadowMap.h"
 
 #include "../Shader.h"
 #include "../Camera.h"
 #include "../Model/Model.h"
+#include "../Physics/Physics.h"
 
 #include "../Debug/VertexArrayObject.h"
 #include "../Debug/VertexBufferObject.h"
@@ -19,24 +21,21 @@ using namespace reactphysics3d;
 
 extern std::string vertexShaderMain, fragmentShaderMain,
 	vertexShaderRender, fragmentShaderRender,
-	vertexShaderDebug, fragmentShaderDebug;
+	vertexShaderDebug, fragmentShaderDebug,
+	vertexShaderSimpleDepth, fragmentShaderSimpleDepth;
 
 namespace GLGame {
 	class Scene {
 	public:
 		Scene();
 		void render();
-
-		PhysicsCommon& getPhysicsCommon() {
-			return physicsCommon;
-		}
-
-		PhysicsWorld* getWorld() {
-			return world;
-		}
 		
 		GLGame::Player& getPlayer() {
 			return player;
+		}
+
+		GLGame::Physics& getPhysics() {
+			return physics;
 		}
 
 		void initDebug()
@@ -98,9 +97,10 @@ namespace GLGame {
 			mDebugTrianglesVAO.unbind();
 		}
 	private:
-		PhysicsCommon physicsCommon;
-		PhysicsWorld* world;
+		GLGame::Physics physics;
 		glm::mat4 playerModelTransform;
+
+		GLGame::ShadowMap shadowMap;
 
 		// TODO: object should contain model
 		std::vector<Object> objects;
@@ -108,13 +108,16 @@ namespace GLGame {
 
 		GLGame::Player player = GLGame::Player(
 			glm::vec3(0.0f, 0.0f, 15.0f),
-			Model("../../../resources/first_person_arms_ue5_5.glb", glm::vec3(.02f))
+			Model(std::string("first_person_arms_ue5_5.glb").insert(0, GLGame::RESOURCE_PATH), glm::vec3(.02f))
 		);
 
 		Camera& camera = Camera();
 
-		Shader debugShader = Shader(vertexShaderDebug, fragmentShaderDebug);
-		Shader mainShader = Shader(vertexShaderMain, fragmentShaderMain);
+		Shader debugShader = Shader(std::string("debug.vs").insert(0, GLGame::SHADER_PATH).c_str(), std::string("debug.fs").insert(0, GLGame::SHADER_PATH).c_str());
+		Shader mainShader = Shader(std::string("mainWShadow.vs").insert(0, GLGame::SHADER_PATH).c_str(), std::string("mainWShadow.fs").insert(0, GLGame::SHADER_PATH).c_str());
+		Shader simpleDepthShader = Shader(std::string("simpleDepth.vs").insert(0, GLGame::SHADER_PATH).c_str(), std::string("simpleDepth.fs").insert(0, GLGame::SHADER_PATH).c_str());
+		//Shader mainShader = Shader(vertexShaderMain, fragmentShaderMain);
+		//Shader simpleDepthShader = Shader(vertexShaderSimpleDepth, fragmentShaderSimpleDepth);
 
 		/// Vertex Buffer Object for the debug info lines vertices data
 		openglframework::VertexBufferObject mDebugVBOLinesVertices = openglframework::VertexBufferObject(GL_ARRAY_BUFFER);

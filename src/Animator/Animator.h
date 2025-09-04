@@ -148,7 +148,7 @@ namespace GLGame {
 		}
 
 	private:
-		glm::mat4 globalInverseTransform;
+		glm::mat4 globalInverseTransform = glm::mat4(1.0);
 		std::vector<glm::mat4> currentPose = {};
 		glm::mat4 identity = glm::mat4(1.0);
 

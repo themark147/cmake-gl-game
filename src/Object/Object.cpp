@@ -3,23 +3,26 @@
 using namespace reactphysics3d;
 
 namespace GLGame {
-	Object::Object(PhysicsCommon& common, PhysicsWorld* world, glm::vec3 position, BodyType type, glm::vec3 size, Model mesh)
+	Object::Object(PhysicsWorld* world, glm::vec3 position, BodyType type, CollisionShape *shape, Model mesh)
 		: position(position), mesh(mesh)
 	{
 		transform = Transform(Vector3(position.x, position.y, position.z), Quaternion::identity());
 
-		create(common, world, type, Vector3(size.x, size.y, size.z));
+		create(world, type, shape);
 	}
 
-	void Object::create(PhysicsCommon& common, PhysicsWorld* world, BodyType type, Vector3 size)
+	void Object::create(PhysicsWorld* world, BodyType type, CollisionShape *shape)
 	{
-		shape = common.createBoxShape(size);
 		rigidBody = world->createRigidBody(transform);
-		collider = rigidBody->addCollider(shape, Transform::identity());
+
+		glm::vec3 centerOffset = (mesh.GetBoundingBox().m_maxBounds + mesh.GetBoundingBox().m_minBounds) * 0.5f;
+		collider = rigidBody->addCollider(shape, Transform(Vector3(centerOffset.x, centerOffset.y, centerOffset.z), Quaternion::identity()));
+
 		collider->setIsSimulationCollider(true);
 		// collider->setIsTrigger(true);
 		rigidBody->setType(type);
 		rigidBody->setIsDebugEnabled(true);
+		rigidBody->setAngularLockAxisFactor(reactphysics3d::Vector3(0.0, 1.0, 0.0));
 		// rigidBody->applyLocalForceAtLocalPosition(Vector3(100, 100, 100) * Vector3(0, 1.5f, 0), Vector3(0.15, 0.7, 1.5));
 	}
 

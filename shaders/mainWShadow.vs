@@ -22,14 +22,27 @@ uniform mat4 projection;
 uniform mat4 lightSpaceMatrix;
 
 uniform mat4 bone_transforms[100];
-out vec4 bw;
 
 void main()
 {
+    mat4 boneTransform  =  mat4(1.0);
+	boneTransform  +=    bone_transforms[int(boneIds.x)] * boneWeights.x;
+	boneTransform  +=    bone_transforms[int(boneIds.y)] * boneWeights.y;
+	boneTransform  +=    bone_transforms[int(boneIds.z)] * boneWeights.z;
+	boneTransform  +=    bone_transforms[int(boneIds.w)] * boneWeights.w;
+
+    vec4 pos = boneTransform * vec4(aPos, 1.0);
+    
     FragPos = vec3(model * vec4(aPos, 1.0));
-    Normal = transpose(inverse(mat3(model))) * aNormal;
     TexCoords = aTexCoords;
 
+    mat3 normalMatrix = transpose(inverse(mat3(model))) * mat3(boneTransform);
+
+    Normal = normalMatrix * aNormal;
+    Tangent = normalMatrix * aTangent;
+    Bitangent = normalMatrix * aBitangent;
+
     FragPosLightSpace = lightSpaceMatrix * vec4(FragPos, 1.0);
-    gl_Position = projection * view * model * vec4(aPos, 1.0);
+    
+    gl_Position = projection * view * model * pos;
 }

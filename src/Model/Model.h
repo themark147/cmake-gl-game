@@ -34,11 +34,16 @@ namespace GLGame {
     class Model
     {
     public:
+        struct BoundingBox2 {
+            glm::vec3 m_minBounds = glm::vec3(FLT_MAX);
+            glm::vec3 m_maxBounds = glm::vec3(-FLT_MAX);
+        };
+
         // model data 
         vector<GLGame::Texture> textures_loaded;	// stores all the textures loaded so far, optimization to make sure textures aren't loaded more than once.
         vector<Mesh>    meshes;
         string directory;
-        glm::vec3 scale;
+        glm::vec3 scale = glm::vec3(1.0f);
 
         GLGame::Transformation transform;
 
@@ -64,7 +69,13 @@ namespace GLGame {
                 meshes[i].Draw(shader);
         }
 
+        GLGame::Model::BoundingBox2 GetBoundingBox() const {
+            return bounds;
+        }
+
     private:
+        BoundingBox2 bounds;
+
         inline glm::mat4 assimpToGlmMatrix(aiMatrix4x4 mat) {
             glm::mat4 m;
             for (int y = 0; y < 4; y++)
@@ -96,6 +107,24 @@ namespace GLGame {
 
             // process ASSIMP's root node recursively
             processNode(scene->mRootNode, scene);
+
+            // calculate bounds
+            for (unsigned int i = 0; i < scene->mNumMeshes; i++) {
+                aiMesh* mesh = scene->mMeshes[i];
+                for (unsigned int j = 0; j < mesh->mNumVertices; j++) {
+                    aiVector3D vertex = mesh->mVertices[j];
+
+                    // Update min bounds
+                    bounds.m_minBounds.x = std::min(bounds.m_minBounds.x, vertex.x);
+                    bounds.m_minBounds.y = std::min(bounds.m_minBounds.y, vertex.y);
+                    bounds.m_minBounds.z = std::min(bounds.m_minBounds.z, vertex.z);
+
+                    // Update max bounds
+                    bounds.m_maxBounds.x = std::max(bounds.m_maxBounds.x, vertex.x);
+                    bounds.m_maxBounds.y = std::max(bounds.m_maxBounds.y, vertex.y);
+                    bounds.m_maxBounds.z = std::max(bounds.m_maxBounds.z, vertex.z);
+                }
+            }
         }
 
         // processes a node in a recursive fashion. Processes each individual mesh located at the node and repeats this process on its children nodes (if any).

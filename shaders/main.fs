@@ -5,6 +5,7 @@ in vec2 TexCoords;
 in vec3 Normal;
 in vec3 Tangent;
 in vec3 Bitangent;
+in vec4 FragPosLightSpace;
 
 out vec4 FragColor;
 
@@ -12,6 +13,8 @@ struct Material {
     sampler2D diffuse; // albedo
     sampler2D normal;
 }; 
+
+uniform sampler2D shadowMap;
 
 // Camera position
 uniform vec3 viewPos;
@@ -24,6 +27,22 @@ uniform vec3 lightDir;
 uniform Material material;
 
 const float PI = 3.14159265359;
+
+float ShadowCalculation(vec4 fragPosLightSpace)
+{
+    // perform perspective divide
+    vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
+    // transform to [0,1] range
+    projCoords = projCoords * 0.5 + 0.5;
+    // get closest depth value from light's perspective (using [0,1] range fragPosLight as coords)
+    float closestDepth = texture(shadowMap, projCoords.xy).r; 
+    // get depth of current fragment from light's perspective
+    float currentDepth = projCoords.z;
+    // check whether current frag pos is in shadow
+    float shadow = currentDepth > closestDepth  ? 1.0 : 0.0;
+
+    return shadow;
+}
 
 // Function to calculate the normal from the normal map
 vec3 getNormalFromMap()
@@ -93,56 +112,26 @@ vec3 sRGBToLinear(vec3 color)
 }
 
 void main()
-{
-    // Sample textures
-    vec3 albedo = sRGBToLinear(texture(material.diffuse, TexCoords).rgb);
-    float metallic = 0;
-    float roughness = 0.859;
-    vec3 N = getNormalFromMap();
-    vec3 V = normalize(viewPos - FragPos);
-
-    // Calculate reflectance at normal incidence
-    vec3 F0 = vec3(0.04);
-    F0 = mix(F0, albedo, metallic);
-
-    // Reflectance equation
-    vec3 Lo = vec3(0.0);
-
-    // Directional light calculation
-    vec3 L = normalize(-lightDir);
-    vec3 H = normalize(V + L);
-
-    // Cook-Torrance BRDF
-    float NDF = DistributionGGX(N, H, roughness);
-    float G = GeometrySmith(N, V, L, roughness);
-    vec3 F = fresnelSchlick(max(dot(H, V), 0.0), F0);
-
-    vec3 numerator = NDF * G * F;
-    float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.0001; // + 0.0001 to prevent divide by zero
-    vec3 specular = numerator / denominator;
-
-    // kS is equal to Fresnel
-    vec3 kS = F;
-    // For energy conservation, the diffuse and specular light can't be above 1.0 (unless the surface emits light);
-    // to preserve this relationship the diffuse component (kD) should equal 1.0 - kS.
-    vec3 kD = vec3(1.0) - kS;
-    // Multiply kD by the inverse metalness such that only non-metals have diffuse lighting
-    kD *= 1.0 - metallic;
-
-    // Scale light by NdotL
-    float NdotL = max(dot(N, L), 0.0);
-
-    // Add to outgoing radiance Lo
-    Lo += (kD * albedo / PI + specular) * lightColor * NdotL * 5.0;
-
-    // Ambient lighting (simple approximation)
-    vec3 ambient = vec3(0.03) * albedo;
-
-    vec3 color = ambient + Lo;
-
-    // Gamma correction
-    color = color / (color + vec3(1.0));
-    color = pow(color, vec3(1.0 / 2.2));
-
-    FragColor = vec4(color, 1.0);
+{           
+    vec3 color = sRGBToLinear(texture(material.diffuse, TexCoords).rgb);
+    vec3 normal = normalize(Normal);
+    vec3 lightColor = vec3(0.3);
+    // ambient
+    vec3 ambient = 0.3 * lightColor;
+    // diffuse
+    vec3 lightDir = normalize(lightPos - FragPos);
+    float diff = max(dot(lightDir, normal), 0.0);
+    vec3 diffuse = diff * lightColor;
+    // specular
+    vec3 viewDir = normalize(viewPos - FragPos);
+    vec3 reflectDir = reflect(-lightDir, normal);
+    float spec = 0.0;
+    vec3 halfwayDir = normalize(lightDir + viewDir);  
+    spec = pow(max(dot(normal, halfwayDir), 0.0), 64.0);
+    vec3 specular = spec * lightColor;    
+    // calculate shadow
+    float shadow = ShadowCalculation(FragPosLightSpace);                      
+    vec3 lighting = (ambient + (1.0 - shadow) * (diffuse + specular)) * color;    
+    
+    FragColor = vec4(lighting, 1.0);
 }

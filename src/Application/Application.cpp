@@ -64,7 +64,7 @@ namespace GLGame {
 			glfwSetWindowShouldClose(window, true);
 		
 		if (controller.isKeyPressed(KeyInput::KeyDefinition::KEY_TAB)) {
-			scene->getWorld()->setIsDebugRenderingEnabled(true);
+			scene->getPhysics().getWorld()->setIsDebugRenderingEnabled(true);
 		}
 
 		controller.processKeys(window);

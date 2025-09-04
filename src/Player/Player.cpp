@@ -2,7 +2,7 @@
 #include "../Input/KeyController.h"
 #include "../Application/Application.h"
 
-#include "../Object/CustomRaycastCallback.h";
+#include "../Object/CustomRaycastCallback.h"
 
 namespace GLGame {
 	float step = 1.0f / 100.0f;
@@ -156,7 +156,7 @@ namespace GLGame {
 		getMesh().Draw(shader);
 	}
 
-	glm::mat4& Player::applyTransform(Shader& shader)
+	glm::mat4 Player::applyTransform(Shader& shader)
 	{
 		glm::mat4 model = glm::mat4(1.0f);
 		glm::vec3 modelPosition = camera.getCameraOffset(glm::vec3(0.0f, -0.25f, 0.0f));
