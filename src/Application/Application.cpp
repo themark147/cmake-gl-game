@@ -45,6 +45,7 @@ namespace GLGame {
 
 		glEnable(GL_DEPTH_TEST);
 		glfwSwapInterval(0); // vsync
+		glEnable(GL_MULTISAMPLE);
 
 		stbi_set_flip_vertically_on_load(true); // Because of textures
 
@@ -69,7 +70,7 @@ namespace GLGame {
 
 		controller.processKeys(window);
 
-		glClearColor(0.0f, 0.3f, 0.3f, 1.0f);
+		glClearColor(0.121f, 0.121f, 0.14f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		scene->render();

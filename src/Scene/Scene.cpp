@@ -38,33 +38,41 @@ namespace GLGame {
 			world,
 			glm::vec3(0.0f, -2.0f, 10.0f),
 			BodyType::STATIC,
-			common.createBoxShape(Vector3(10.0f, 0.2f, 10.0f)),
-			Model(std::string("FirstPersonMap.glb").insert(0, GLGame::RESOURCE_PATH), glm::vec3(2.0f))
+			common.createBoxShape(Vector3(10.0f, 0.20f, 10.0f)),
+			Model(std::string("first_person_arms_pivot.glb").insert(0, GLGame::RESOURCE_PATH), glm::vec3(2.0f))
 		));
 
 		objects.push_back(GLGame::Object(
 			world,
 			glm::vec3(-21.5f, -1.0f, 10.0f),
 			BodyType::STATIC,
-			common.createBoxShape(Vector3(10.0f, 0.2f, 10.0f)),
-			Model(std::string("FirstPersonMap.glb").insert(0, GLGame::RESOURCE_PATH), glm::vec3(2.0f))
+			common.createBoxShape(Vector3(10.0f, 0.20f, 10.0f)),
+			Model(std::string("first_person_arms_pivot.glb").insert(0, GLGame::RESOURCE_PATH), glm::vec3(2.0f))
 		));
 
 		objects.push_back(GLGame::Object(
 			world,
 			glm::vec3(21.5f, -3.0f, 10.0f),
 			BodyType::STATIC,
-			common.createBoxShape(Vector3(10.0f, 0.2f, 10.0f)),
-			Model(std::string("FirstPersonMap.glb").insert(0, GLGame::RESOURCE_PATH), glm::vec3(2.0f))
+			common.createBoxShape(Vector3(10.0f, 0.20f, 10.0f)),
+			Model(std::string("first_person_arms_pivot.glb").insert(0, GLGame::RESOURCE_PATH), glm::vec3(2.0f))
 		));
 
 		objects.push_back(GLGame::Object(
 			world,
 			glm::vec3(0.0f, -3.5f, 31.0f),
 			BodyType::STATIC,
-			common.createBoxShape(Vector3(10.0f, 0.2f, 10.0f)),
-			Model(std::string("FirstPersonMap.glb").insert(0, GLGame::RESOURCE_PATH), glm::vec3(2.0f))
+			common.createBoxShape(Vector3(10.0f, 0.20f, 10.0f)),
+			Model(std::string("first_person_arms_pivot.glb").insert(0, GLGame::RESOURCE_PATH), glm::vec3(2.0f))
 		));
+
+		waves = new GLGame::Object(
+			world,
+			glm::vec3(0.0f, 3.0f, 0.0f),
+			BodyType::STATIC,
+			common.createBoxShape(Vector3(10.0f, 0.20f, 10.0f)),
+			Model(std::string("plane.glb").insert(0, GLGame::RESOURCE_PATH), glm::vec3(5.0f))
+		);
 
 		mainShader.use();
 		mainShader.setVec3("lightColor", 0.5f, 0.5f, 0.5f);
@@ -93,6 +101,7 @@ namespace GLGame {
 		for (GLGame::Object obj : objects) {
 			obj.render(simpleDepthShader);
 		}
+		waves->render(simpleDepthShader);
 
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);		
 
@@ -147,5 +156,23 @@ namespace GLGame {
 		for (GLGame::Object obj : objects) {
 			obj.render(mainShader);
 		}
+
+		simpleWaterShader.use();
+
+		simpleWaterShader.setMat4("u_projection", projection);
+		simpleWaterShader.setMat4("u_view", view);
+
+		simpleWaterShader.setFloat("u_time", glfwGetTime());
+
+		simpleWaterShader.setFloat("u_waveAmplitude", 0.1f);
+		simpleWaterShader.setFloat("u_waveFrequency", 5.0f);
+		simpleWaterShader.setFloat("u_waveSpeed", 2.0f);
+
+		simpleWaterShader.setVec3("u_viewPos", player.getCamera().Position);
+		simpleWaterShader.setVec3("u_lightPos", glm::vec3(2.0f, 2.0f, 3.0f));
+		simpleWaterShader.setVec3("u_lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
+		simpleWaterShader.setVec3("u_objectColor", glm::vec3(0.2f, 0.5f, 0.8f));		
+
+		waves->render(simpleWaterShader);
 	}
 }

@@ -12,7 +12,9 @@ file(GLOB SOURCES "src/**/*.cpp")
 file(GLOB INCLUDES2 "src/**/*.h")
 set(SOURCE_FILES ${SOURCES} src/Main.cpp src/stb.cpp external/glad.c)
 
+
 add_executable("${CMAKE_PROJECT_NAME}" ${SOURCE_FILES})
+
 
 function(embed_shader SHADER_SRC SHADER_VAR_NAME)
     file(READ ${SHADER_SRC} SHADER_CONTENT)
@@ -31,6 +33,9 @@ embed_shader(shaders/mainWShadow.vs vertexShaderMain)
 embed_shader(shaders/mainWShadow.fs fragmentShaderMain)
 embed_shader(shaders/simpleDepth.fs fragmentShaderSimpleDepth)
 embed_shader(shaders/simpleDepth.vs vertexShaderSimpleDepth)
+
+embed_shader(shaders/water.vs vertexWater)
+embed_shader(shaders/water.fs fragmentWater)
 
 
 # file(GLOB RESOURCE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/resources/*")
