@@ -23,7 +23,8 @@ extern std::string vertexShaderMain, fragmentShaderMain,
 	vertexShaderRender, fragmentShaderRender,
 	vertexShaderDebug, fragmentShaderDebug,
 	vertexShaderSimpleDepth, fragmentShaderSimpleDepth,
-	vertexWater, fragmentWater;
+	vertexWater, fragmentWater,
+	vertexHeight, fragmentHeight;
 
 namespace GLGame {
 	class Scene {
@@ -120,6 +121,7 @@ namespace GLGame {
 		Shader mainShader = Shader(std::string("mainWShadow.vs").insert(0, GLGame::SHADER_PATH).c_str(), std::string("mainWShadow.fs").insert(0, GLGame::SHADER_PATH).c_str());
 		Shader simpleDepthShader = Shader(std::string("simpleDepth.vs").insert(0, GLGame::SHADER_PATH).c_str(), std::string("simpleDepth.fs").insert(0, GLGame::SHADER_PATH).c_str());
 		Shader simpleWaterShader = Shader(std::string("water.vs").insert(0, GLGame::SHADER_PATH).c_str(), std::string("water.fs").insert(0, GLGame::SHADER_PATH).c_str());
+		Shader heightShader = Shader(std::string("height.vs").insert(0, GLGame::SHADER_PATH).c_str(), std::string("height.fs").insert(0, GLGame::SHADER_PATH).c_str());
 		//Shader mainShader = Shader(vertexShaderMain, fragmentShaderMain);
 		//Shader simpleDepthShader = Shader(vertexShaderSimpleDepth, fragmentShaderSimpleDepth);
 
