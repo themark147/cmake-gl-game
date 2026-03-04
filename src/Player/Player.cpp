@@ -141,13 +141,13 @@ namespace GLGame {
 		);
 	}
 
-	void Player::draw(Shader& shader)
+	void Player::draw(Shader& shader, glm::mat4& projection, glm::mat4& view)
 	{
-		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)GLGame::Application::get().getWidth() / (float)GLGame::Application::get().getHeight(), 0.1f, 100.0f);
-		glm::mat4 view = camera.GetViewMatrix();
+		glm::mat4 projectionLocal = glm::perspective(glm::radians(camera.Zoom), (float)GLGame::Application::get().getWidth() / (float)GLGame::Application::get().getHeight(), 0.1f, 100.0f);
+		glm::mat4 viewLocal = camera.GetViewMatrix();		
 
-		shader.setMat4("projection", projection);
-		shader.setMat4("view", view);
+		shader.setMat4("projection", projectionLocal);
+		shader.setMat4("view", viewLocal);
 		shader.setVec3("viewPos", camera.Position);
 
 		glm::mat4 model = applyTransform(shader);

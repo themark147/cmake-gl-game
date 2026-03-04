@@ -12,8 +12,7 @@
 #include "../Model/Model.h"
 #include "../Physics/Physics.h"
 
-#include "../Debug/VertexArrayObject.h"
-#include "../Debug/VertexBufferObject.h"
+#include "../Debug/DebugRender.h"
 
 #include "../ObjectSpawner.h"
 
@@ -40,75 +39,16 @@ namespace GLGame {
 			return physics;
 		}
 
-		void initDebug()
-		{
-			mDebugVBOLinesVertices.create();
-
-			// Create the VAO for both VBOs
-			mDebugLinesVAO.create();
-			mDebugLinesVAO.bind();
-
-			// Bind the VBO of vertices
-			mDebugVBOLinesVertices.bind();
-
-			// Unbind the VAO
-			mDebugLinesVAO.unbind();
-
-			mDebugVBOLinesVertices.unbind();
-
-			// ----- Triangles ----- //
-
-			// Create the VBO for the vertices data
-			mDebugVBOTrianglesVertices.create();
-
-			// Create the VAO for both VBOs
-			mDebugTrianglesVAO.create();
-			mDebugTrianglesVAO.bind();
-
-			// Bind the VBO of vertices
-			mDebugVBOTrianglesVertices.bind();
-
-			// Unbind the VAO
-			mDebugTrianglesVAO.unbind();
-
-			mDebugVBOTrianglesVertices.unbind();
-		}
-
-		void drawDebug(DebugRenderer& debugRenderer, unsigned int vertexPositionLoc, unsigned int vertexColorLoc)
-		{
-			// Bind the VAO
-			mDebugTrianglesVAO.bind();
-
-			mDebugVBOTrianglesVertices.bind();
-
-			glVertexAttribPointer(vertexPositionLoc, 3, GL_FLOAT, GL_FALSE, sizeof(rp3d::Vector3) + sizeof(rp3d::uint32), (char*)nullptr);
-			glEnableVertexAttribArray(vertexPositionLoc);
-
-			// glVertexAttribIPointer(vertexColorLoc, 3, GL_UNSIGNED_INT, sizeof(rp3d::Vector3) + sizeof(rp3d::uint32), (void*)sizeof(rp3d::Vector3));
-			// glEnableVertexAttribArray(vertexColorLoc);
-
-			 // Draw the triangles geometry
-			glDrawArrays(GL_TRIANGLES, 0, debugRenderer.getNbTriangles() * 3);
-
-			glDisableVertexAttribArray(vertexPositionLoc);
-			//glDisableVertexAttribArray(vertexColorLoc);
-
-			mDebugVBOTrianglesVertices.unbind();
-
-			// Unbind the VAO
-			mDebugTrianglesVAO.unbind();
-		}
 	private:
 		GLGame::Physics physics;
-		glm::mat4 playerModelTransform;
+		// glm::mat4 playerModelTransform;
 
 		GLGame::ShadowMap shadowMap;
 
+		GLGame::DebugRender debugRender = GLGame::DebugRender();
+
 		// TODO: object should contain model
 		std::vector<Object> objects;
-		std::vector<Model> models;
-
-		GLGame::Object* waves = nullptr;
 
 		GLGame::Player player = GLGame::Player(
 			glm::vec3(0.0f, 0.0f, 15.0f),
@@ -124,17 +64,5 @@ namespace GLGame {
 		Shader heightShader = Shader(std::string("height.vs").insert(0, GLGame::SHADER_PATH).c_str(), std::string("height.fs").insert(0, GLGame::SHADER_PATH).c_str());
 		//Shader mainShader = Shader(vertexShaderMain, fragmentShaderMain);
 		//Shader simpleDepthShader = Shader(vertexShaderSimpleDepth, fragmentShaderSimpleDepth);
-
-		/// Vertex Buffer Object for the debug info lines vertices data
-		openglframework::VertexBufferObject mDebugVBOLinesVertices = openglframework::VertexBufferObject(GL_ARRAY_BUFFER);
-
-		/// Vertex Array Object for the lines vertex data
-		openglframework::VertexArrayObject mDebugLinesVAO;
-
-		/// Vertex Buffer Object for the debug info trinangles vertices data
-		openglframework::VertexBufferObject mDebugVBOTrianglesVertices = openglframework::VertexBufferObject(GL_ARRAY_BUFFER);
-
-		/// Vertex Array Object for the triangles vertex data
-		openglframework::VertexArrayObject mDebugTrianglesVAO;
 	};
 }

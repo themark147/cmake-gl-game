@@ -1,6 +1,6 @@
 1. `git clone --recursive git@github.com:themark147/cmake-gl-game.git`
 
-2. #include <chrono> - to DefaultLogger in reactphysics3d
+2. `#include <chrono>` - to DefaultLogger in reactphysics3d
 
 
 ### Add new submodule to lib (only if submodule contains CMakefile)

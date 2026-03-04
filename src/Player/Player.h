@@ -17,7 +17,7 @@ namespace GLGame {
 		void processMovementInput();
 		void processRayCast(RaycastCallback &callback);
 		void resetLocation();
-		void draw(Shader& shader);
+		void draw(Shader& shader, glm::mat4& projection, glm::mat4& view);
 
 		Camera& getCamera() {
 			return camera;

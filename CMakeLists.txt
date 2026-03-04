@@ -10,12 +10,10 @@ find_package(OpenGL REQUIRED)
 
 file(GLOB SOURCES "src/**/*.cpp")
 file(GLOB INCLUDES2 "src/**/*.h")
-set(SOURCE_FILES src/Main2.cpp src/stb.cpp external/glad.c)
+set(SOURCE_FILES src/Main.cpp src/stb.cpp external/glad.c)
 
 
-
-
-add_executable("${CMAKE_PROJECT_NAME}" ${SOURCE_FILES})
+add_executable("${CMAKE_PROJECT_NAME}" ${SOURCE_FILES} ${SOURCES})
 
 
 function(embed_shader SHADER_SRC SHADER_VAR_NAME)
@@ -41,7 +39,6 @@ embed_shader(shaders/water.fs fragmentWater)
 
 embed_shader(shaders/height.fs fargmentHeight)
 embed_shader(shaders/height.vs vertexHeight)
-
 
 # file(GLOB RESOURCE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/resources/*")
 # foreach(RESOURCE ${RESOURCE_FILES})
