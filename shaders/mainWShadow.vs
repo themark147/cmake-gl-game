@@ -17,6 +17,7 @@ out vec3 Bitangent;
 out vec4 FragPosLightSpace;
 
 uniform mat4 model;
+uniform mat3 normalMatrix;
 uniform mat4 view;
 uniform mat4 projection;
 uniform mat4 lightSpaceMatrix;
@@ -36,11 +37,11 @@ void main()
     FragPos = vec3(model * vec4(aPos, 1.0));
     TexCoords = aTexCoords;
 
-    mat3 normalMatrix = transpose(inverse(mat3(model))) * mat3(boneTransform);
+    mat3 nm = normalMatrix * mat3(boneTransform);
 
-    Normal = normalMatrix * aNormal;
-    Tangent = normalMatrix * aTangent;
-    Bitangent = normalMatrix * aBitangent;
+    Normal = nm * aNormal;
+    Tangent = nm * aTangent;
+    Bitangent = nm * aBitangent;
 
     FragPosLightSpace = lightSpaceMatrix * vec4(FragPos, 1.0);
     

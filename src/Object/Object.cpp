@@ -86,8 +86,9 @@ namespace GLGame {
 
 		model = glm::rotate(model, transformation.angle, transformation.axis);
 
-		// lightingShader.setMat4("model", model * (*it)->getRotationMatrix());
-		shader.setMat4("model", model * getRotationMatrix());
+		glm::mat4 finalModel = model * getRotationMatrix();
+		shader.setMat4("model", finalModel);
+		shader.setMat3("normalMatrix", glm::transpose(glm::inverse(glm::mat3(finalModel))));
 		mesh.Draw(shader);
 	}
 

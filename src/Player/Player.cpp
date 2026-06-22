@@ -154,6 +154,7 @@ namespace GLGame {
 		glm::mat4 model = applyTransform(shader);
 
 		shader.setMat4("model", model);
+		shader.setMat3("normalMatrix", glm::transpose(glm::inverse(glm::mat3(model))));
 		getMesh().Draw(shader);
 	}
 

@@ -77,7 +77,7 @@ namespace GLGame {
                      glActiveTexture(GL_TEXTURE0 + i); // active proper texture unit before binding
 
                     // now set the sampler to the correct texture unit
-                    glUniform1i(glGetUniformLocation(shader.ID, textures[i]->type.c_str()), i);
+                    shader.setInt(textures[i]->type, i);
 
                     // and finally bind the texture
                     glBindTexture(GL_TEXTURE_2D, textures[i]->id);

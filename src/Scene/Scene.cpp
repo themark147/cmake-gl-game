@@ -93,10 +93,10 @@ namespace GLGame {
 		shadowMap.render(simpleDepthShader, camera.Position);
 		
 		player.draw(simpleDepthShader, projection, view);
-		for (GLGame::Object obj : objects) {
+		for (GLGame::Object& obj : objects) {
 			obj.render(simpleDepthShader);
 		}
-		for (GLGame::Character character : characters) {
+		for (GLGame::Character& character : characters) {
 			character.render(simpleDepthShader);
 		}
 
@@ -128,7 +128,7 @@ namespace GLGame {
 			obj.render(mainShader);
 		}
 
-		for (GLGame::Character character : characters) {
+		for (GLGame::Character& character : characters) {
 			character.render(mainShader);
 		}
 	}
