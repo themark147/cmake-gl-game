@@ -14,24 +14,18 @@ namespace GLGame {
 		reactphysics3d::PhysicsCommon& common = physics.getPhysicsCommon();
 
 		// Init player
-		player.setSpawner(new GLGame::ObjectSpawner(world, objects));
+		player.setSpawner(new GLGame::ObjectSpawner(world, common, getObjects()));
 		player.setWorld(world);
+		// player.setCommon(common);
 		player.setCollider(GLGame::Collider(common, world, glm::vec3(player.getCamera().Position)));
 
 		// Select the contact points and contact normals to be displayed
 		world->getDebugRenderer().setIsDebugItemDisplayed(DebugRenderer::DebugItem::COLLISION_SHAPE, true);	
 
-		// Init objects
-		GLGame::Object zombie = GLGame::Object(
-			world,
-			glm::vec3(0.0f, 4.0f, 10.0f),
-			BodyType::DYNAMIC,
-			common.createCapsuleShape(.5f, 1.22f),
-			Model(std::string("zombie_w_anim.glb").insert(0, GLGame::RESOURCE_PATH), glm::vec3(.0002f))
-		);
-		zombie.setTransformation(GLGame::Transformation(glm::radians(180.0f)));
-		objects.push_back(zombie);
-		
+		// Init characters
+		characters.push_back(Character(world, common));
+
+		// Init objects		
 		objects.push_back(GLGame::Object(
 			world,
 			glm::vec3(0.0f, -2.0f, 10.0f),
@@ -102,6 +96,9 @@ namespace GLGame {
 		for (GLGame::Object obj : objects) {
 			obj.render(simpleDepthShader);
 		}
+		for (GLGame::Character character : characters) {
+			character.render(simpleDepthShader);
+		}
 
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);		
 
@@ -127,8 +124,12 @@ namespace GLGame {
 
 		player.draw(mainShader, projection, view);
 
-		for (GLGame::Object obj : objects) {
+		for (GLGame::Object& obj : getObjects()) {
 			obj.render(mainShader);
+		}
+
+		for (GLGame::Character character : characters) {
+			character.render(mainShader);
 		}
 	}
 }

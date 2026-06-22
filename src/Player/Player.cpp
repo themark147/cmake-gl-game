@@ -17,8 +17,9 @@ namespace GLGame {
 	bool isJumping = false;
 	double startJump;
 
-	Player::Player(glm::vec3 position, GLGame::Model mesh, reactphysics3d::PhysicsWorld* world) : world(world), mesh(mesh) {
+	Player::Player(glm::vec3 position, GLGame::Model mesh, reactphysics3d::PhysicsWorld* world, PhysicsCommon& common) : world(world), common(common), mesh(mesh) {
 		camera = Camera(position);
+		// spawner = new ObjectSpawner(world, common);
 	}
 	
 	void Player::processInput()
@@ -28,7 +29,7 @@ namespace GLGame {
 		if (keyController.isKeyPressed(KeyInput::KeyDefinition::KEY_F)) {
 			glm::vec3 spawnPosition = (camera.Front * glm::vec3(10)) + camera.Position;
 
-			spawner->createBox(spawnPosition);
+			spawner->createBox(spawnPosition, camera.Front);
 		}
 	}
 

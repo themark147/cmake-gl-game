@@ -16,6 +16,8 @@
 
 #include "../ObjectSpawner.h"
 
+#include "../Character/Character.h"
+
 using namespace reactphysics3d;
 
 extern std::string vertexShaderMain, fragmentShaderMain,
@@ -39,6 +41,10 @@ namespace GLGame {
 			return physics;
 		}
 
+		std::vector<GLGame::Object>& getObjects() {
+			return objects;
+		}
+
 	private:
 		GLGame::Physics physics;
 		// glm::mat4 playerModelTransform;
@@ -47,12 +53,15 @@ namespace GLGame {
 
 		GLGame::DebugRender debugRender = GLGame::DebugRender();
 
-		// TODO: object should contain model
 		std::vector<Object> objects;
+
+		std::vector<Character> characters;
 
 		GLGame::Player player = GLGame::Player(
 			glm::vec3(0.0f, 0.0f, 15.0f),
-			Model(std::string("first_person_arms_ue5_5.glb").insert(0, GLGame::RESOURCE_PATH), glm::vec3(.02f))
+			Model(std::string("first_person_arms_ue5_5.glb").insert(0, GLGame::RESOURCE_PATH), glm::vec3(.02f)),
+			physics.getWorld(),
+			physics.getPhysicsCommon()
 		);
 
 		Camera& camera = Camera();

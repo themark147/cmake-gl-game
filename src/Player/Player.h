@@ -11,7 +11,7 @@
 namespace GLGame {
 	class Player {
 	public:
-		Player(glm::vec3 position, GLGame::Model mesh = Model(), reactphysics3d::PhysicsWorld* world = nullptr);
+		Player(glm::vec3 position, GLGame::Model mesh, reactphysics3d::PhysicsWorld* world, PhysicsCommon& common);
 		void processInput();
 		void processMouseInput();
 		void processMovementInput();
@@ -21,10 +21,6 @@ namespace GLGame {
 
 		Camera& getCamera() {
 			return camera;
-		}
-
-		void setSpawner(ObjectSpawner* spawner) {
-			this->spawner = spawner;
 		}
 
 		GLGame::Model getMesh() {
@@ -46,6 +42,10 @@ namespace GLGame {
 		void setWorld(reactphysics3d::PhysicsWorld* world) {
 			this->world = world;
 		}
+
+		void setSpawner(GLGame::ObjectSpawner* spawner) {
+			this->spawner = spawner;
+		}
 	private:
 		glm::mat4 applyTransform(Shader& shader);
 		
@@ -53,6 +53,7 @@ namespace GLGame {
 		KeyInput::KeyController& keyController = KeyInput::KeyController::get();
 		GLGame::ObjectSpawner* spawner = nullptr;
 		reactphysics3d::PhysicsWorld* world;
+		reactphysics3d::PhysicsCommon& common;
 		GLGame::Model mesh;
 		GLGame::Collider collider;
 	};

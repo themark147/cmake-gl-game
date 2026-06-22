@@ -278,7 +278,7 @@ namespace GLGame {
             //textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
             // 3. normal maps
             std::vector<Texture> normalMaps = loadTextures(material, aiTextureType_NORMALS, "material.normal", scene);
-            Texture normalTexture = normalMaps.front();
+            //Texture normalTexture = normalMaps.front();
             // 4. height maps
             //std::vector<Texture> heightMaps = loadMaterialTextures(material, aiTextureType_HEIGHT, "texture_height");
             //textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
@@ -300,7 +300,7 @@ namespace GLGame {
             std::string path = "";
 
             texturesToMaterial.push_back(new GLGame::Texture(diffuseTexture.id, diffuseTexture.type, path));
-            texturesToMaterial.push_back(new GLGame::Texture(normalTexture.id, normalTexture.type, path));
+            //texturesToMaterial.push_back(new GLGame::Texture(normalTexture.id, normalTexture.type, path));
             texturesToMaterial.push_back(metallic);
 
             // Create a Mesh object with the correct parameter types
